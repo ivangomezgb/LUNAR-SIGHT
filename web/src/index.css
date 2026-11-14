@@ -1,0 +1,128 @@
+:root {
+  --bg: #07090d;
+  --bg-2: #0b0e14;
+  --panel: #10141c;
+  --panel-2: #151a24;
+  --line: #222937;
+  --line-2: #2d3546;
+  --text: #e8ecf3;
+  --text-2: #aab3c3;
+  --muted: #7a8496;
+  --sun: #f5c542;
+  --sun-dim: #8a6f22;
+  --earth: #4ea1ff;
+  --earth-dim: #1f4f86;
+  --hidden: #6b7280;
+  --terrain-hi: #7a6a58;
+  --terrain-lo: #2a231d;
+  --terrain-ridge: #c2ab8e;
+  --sky-top: #05070c;
+  --sky-bottom: #111a2b;
+  --ok: #3ccf8e;
+  --warn: #ff9f43;
+  --bad: #ff5d6c;
+  --accent: #8fb3ff;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color-scheme: dark;
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100%;
+  background: var(--bg);
+}
+
+body {
+  background:
+    radial-gradient(1200px 600px at 80% -10%, rgba(78, 161, 255, 0.06), transparent 60%),
+    radial-gradient(900px 500px at 0% 0%, rgba(245, 197, 66, 0.04), transparent 60%),
+    var(--bg);
+  overflow-x: hidden;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  line-height: 1.2;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+p {
+  margin: 0.4em 0;
+}
+
+a {
+  color: var(--accent);
+}
+
+code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--panel-2);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+button,
+input,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.mono {
+  font-family: var(--mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.small {
+  font-size: 0.82rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
