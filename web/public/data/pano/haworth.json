@@ -1,0 +1,29 @@
+{
+  "id": "haworth",
+  "observer_height_m": 2,
+  "width": 1536,
+  "height": 400,
+  "az0_deg": 0,
+  "el_top_deg": 15.0,
+  "el_bottom_deg": -20.0,
+  "dist": {
+    "file": "haworth.dist.bin",
+    "dtype": "uint16",
+    "unit_m": 4,
+    "sky": 0
+  },
+  "normal": {
+    "file": "haworth.normal.bin",
+    "dtype": "uint8x2",
+    "encoding": "octahedral, local ENU"
+  },
+  "max_dist_m": 200000,
+  "validation": {
+    "clipped_columns": 0,
+    "unclipped_within_0_2_deg_pct": 100.0,
+    "within_0_2_deg_pct": 100.0,
+    "max_error_deg": 0.07640624999999929,
+    "p99_error_deg": 0.05171093750000035
+  },
+  "runtime_s": 11.114
+}
