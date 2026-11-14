@@ -90,7 +90,10 @@ def run_optional(module: str, only: str = "") -> None:
         export.warn(f"{name} not present; skipping {module}")
         return
     cmd = [sys.executable, "-m", name]
-    if only:
+    if only and module == "uncertainty":  # its CLI takes a repeatable --site
+        for sid in only.split(","):
+            cmd += ["--site", sid]
+    elif only:
         cmd += ["--only", only]
     try:
         result = subprocess.run(cmd, cwd=PIPELINE_DIR)

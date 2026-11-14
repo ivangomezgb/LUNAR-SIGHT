@@ -13,7 +13,8 @@ def test_optional_command(monkeypatch, module):
     monkeypatch.setattr(run_all.subprocess, "run",
                         lambda cmd, **kw: calls.append((cmd, kw)) or SimpleNamespace(returncode=0))
     run_all.run_optional(module, "aa,bb")
-    assert calls == [([run_all.sys.executable, "-m", f"lln.{module}", "--only", "aa,bb"],
+    sel = ["--site", "aa", "--site", "bb"] if module == "uncertainty" else ["--only", "aa,bb"]
+    assert calls == [([run_all.sys.executable, "-m", f"lln.{module}", *sel],
                       {"cwd": run_all.PIPELINE_DIR})]
 
 
