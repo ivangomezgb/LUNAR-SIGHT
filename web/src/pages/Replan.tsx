@@ -10,7 +10,7 @@ import { useSites, useSitesData } from '../components/hooks';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import ReplanForm from '../components/ReplanForm';
 import RankingTable from '../components/RankingTable';
-import { fmtUtc, HOUR_MS, isoShort } from '../components/format';
+import { fmtUtc, fmtInt, HOUR_MS, isoShort } from '../components/format';
 
 export default function Replan() {
   const sites = useSites();
@@ -86,7 +86,7 @@ export default function Replan() {
             <div>
               <div className="ss-label">{t("Candidates")}</div>
               <div className="ss-value mono">
-                {nCand.toLocaleString('en-US')} <span className="unit">({nSites} {t("sites, every")} {replan.stepH} h)</span>
+                {fmtInt(nCand)} <span className="unit">({nSites} {t("sites, every")} {replan.stepH} h)</span>
               </div>
             </div>
             <div>

@@ -139,3 +139,13 @@ export type Reason =
   | { kind: 'light'; delta: number } // percentage points of sunlight vs original plan
   | { kind: 'night'; delta: number } // hours of longest night vs original plan
   | { kind: 'earth'; pct: number; delta: number }; // Earth visible % and its difference
+
+// 3D terrain and 360 panorama (docs/contracts-3d.md): terrain/<id>.json and pano/<id>.json.
+export interface GridSpec { file: string; n: number; res_m: number; dtype: 'int16'; scale_m: number; offset_m: number; source: string }
+export interface TerrainMeta { id: string; frame: string; near: GridSpec; far: GridSpec; site_elev_m: number; observer_heights_m: number[] }
+export interface PanoMeta {
+  id: string; observer_height_m: number; width: number; height: number; az0_deg: number; el_top_deg: number; el_bottom_deg: number;
+  dist: { file: string; dtype: 'uint16'; unit_m: number; sky: number };
+  normal: { file: string; dtype: 'uint8x2'; encoding: string };
+  max_dist_m: number;
+}

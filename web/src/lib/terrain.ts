@@ -1,6 +1,5 @@
-export interface GridSpec { file: string; n: number; res_m: number; dtype: 'int16'; scale_m: number; offset_m: number; source: string }
-export interface TerrainMeta { id: string; frame: string; near: GridSpec; far: GridSpec; site_elev_m: number; observer_heights_m: number[] }
-export interface PanoMeta { id: string; observer_height_m: number; width: number; height: number; az0_deg: number; el_top_deg: number; el_bottom_deg: number; dist: {file: string; dtype: 'uint16'; unit_m: number; sky: number}; normal: {file: string; dtype: 'uint8x2'; encoding: string}; max_dist_m: number }
+import type { PanoMeta, TerrainMeta } from './types';
+export type { GridSpec, PanoMeta, TerrainMeta } from './types';
 export interface TerrainData { meta: TerrainMeta; near: Float32Array; far: Float32Array }
 export interface PanoData { meta: PanoMeta; distances: Float32Array; normals: Float32Array }
 export interface ViewProps { siteId: string; sunAz: number; sunEl: number; earthAz: number; earthEl: number; horizon: number[]; horizonStep: number }

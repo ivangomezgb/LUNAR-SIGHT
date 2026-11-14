@@ -15,7 +15,7 @@ import DateTimePicker from '../components/DateTimePicker';
 import AssumptionsPanel from '../components/AssumptionsPanel';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import { seriesFor, coverage, assumptionsFor } from '../components/series';
-import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc } from '../components/format';
+import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc, fmtInt } from '../components/format';
 
 export default function Explore() {
   const sites = useSites();
@@ -154,7 +154,7 @@ function SiteHeader({ entry }: { entry: SiteIndexEntry }) {
         <div className="site-meta mono">
           <span>{entry.lat_deg.toFixed(3)}{t("° lat")}</span>
           <span>{entry.lon_deg.toFixed(3)}{t("° lon E")}</span>
-          <span>{Math.round(entry.elev_m).toLocaleString('en-US')} {t("m elev.")}</span>
+          <span>{fmtInt(entry.elev_m)} {t("m elev.")}</span>
           <span>{entry.slope_deg_50m.toFixed(1)}{t("° slope (50 m)")}</span>
           <span> {t("DEM")} {entry.dem_source} · {entry.dem_res_m} m/px
           </span>
