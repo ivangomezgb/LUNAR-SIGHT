@@ -24,6 +24,7 @@ import math
 import os
 import threading
 import time
+import uuid
 import zlib
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass
@@ -161,6 +162,12 @@ class DemWindow:
                      + q[1, 0] * (1 - fc) * fr + q[1, 1] * fc * fr)
 
 
+def _tmp_path(path: Path) -> Path:
+    """A temporary name unique to this process and call, next to `path`, so parallel
+    workers sharing the tile cache never write the same file (os.replace is atomic)."""
+    return path.with_name(f"{path.stem}.{os.getpid()}.{uuid.uuid4().hex[:8]}.tmp{path.suffix}")
+
+
 class TiffIndex:
     """Tile layout of a remote tiled BigTIFF (first IFD = full resolution)."""
 
@@ -177,7 +184,7 @@ class TiffIndex:
 
     def save(self, path: Path) -> None:
         path.parent.mkdir(parents=True, exist_ok=True)
-        tmp = path.with_name(path.stem + ".tmp.npz")
+        tmp = _tmp_path(path)
         np.savez(tmp, offsets=self.offsets, counts=self.counts, hdr=np.array(
             [self.width, self.height, self.tile_w, self.tile_h, self.left, self.top, self.res,
              self.compression, self.predictor, self.bits, self.sample_format,
@@ -213,7 +220,10 @@ def http_range(url: str, start: int, length: int, retries: int = 6) -> bytes:
             return data
         except (urllib.error.URLError, http.client.HTTPException, OSError) as exc:
             last = exc
-            time.sleep(min(30.0, 2.0 * 2 ** attempt))
+            if isinstance(exc, urllib.error.HTTPError) and exc.code in (400, 401, 404, 410):
+                break  # permanent client errors; PGDA's 403 under load is transient, so retried
+            if attempt + 1 < retries:
+                time.sleep(min(30.0, 2.0 * 2 ** attempt))
     raise IOError(f"range {start}+{length} of {url} failed after {retries} tries: {last}")
 
 
@@ -362,9 +372,27 @@ class DemSource:
                 raise ValueError(f"{self.key}: implausible heights {fin.min()}..{fin.max()} m "
                                  f"in tile r{br} c{bc}; refusing to cache")
             p = self._block_path(br, bc)
-            tmp = p.with_name(p.stem + ".tmp.npy")
+            tmp = _tmp_path(p)
             np.save(tmp, blk)
             os.replace(tmp, p)
+
+    def _load_block(self, br: int, bc: int) -> np.ndarray:
+        """Load a cached tile; a truncated or malformed file is deleted and fetched again."""
+        idx = self.index()
+        p = self._block_path(br, bc)
+        for attempt in range(2):
+            try:
+                blk = np.load(p)
+                if blk.shape == (idx.tile_h, idx.tile_w) and blk.dtype == np.float32:
+                    return blk
+                problem = f"shape {blk.shape} dtype {blk.dtype}"
+            except (OSError, ValueError, EOFError) as exc:
+                problem = str(exc)
+            if attempt:
+                raise ValueError(f"{self.key}: cached tile {p.name} is corrupt after re-fetch ({problem})")
+            p.unlink(missing_ok=True)
+            self._fetch_blocks(br, bc, bc)
+        raise AssertionError("unreachable")
 
     def read_window(self, x_c: float, y_c: float, radius_m: float) -> DemWindow:
         """Square window (tile aligned, clipped to the file) covering x_c +- radius, y_c +- radius."""
@@ -397,7 +425,7 @@ class DemSource:
         for br in range(br0, br1 + 1):
             for bc in range(bc0, bc1 + 1):
                 z[(br - br0) * bh:(br - br0 + 1) * bh, (bc - bc0) * bw:(bc - bc0 + 1) * bw] = \
-                    np.load(self._block_path(br, bc))
+                    self._load_block(br, bc)
         return DemWindow(z=z, left=left + bc0 * bw * res, top=top - br0 * bh * res,
                          res=res, source=self.key)
 

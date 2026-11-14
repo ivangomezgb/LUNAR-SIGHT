@@ -84,3 +84,45 @@ def test_clone_observer_moves_with_terrain_and_ridge_changes_horizon():
     ridge = z.copy()
     ridge[20:25, :] += 20.
     assert mask(uncertainty.clone_surface(z, ridge))[0] > base_mask[0] + 1
+
+
+class _Resp:
+    def __init__(self, status, headers=None, body=b""):
+        self.status_code, self.headers, self._body, self.read = status, headers or {}, body, False
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *exc):
+        return False
+
+    def raise_for_status(self):
+        pass
+
+    @property
+    def content(self):
+        self.read = True
+        return self._body
+
+
+class _Http:
+    def __init__(self, resp):
+        self.resp, self.kwargs = resp, None
+
+    def get(self, url, **kwargs):
+        self.kwargs = kwargs
+        return self.resp
+
+
+def test_get_range_streams_and_never_reads_an_ignored_range(monkeypatch):
+    monkeypatch.setattr(uncertainty.time, "sleep", lambda s: None)
+    resp = _Resp(200, body=b"x" * 10)
+    http = _Http(resp)
+    with pytest.raises(ValueError, match="Range ignored"):
+        uncertainty.get_range("https://example.org/f.tif", 0, 3, http)
+    assert http.kwargs["stream"] is True and resp.read is False
+
+
+def test_get_range_returns_checked_bytes():
+    resp = _Resp(206, {"Content-Range": "bytes 2-5/100"}, b"abcd")
+    assert uncertainty.get_range("https://example.org/f.tif", 2, 5, _Http(resp)) == (b"abcd", 100)

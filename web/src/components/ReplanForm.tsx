@@ -7,6 +7,7 @@ import WeightSliders from './WeightSliders';
 
 interface Props {
   form: Form;
+  originalSiteId: string;
   sites: SiteIndexEntry[];
   onChange: (p: Partial<Form>) => void;
 }
@@ -35,12 +36,13 @@ function NumField({ id, label, value, unit, min, max, step = 1, onChange }: { id
   );
 }
 
-export default function ReplanForm({ form, sites, onChange }: Props) {
+export default function ReplanForm({ form, originalSiteId, sites, onChange }: Props) {
   const all = form.siteIds.length === 0;
   const selected = (id: string) => all || form.siteIds.includes(id);
   const toggle = (id: string) => {
     const cur = all ? sites.map((s) => s.id) : form.siteIds;
     const next = cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id];
+    if (next.length === 0) return; // keep at least one candidate; "Select all" restores the rest
     onChange({ siteIds: next.length === sites.length ? [] : next });
   };
   const f = form.filters;
@@ -48,6 +50,14 @@ export default function ReplanForm({ form, sites, onChange }: Props) {
     <form className="replan-form" onSubmit={(e) => e.preventDefault()}>
       <fieldset>
         <legend>{t("Schedule")}</legend>
+        <div className="field">
+          <label htmlFor="rp-site">{t("Original site")}</label>
+          <select id="rp-site" className="select" value={originalSiteId} onChange={(e) => onChange({ originalSiteId: e.target.value })}>
+            {sites.map((s) => (
+              <option key={s.id} value={s.id}>{shortName(s.name)}</option>
+            ))}
+          </select>
+        </div>
         <div className="field">
           <label htmlFor="rp-orig">{t("Original landing (UTC)")}</label>
           <input

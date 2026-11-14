@@ -52,6 +52,11 @@ export function fmtNum(v: number | null | undefined, digits = 1): string {
   return v.toFixed(digits);
 }
 
+/** Integer with the active language's digit grouping (1,947 in English, 1947 / 11 340 in Spanish). */
+export function fmtInt(v: number): string {
+  return Math.round(v).toLocaleString(useApp.getState().lang === 'es' ? 'es-ES' : 'en-US');
+}
+
 export function clamp(v: number, lo: number, hi: number): number {
   return Math.min(hi, Math.max(lo, v));
 }

@@ -1,6 +1,7 @@
 import en from './locales/en.json';
 import es from './locales/es.json';
 import { useApp } from './state';
+import type { Reason } from './lib/types';
 
 /** English keys double as readable fallbacks for source metadata. */
 export function t(key: string, values: Record<string, string | number> = {}): string {
@@ -8,15 +9,15 @@ export function t(key: string, values: Record<string, string | number> = {}): st
   return (dictionary[key] ?? key).replace(/\{(\w+)\}/g, (match, name: string) => String(values[name] ?? match));
 }
 
-/** The engine keeps its English API; translate its three explanation templates here. */
-export function reasonText(reason: string): string {
-  const light = reason.match(/^([+-]\d+)% sunlight vs original plan$/);
-  if (light) return t('{0}% sunlight vs original plan', { 0: light[1] });
-  const night = reason.match(/^([+-]\d+) h longest night vs original plan$/);
-  if (night) return t('{0} h longest night vs original plan', { 0: night[1] });
-  const earth = reason.match(/^Earth visible (\d+)% of mission \(([+-]\d+)% vs original plan\)$/);
-  if (earth) return t('Earth visible {0}% of mission ({1}% vs original plan)', { 0: earth[1], 1: earth[2] });
-  return t(reason);
+const signed = (n: number) => `${Math.round(n) >= 0 ? '+' : '-'}${Math.abs(Math.round(n))}`;
+
+/** Format one ranking reason from the engine in the active language. */
+export function reasonText(r: Reason): string {
+  switch (r.kind) {
+    case 'light': return t('{0}% sunlight vs original plan', { 0: signed(r.delta) });
+    case 'night': return t('{0} h longest night vs original plan', { 0: signed(r.delta) });
+    case 'earth': return t('Earth visible {0}% of mission ({1}% vs original plan)', { 0: Math.round(r.pct), 1: signed(r.delta) });
+  }
 }
 
 /** Localize published source descriptions while retaining their numerical values. */

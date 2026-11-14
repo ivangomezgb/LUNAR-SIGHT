@@ -13,12 +13,17 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, St
   }
 
   render() {
+    const chunk = this.state.error && /dynamically imported module|Importing a module script failed|Loading chunk/i.test(this.state.error.message);
     if (this.state.error)
       return (
         <div className="status status-error" role="alert">
           <div className="status-title">{t("Something went wrong while rendering this view")}</div>
           <div className="mono status-detail">{sourceText(this.state.error.message)}</div>
-          <button type="button" className="btn btn-sm" onClick={() => this.setState({ error: null })}> {t("Try again")} </button>
+          {chunk ? (
+            <button type="button" className="btn btn-sm" onClick={() => window.location.reload()}> {t("Reload page")} </button>
+          ) : (
+            <button type="button" className="btn btn-sm" onClick={() => this.setState({ error: null })}> {t("Try again")} </button>
+          )}
         </div>
       );
     return this.props.children;

@@ -4,6 +4,7 @@ import ExplainTip from './ExplainTip';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SiteData } from '../lib/types';
 import { useApp } from '../state';
+import { useShallow } from 'zustand/react/shallow';
 import PanoramaChart, { type BodyMarker, type PathPoint } from './PanoramaChart';
 import { seriesFor, hoursToChange, lerpAngle, assumptionsFor } from './series';
 import { hourIndex } from '../lib/metrics';
@@ -12,7 +13,7 @@ import { fmtHours, fmtUtc, HOUR_MS } from './format';
 const SPEEDS = [6, 24, 72];
 
 export default function Panorama({ site }: { site: SiteData }) {
-  const { landingUtc, missionDays, cursorH, setCursorH, playing, setPlaying, assumptions } = useApp();
+  const { landingUtc, missionDays, cursorH, setCursorH, playing, setPlaying, assumptions } = useApp(useShallow((s) => ({ landingUtc: s.landingUtc, missionDays: s.missionDays, cursorH: s.cursorH, setCursorH: s.setCursorH, playing: s.playing, setPlaying: s.setPlaying, assumptions: s.assumptions })));
   const series = useMemo(() => seriesFor(site, assumptions), [site, assumptions]);
   const n = site.ephem.n;
   const totalH = missionDays * 24;
@@ -117,6 +118,8 @@ export default function Panorama({ site }: { site: SiteData }) {
       : earthState.hours == null ? t("No Earthrise in data") : t("Earthrise in {0}", { 0: fmtHours(earthState.hours) });
 
   const onKey = (e: React.KeyboardEvent) => {
+    // Space must keep working on the speed select, range, chips and help buttons in this card.
+    if ((e.target as HTMLElement).closest('input, select, textarea, button, a, [role="slider"], [contenteditable]')) return;
     if (e.key === ' ' || e.key === 'k') {
       e.preventDefault();
       if (!playing && cursorH >= totalH) setCursorH(0);

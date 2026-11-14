@@ -93,6 +93,8 @@ def real_horizon_stats(sid):
 def test_real_horizon(sid):
     if not (OUTPUT/f'{sid}.json').exists():
         pytest.skip('generate real terrain first: python -m lln.terrain')
+    if not (PIPELINE/f'data/intermediate/horizon/{sid}.json').exists():
+        pytest.skip('needs the horizon intermediate (gitignored): python run_all.py')
     stats = real_horizon_stats(sid)
     print(stats)
     assert stats['n'] > 0

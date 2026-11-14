@@ -23,7 +23,16 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 | Página del equipo Apolo404 | ✅ ruta `#/team` | `pages/Team.tsx`, `public/team-apolo404.*` |
 | T28. Bilingüe EN/ES | ✅ `?lang=es` | `i18n.ts`, `locales/*.json` |
 
-Pruebas: 110 en `pytest pipeline/tests` y 13 en `cd web && npx vitest run`, incluida la paridad Python/TS.
+Pruebas: 125 en `pytest pipeline/tests` (114 pasan y 11 se saltan sin kernels SPICE ni intermedios) y 18 en `cd web && npm test`,
+incluida la paridad Python/TS. `npm run lint` y `npm run build` sin errores ni advertencias.
+
+**CI** (`.github/workflows/ci.yml`, en cada PR y antes de cada despliegue): lint + pruebas + build de la web (Node 22),
+pytest del pipeline (Python 3.12) y `pipeline/scripts/check_data.py`, que valida `web/public/data` contra los contratos.
+
+**Auditoría 2026-11-14** (rama `audit-fixes`): línea base de "Se retrasó" ahora es un sitio original elegido; caché de
+tiles DEM sin carreras entre procesos; export recalcula efemérides de sitios movidos; `has_clones` real; visor 3D/360
+robusto en celular (textura de 8 bits) y con errores claros; validación de los JSON en la web; horizontes 2,3× más
+rápidos (todas las alturas en una pasada, resultado idéntico).
 Sitio publicado en GitHub Pages; el push a `main` despliega (workflow `deploy.yml`, verificado 2026-11-14).
 
 ### 1.1 Vistas de `#/3d`
@@ -38,7 +47,6 @@ Sitio publicado en GitHub Pages; el push a `main` despliega (workflow `deploy.ym
 
 `?debug=1` dibuja la máscara real en primera persona para comparar. Primer cuadro medido en Edge local:
 ~0,35 s a ancho de celular y ~0,75 s en escritorio (falta medir en un teléfono real).
-`npm run build` compila sin errores.
 
 ### Resultados clave (año 2027, altura 2 m)
 
@@ -49,7 +57,7 @@ un horizonte de 0,83°.
 ## 2. Cómo correr
 
 ```bash
-pip install -r pipeline/requirements.txt
+pip install -r pipeline/requirements-dev.txt
 python pipeline/scripts/download_kernels.py      # kernels SPICE (44 MB, gitignored)
 python pipeline/run_all.py                       # horizontes → efemérides → validación → export (~1 min con caché)
 python pipeline/run_all.py --terrain --pano      # + mallas 3D y panoramas 360° (~3 min)
@@ -110,8 +118,10 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 **Frontend:**
 
-- La banda de luz de la línea de tiempo solo usa color: agregar una señal que no dependa del color (accesibilidad).
-- Bundle principal ~432 KB (~133 KB gzip); `three` va en un chunk aparte que solo carga `#/3d`.
+- Bundle principal 441 KB (135 KB gzip); `three` va aparte (478 KB, solo en `#/3d`).
+- Pendiente menor: los textos de estado del 3D se traducen al cargarse, no al cambiar de idioma con la vista abierta.
+- Pendiente menor: `refine_sites.py` vuelve a leer las ventanas de 20/240 m en cada uno de los 74 candidatos por sitio (cachearlas).
+- `uncertainty.update_report` reescribe `docs/uncertainty.md` en cada corrida (revisar el diff antes de hacer commit).
 - Panorama de de-gerlache-rim-2: 97,7 % de columnas dentro de 0,2° (su horizonte pasa de +15°, el borde de la imagen).
 - El 360° usa solo sombreado Lambert: no hay sombras proyectadas por píxel (la primera persona 3D sí las tiene).
 - Codex (GPT-6-Astra) tiene límite de uso: si corta a mitad de tarea no deja cambios parciales; relanzar o hacerlo con Claude.

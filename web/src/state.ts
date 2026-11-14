@@ -7,6 +7,7 @@ export const DEFAULT_LANDING_UTC = '2027-01-12T06:00:00Z';
 export const MAX_COMPARE = 3;
 
 export interface ReplanForm {
+  originalSiteId: string | null; // null = the site open in Explore, else the first site
   siteIds: string[]; // empty = all sites
   originalUtc: string;
   delayDays: number;
@@ -66,6 +67,7 @@ export const useApp = create<AppState>((set) => ({
   playing: false,
   assumptions: { ...DEFAULT_ASSUMPTIONS, heightM: initialHeight() },
   replan: {
+    originalSiteId: null,
     siteIds: [],
     originalUtc: DEFAULT_LANDING_UTC,
     delayDays: 21,

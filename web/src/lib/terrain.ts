@@ -1,6 +1,5 @@
-export interface GridSpec { file: string; n: number; res_m: number; dtype: 'int16'; scale_m: number; offset_m: number; source: string }
-export interface TerrainMeta { id: string; frame: string; near: GridSpec; far: GridSpec; site_elev_m: number; observer_heights_m: number[] }
-export interface PanoMeta { id: string; observer_height_m: number; width: number; height: number; az0_deg: number; el_top_deg: number; el_bottom_deg: number; dist: {file: string; dtype: 'uint16'; unit_m: number; sky: number}; normal: {file: string; dtype: 'uint8x2'; encoding: string}; max_dist_m: number }
+import type { PanoMeta, TerrainMeta } from './types';
+export type { GridSpec, PanoMeta, TerrainMeta } from './types';
 export interface TerrainData { meta: TerrainMeta; near: Float32Array; far: Float32Array }
 export interface PanoData { meta: PanoMeta; distances: Float32Array; normals: Float32Array }
 /** Sampled az/el path of a body; `visible` = above the 2 m horizon mask at that hour. */
@@ -11,6 +10,15 @@ export interface ViewProps {
   sunTrail?: Trail; earthTrail?: Trail; mode?: CameraMode; onMode?: (mode: CameraMode) => void;
 }
 export const MISSING_3D = '3D data not generated yet for this site';
+export const WEBGL_UNAVAILABLE = 'WebGL is unavailable in this browser, so the 3D view cannot start';
+export const VIEWER_FAILED = 'The 3D view could not start';
+/** English key of the message to show for a failed 3D/360 view. */
+export function viewerError(error: unknown): string {
+  const message = error instanceof Error ? error.message : String(error);
+  if (message === MISSING_3D) return MISSING_3D;
+  if (/webgl/i.test(message)) return WEBGL_UNAVAILABLE;
+  return VIEWER_FAILED;
+}
 export function azElToThree(az: number, el: number): [number, number, number] {
   const a = az * Math.PI / 180, e = el * Math.PI / 180;
   return [Math.sin(a) * Math.cos(e), Math.sin(e), -Math.cos(a) * Math.cos(e)];
@@ -36,7 +44,18 @@ function url(folder: string, file: string) {
 async function read(folder: string, file: string, signal?: AbortSignal) {
   const r = await fetch(url(folder, file), { signal }); if (!r.ok) throw new Error(MISSING_3D); return r;
 }
+// Decoded terrain of the last few sites, so switching camera or site back is instant.
+const terrainCache = new Map<string, TerrainData>();
+const TERRAIN_CACHE_SIZE = 2;
 export async function loadTerrain(id: string, progress: (n: number) => void = () => {}, signal?: AbortSignal): Promise<TerrainData> {
+  const hit = terrainCache.get(id);
+  if (hit) { progress(100); return hit; }
+  const data = await fetchTerrain(id, progress, signal);
+  terrainCache.set(id, data);
+  if (terrainCache.size > TERRAIN_CACHE_SIZE) terrainCache.delete(terrainCache.keys().next().value!);
+  return data;
+}
+async function fetchTerrain(id: string, progress: (n: number) => void, signal?: AbortSignal): Promise<TerrainData> {
   progress(0); const meta: TerrainMeta = await (await read('terrain', id + '.json', signal)).json(); progress(20);
   const grids = await Promise.all([meta.near, meta.far].map(async g => {
     if (!Number.isInteger(g.n) || g.n < 2 || g.n > 4096 || g.dtype !== 'int16' || !(g.res_m > 0) || !(g.scale_m > 0)) throw new Error('Invalid terrain metadata');

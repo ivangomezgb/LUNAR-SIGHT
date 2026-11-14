@@ -5,6 +5,7 @@ import { getSeries, hourIndex, timeAtIndex } from '../lib/metrics';
 import type { SiteData, SiteIndexEntry } from '../lib/types';
 import type { CameraMode, Trail } from '../lib/terrain';
 import { useApp } from '../state';
+import { useShallow } from 'zustand/react/shallow';
 import { fmtUtc, isoShort, parseUtc } from '../components/format';
 import { t } from '../i18n';
 import '../styles/view3d.css';
@@ -16,7 +17,7 @@ const TRAIL_DAYS = [1, 14, 30] as const;
 
 export default function View3D() {
   const [params, setParams] = useSearchParams();
-  const store = useApp();
+  const store = useApp(useShallow((s) => ({ siteId: s.siteId, assumptions: s.assumptions, landingUtc: s.landingUtc, cursorH: s.cursorH })));
   const [sites, setSites] = useState<SiteIndexEntry[]>([]);
   const [site, setSite] = useState<SiteData | null>(null);
   const [error, setError] = useState('');
@@ -27,7 +28,9 @@ export default function View3D() {
   const [speed, setSpeed] = useState(1);
   const viewer = useRef<HTMLDivElement>(null);
   const [fullscreenError, setFullscreenError] = useState('');
-  const id = params.get('site') ?? store.siteId ?? sites[0]?.id;
+  const requested = params.get('site') ?? store.siteId;
+  // Wait for the index, then accept only a published id (an unknown ?site= falls back to the first site).
+  const id = sites.length ? (sites.some((s) => s.id === requested) ? requested : sites[0].id) : undefined;
 
   useEffect(() => {
     loadSites().then(setSites).catch(() => setError(t('Site index unavailable')));
@@ -45,8 +48,9 @@ export default function View3D() {
     return () => { active = false; };
   }, [id]);
 
-  // The 3D terrain and the panorama are both computed for a 2 m observer.
-  const series = useMemo(() => (site ? getSeries(site, { ...store.assumptions, heightM: 2 }) : null), [site, store.assumptions]);
+  // The 3D terrain and the panorama are both computed for a 2 m observer (else the nearest published height).
+  const viewHeight = site ? (site.horizon.elev_cdeg['2'] ? 2 : Number(Object.keys(site.horizon.elev_cdeg)[0])) : 2;
+  const series = useMemo(() => (site ? getSeries(site, { ...store.assumptions, heightM: viewHeight }) : null), [site, store.assumptions, viewHeight]);
   const timeParam = params.get('t')?.replace(/T(\d{2})$/, 'T$1:00');
   const utc = parseUtc(timeParam) ?? new Date(Date.parse(store.landingUtc) + store.cursorH * 3600000);
   const index = site ? Math.max(0, Math.min(site.ephem.n - 1, hourIndex(site, utc))) : 0;
@@ -133,7 +137,7 @@ export default function View3D() {
         </div>
         {site && series && <>
           <Suspense fallback={<div className="expedition-loading" role="status">{t('Loading 3D viewer…')}<progress /></div>}>
-            <View mode={mode} onMode={switchMode} sunTrail={trails?.sun} earthTrail={trails?.earth} siteId={site.id} sunAz={series.sunAz[index]} sunEl={series.sunEl[index]} earthAz={series.earthAz[index]} earthEl={series.earthEl[index]} horizon={site.horizon.elev_cdeg['2']} horizonStep={site.horizon.az_step_deg} />
+            <View mode={mode} onMode={switchMode} sunTrail={trails?.sun} earthTrail={trails?.earth} siteId={site.id} sunAz={series.sunAz[index]} sunEl={series.sunEl[index]} earthAz={series.earthAz[index]} earthEl={series.earthEl[index]} horizon={site.horizon.elev_cdeg[String(viewHeight)]} horizonStep={site.horizon.az_step_deg} />
           </Suspense>
           <div className="expedition-timeline">
             <div className="expedition-time-row">

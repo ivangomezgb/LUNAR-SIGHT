@@ -1,5 +1,5 @@
 import { t } from '../i18n';
-import { groupColor, shortName } from './format';
+import { groupColor, groupLabel, shortName } from './format';
 import { useMemo, useState } from 'react';
 import type { Basemap, SiteIndexEntry } from '../lib/types';
 import { dataUrl } from './hooks';
@@ -10,6 +10,16 @@ interface Props {
   selectedId: string | null;
   compareIds: string[];
   onSelect: (id: string) => void;
+}
+
+/** Marker outline per group, so groups differ by shape as well as colour. */
+function markerPath(group: string, cx: number, cy: number, r: number): string {
+  switch (group) {
+    case 'clps': { const a = r * 0.9; return `M${cx - a},${cy - a}h${2 * a}v${2 * a}h${-2 * a}Z`; }
+    case 'isro': { const a = r * 1.25; return `M${cx},${cy - a}L${cx + a},${cy}L${cx},${cy + a}L${cx - a},${cy}Z`; }
+    case 'science': { const a = r * 1.3; return `M${cx},${cy - a}L${cx + a * 0.95},${cy + a * 0.7}L${cx - a * 0.95},${cy + a * 0.7}Z`; }
+    default: return `M${cx - r},${cy}a${r},${r} 0 1,0 ${2 * r},0a${r},${r} 0 1,0 ${-2 * r},0Z`;
+  }
 }
 
 const GROUP_COLOR: Record<string, string> = {
@@ -109,7 +119,7 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
               role="button"
               tabIndex={0}
               aria-pressed={sel}
-              aria-label={`${shortName(s.name)}, ${s.lat_deg.toFixed(2)}°, ${s.lon_deg.toFixed(2)}°${cmp ? t(", in comparison") : ''}`}
+              aria-label={`${shortName(s.name)}, ${groupLabel(s.group)}, ${s.lat_deg.toFixed(2)}°, ${s.lon_deg.toFixed(2)}°${cmp ? t(", in comparison") : ''}`}
               onClick={() => onSelect(s.id)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -124,7 +134,7 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
             >
               <circle cx={cx} cy={cy} r={r + 8 * u} className="sm-hit" />
               {sel && <circle cx={cx} cy={cy} r={r + 6 * u} className="sm-halo" strokeWidth={2 * u} />}
-              <circle cx={cx} cy={cy} r={r} fill={groupColor(s.group)} className="sm-dot" strokeWidth={1.5 * u} />
+              <path d={markerPath(s.group, cx, cy, r)} fill={groupColor(s.group)} className="sm-dot" strokeWidth={1.5 * u} />
               {cmp && <rect x={cx + r * 0.6} y={cy - r * 1.6} width={6 * u} height={6 * u} className="sm-cmp" />}
               {show && (
                 <text x={cx + r + 5 * u} y={cy + 4 * u} className="sm-label" fontSize={12 * u} strokeWidth={3 * u}>
@@ -140,7 +150,7 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
           .filter(([g]) => sites.some((s) => s.group === g))
           .map(([g, c]) => (
             <span key={g}>
-              <i style={{ background: c }} /> {g === 'artemis' ? t("Artemis III") : g === 'clps' ? t("CLPS") : g === 'isro' ? t("ISRO") : t("Science")}
+              <svg viewBox="-8 -8 16 16" width="12" height="12" aria-hidden><path d={markerPath(g, 0, 0, 5)} fill={c} /></svg> {g === 'artemis' ? t("Artemis III") : g === 'clps' ? t("CLPS") : g === 'isro' ? t("ISRO") : t("Science")}
             </span>
           ))}
         <span>

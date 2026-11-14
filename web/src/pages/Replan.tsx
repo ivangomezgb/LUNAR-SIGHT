@@ -5,18 +5,21 @@ import { useNavigate } from 'react-router-dom';
 import type { RankedOption, ReplanInput } from '../lib/types';
 import { rankAlternatives } from '../lib/score';
 import { useApp } from '../state';
+import { useShallow } from 'zustand/react/shallow';
 import { useSites, useSitesData } from '../components/hooks';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import ReplanForm from '../components/ReplanForm';
 import RankingTable from '../components/RankingTable';
-import { fmtUtc, HOUR_MS, isoShort } from '../components/format';
+import { fmtUtc, fmtInt, HOUR_MS, isoShort } from '../components/format';
 
 export default function Replan() {
   const sites = useSites();
-  const { replan, setReplan, assumptions, setMissionDays } = useApp();
+  const { replan, setReplan, assumptions, setMissionDays, siteId } = useApp(useShallow((s) => ({ replan: s.replan, setReplan: s.setReplan, assumptions: s.assumptions, setMissionDays: s.setMissionDays, siteId: s.siteId })));
   const navigate = useNavigate();
   const list = sites.data ?? [];
   const allIds = list.map((s) => s.id);
+  // The baseline of every "vs original plan" reason: explicit choice, else the site open in Explore.
+  const originalSiteId = [replan.originalSiteId, siteId].find((id) => id && allIds.includes(id)) ?? allIds[0] ?? '';
   const data = useSitesData(allIds);
 
   const deferred = useDeferredValue(replan);
@@ -25,7 +28,7 @@ export default function Replan() {
   const result = useMemo(() => {
     if (!data.data) return null;
     const ids = deferred.siteIds.length ? deferred.siteIds : allIds;
-    const input: ReplanInput = { ...deferred, siteIds: ids };
+    const input: ReplanInput = { ...deferred, originalSiteId, siteIds: ids };
     const t0 = performance.now();
     try {
       const missing = ids.filter((id) => {
@@ -39,7 +42,7 @@ export default function Replan() {
       return { out: [] as RankedOption[], ms: 0, error: e instanceof Error ? e : new Error(String(e)) };
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data.data, deferred, assumptions]);
+  }, [data.data, deferred, assumptions, originalSiteId]);
 
   if (sites.loading) return <Loading />;
   if (sites.error) return <ErrorBox error={sites.error} title={t("Site index not available")} />;
@@ -69,7 +72,7 @@ export default function Replan() {
       <div className="replan">
         <section className="card replan-side">
           <AssumptionsPanel heights={[1, 2, 5, 10]} />
-          <ReplanForm form={replan} sites={list} onChange={setReplan} />
+          <ReplanForm form={replan} originalSiteId={originalSiteId} sites={list} onChange={setReplan} />
         </section>
 
         <section className="replan-main">
@@ -83,7 +86,7 @@ export default function Replan() {
             <div>
               <div className="ss-label">{t("Candidates")}</div>
               <div className="ss-value mono">
-                {nCand.toLocaleString('en-US')} <span className="unit">({nSites} {t("sites, every")} {replan.stepH} h)</span>
+                {fmtInt(nCand)} <span className="unit">({nSites} {t("sites, every")} {replan.stepH} h)</span>
               </div>
             </div>
             <div>

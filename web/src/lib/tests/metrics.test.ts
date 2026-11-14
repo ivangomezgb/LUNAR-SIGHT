@@ -68,7 +68,7 @@ it('ranks 15 sites over 60 days in under one second with deterministic ties', ()
       earth: { az_cdeg: new Array(n).fill(0), el_cdeg: Array.from({ length: n }, (_, i) => i % 24 < 20 ? 100 : -100) } } });
     index.push({ id, slope_deg_50m: j === 14 ? 30 : 2 } as SiteIndexEntry);
   }
-  const input = { siteIds: [...sites.keys()], originalUtc: fixture.startUtc, delayDays: 30, toleranceDays: 30,
+  const input = { originalSiteId: 'perf-00', siteIds: [...sites.keys()], originalUtc: fixture.startUtc, delayDays: 30, toleranceDays: 30,
     missionDays: 14, stepH: 6, weights: DEFAULT_WEIGHTS,
     filters: { minLightPct: 0, minEarthPct: 0, maxSlopeDeg: 10, requireSunAtLanding: false } };
   const start = performance.now();

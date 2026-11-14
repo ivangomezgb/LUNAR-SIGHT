@@ -165,6 +165,8 @@ def main(argv: list[str] | None = None) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     for s in load_sites(sites_path):
         e = site_ephem(float(s["lat_deg"]), float(s["lon_deg"]), site_elev_m(s))
+        # tag the point so export.py can tell a stale file after a site moves
+        e = {"lat_deg": s["lat_deg"], "lon_deg": s["lon_deg"], **e}
         (out_dir / f"{s['id']}.json").write_text(json.dumps(e, separators=(",", ":")),
                                                  encoding="utf-8")
         el = np.array(e["sun"]["el_cdeg"]) / 100

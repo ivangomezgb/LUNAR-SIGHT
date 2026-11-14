@@ -4,6 +4,7 @@ import { Link, useSearchParams } from 'react-router-dom';
 import type { SiteData, SiteIndexEntry } from '../lib/types';
 import { computeMetrics } from '../lib/metrics';
 import { useApp, MAX_COMPARE } from '../state';
+import { useShallow } from 'zustand/react/shallow';
 import { useBasemap, useSite, useSites } from '../components/hooks';
 import SiteMap from '../components/SiteMap';
 import { groupColor, shortName, isSynthetic } from '../components/format';
@@ -14,13 +15,13 @@ import DateTimePicker from '../components/DateTimePicker';
 import AssumptionsPanel from '../components/AssumptionsPanel';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import { seriesFor, coverage, assumptionsFor } from '../components/series';
-import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc } from '../components/format';
+import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc, fmtInt } from '../components/format';
 
 export default function Explore() {
   const sites = useSites();
   const basemap = useBasemap();
   const [sp, setSp] = useSearchParams();
-  const store = useApp();
+  const store = useApp(useShallow((s) => ({ siteId: s.siteId, landingUtc: s.landingUtc, setSite: s.setSite, setLanding: s.setLanding, missionDays: s.missionDays, setMissionDays: s.setMissionDays, compareIds: s.compareIds, assumptions: s.assumptions, lang: s.lang })));
   const list = sites.data ?? [];
 
   const urlSite = sp.get('site');
@@ -36,7 +37,7 @@ export default function Explore() {
   useEffect(() => {
     if (siteId && siteId !== store.siteId) store.setSite(siteId);
     if (landingUtc !== store.landingUtc) store.setLanding(landingUtc);
-    if (siteId && (urlSite !== siteId || !sp.get('t'))) {
+    if (siteId && (urlSite !== siteId || !urlT)) {
       setSp((prev) => { const next = new URLSearchParams(prev); next.set('site', siteId); next.set('t', isoShort(landingUtc)); return next; }, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -66,8 +67,8 @@ export default function Explore() {
           <h1 id="mission-heading">{t('Find your place on the Moon.')}</h1>
           <p>{t('{0} candidate sites. Real terrain. Every hour matters.', { 0: list.length })}</p>
           <div className="hero-actions">
-            <Link className="btn btn-primary" to={`/3d?site=${siteId}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Stand on the site in 3D')} <span aria-hidden>↗</span></Link>
-            <Link className="btn btn-ghost" to={`/3d?site=${siteId}&t=${isoShort(landingUtc)}&view=pano&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Look around in 360°')} <span aria-hidden>→</span></Link>
+            <Link className="btn btn-primary" to={`/3d?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Stand on the site in 3D')} <span aria-hidden>↗</span></Link>
+            <Link className="btn btn-ghost" to={`/3d?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&view=pano&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Look around in 360°')} <span aria-hidden>→</span></Link>
           </div>
         </div>
         <div className="hero-proof"><span className="eyebrow">{t('Built on public science')}</span><strong>{t('LOLA / SPICE')}</strong><span>{t('Terrain from NASA. Positions from JPL.')}</span><Link className="link" to={`/validation?lang=${store.lang}`}>{t('Inspect the validation')} →</Link></div>
@@ -111,7 +112,7 @@ export default function Explore() {
 }
 
 function SiteList({ list, selectedId, onSelect }: { list: SiteIndexEntry[]; selectedId: string | null; onSelect: (id: string) => void }) {
-  const { compareIds, toggleCompare } = useApp();
+  const { compareIds, toggleCompare } = useApp(useShallow((s) => ({ compareIds: s.compareIds, toggleCompare: s.toggleCompare })));
   return (
     <section className="card">
       <div className="card-head">
@@ -153,7 +154,7 @@ function SiteHeader({ entry }: { entry: SiteIndexEntry }) {
         <div className="site-meta mono">
           <span>{entry.lat_deg.toFixed(3)}{t("° lat")}</span>
           <span>{entry.lon_deg.toFixed(3)}{t("° lon E")}</span>
-          <span>{Math.round(entry.elev_m).toLocaleString('en-US')} {t("m elev.")}</span>
+          <span>{fmtInt(entry.elev_m)} {t("m elev.")}</span>
           <span>{entry.slope_deg_50m.toFixed(1)}{t("° slope (50 m)")}</span>
           <span> {t("DEM")} {entry.dem_source} · {entry.dem_res_m} m/px
           </span>
@@ -173,7 +174,7 @@ function SiteHeader({ entry }: { entry: SiteIndexEntry }) {
 }
 
 function SiteView({ site, landingUtc, onLanding }: { site: SiteData; landingUtc: string; onLanding: (t: string) => void }) {
-  const { missionDays, assumptions, cursorH, setCursorH, setPlaying } = useApp();
+  const { missionDays, assumptions, cursorH, setCursorH, setPlaying } = useApp(useShallow((s) => ({ missionDays: s.missionDays, assumptions: s.assumptions, cursorH: s.cursorH, setCursorH: s.setCursorH, setPlaying: s.setPlaying })));
   const [c0, c1] = coverage(site);
   const landMs = Date.parse(landingUtc);
   const missionH = missionDays * 24;

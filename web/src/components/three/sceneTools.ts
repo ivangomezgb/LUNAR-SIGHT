@@ -27,6 +27,10 @@ export function attachLook(canvas: HTMLCanvasElement, camera: THREE.PerspectiveC
 export function marker(radiusDeg: number, color: number, distance: number) {
   return new THREE.Mesh(new THREE.SphereGeometry(Math.tan(radiusDeg * Math.PI / 180) * distance, 24, 16), new THREE.MeshBasicMaterial({ color }));
 }
+/** Free the GPU context now instead of waiting for garbage collection (browsers cap live contexts). */
+export function releaseRenderer(renderer: THREE.WebGLRenderer) {
+  renderer.dispose(); renderer.forceContextLoss(); renderer.domElement.remove();
+}
 export function disposeScene(scene: THREE.Scene) {
   scene.traverse(o => { if (o instanceof THREE.Mesh || o instanceof THREE.Line || o instanceof THREE.Points || o instanceof THREE.Sprite) { o.geometry.dispose(); for (const m of Array.isArray(o.material) ? o.material : [o.material]) { (m as THREE.SpriteMaterial).map?.dispose(); m.dispose(); } } if (o instanceof THREE.DirectionalLight) o.shadow.dispose(); });
 }

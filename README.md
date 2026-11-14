@@ -14,7 +14,7 @@ Every number comes from NASA data: LOLA digital elevation models (PGDA) for terr
 | --- | --- |
 | **Explore** | Polar map of the sites. Pick one to see a 360° panorama: real horizon, Sun path (gold, solid) and Earth path (blue, dashed), animated through time. Metric cards and a 30-day timeline of sunlight and Earth contact. Site and time live in the URL (`#/?site=connecting-ridge&t=2027-01-12T06:00Z`). |
 | **Compare** | Up to 3 sites side by side for the same date, aligned timelines, best value highlighted. |
-| **Mission delayed** | Enter the original date, the delay and a tolerance; every site × landing time (6 h steps) is scored with adjustable weights and hard filters. Top 10 with the three main reasons each, in well under a second in the browser. |
+| **Mission delayed** | Enter the original site and date, the delay and a tolerance; every site × landing time (6 h steps) is scored with adjustable weights and hard filters. Top 10 with the three main reasons each (compared with the original plan), in well under a second in the browser. |
 | **Validation** | Our Sun/Earth azimuth and elevation vs JPL Horizons, the IM-2 *Athena* landing case, and every assumption. |
 | **About** | Data, method, sources and use of AI. |
 
@@ -70,7 +70,7 @@ pipeline/ (Python)                                   web/ (TypeScript, Vite + Re
 
 ```bash
 # pipeline (Python 3.12)
-pip install -r pipeline/requirements.txt
+pip install -r pipeline/requirements-dev.txt
 python pipeline/scripts/download_kernels.py
 python pipeline/run_all.py            # first run downloads ~1.5 GB of LOLA tiles (cached)
 python -m pytest pipeline/tests

@@ -5,6 +5,7 @@ import { Link } from 'react-router-dom';
 import type { Assumptions, Metrics, SiteData, SiteIndexEntry } from '../lib/types';
 import { computeMetrics } from '../lib/metrics';
 import { useApp, MAX_COMPARE } from '../state';
+import { useShallow } from 'zustand/react/shallow';
 import { useSites, useSitesData } from '../components/hooks';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import DateTimePicker from '../components/DateTimePicker';
@@ -56,7 +57,7 @@ const ROWS: Row[] = [
 
 export default function Compare() {
   const sites = useSites();
-  const { compareIds, siteId, setCompare, landingUtc, setLanding, missionDays, setMissionDays, assumptions } = useApp();
+  const { compareIds, siteId, setCompare, landingUtc, setLanding, missionDays, setMissionDays, assumptions } = useApp(useShallow((s) => ({ compareIds: s.compareIds, siteId: s.siteId, setCompare: s.setCompare, landingUtc: s.landingUtc, setLanding: s.setLanding, missionDays: s.missionDays, setMissionDays: s.setMissionDays, assumptions: s.assumptions })));
   const list = sites.data ?? [];
   const ids = (compareIds.length ? compareIds : siteId ? [siteId] : list.slice(0, 2).map((s) => s.id)).filter((id) =>
     list.length ? list.some((s) => s.id === id) : true,
@@ -154,7 +155,7 @@ function CompareGrid({
         const sp: PathPoint[] = [];
         const ep: PathPoint[] = [];
         if (ok)
-          for (let i = i0; i <= i0 + missionH; i++) {
+          for (let i = i0; i < Math.min(i0 + missionH + 1, c.site.ephem.n); i++) {
             sp.push({ az: series.sunAz[i], el: series.sunEl[i], vis: series.sunFrac[i] >= assumptions.dayFraction });
             ep.push({ az: series.earthAz[i], el: series.earthEl[i], vis: series.earthVis[i] > 0 });
           }

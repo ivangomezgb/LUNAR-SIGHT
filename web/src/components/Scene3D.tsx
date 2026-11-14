@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { azElToThree, loadTerrain, MISSING_3D } from '../lib/terrain';
+import { azElToThree, loadTerrain, viewerError } from '../lib/terrain';
 import type { GridSpec, Trail, ViewProps } from '../lib/terrain';
-import { attachLook, disposeObject, disposeScene, marker, phaseEarth, ray, skyDome, trailLine } from './three/sceneTools';
+import { attachLook, disposeObject, disposeScene, marker, phaseEarth, ray, releaseRenderer, skyDome, trailLine } from './three/sceneTools';
 import { t } from '../i18n';
 
 function gridGeometry(spec: GridSpec, heights: Float32Array, max: number, hole = 0) {
@@ -35,17 +35,19 @@ export default function Scene3D(props: ViewProps) {
   const sunLabel = useRef<HTMLSpanElement>(null), earthLabel = useRef<HTMLSpanElement>(null);
   const setModeRef = useRef<((first: boolean) => void) | null>(null);
   const firstPerson = props.mode === 'first';
-  const [status, setStatus] = useState(t('Loading terrain… {0}%', { 0: 0 })), [compass, setCompass] = useState('');
+  const [status, setStatus] = useState(t('Loading terrain… {0}%', { 0: 0 })), [failed, setFailed] = useState(false), [compass, setCompass] = useState('');
 
   useEffect(() => {
     const started = performance.now();
     const node = host.current!; const abort = new AbortController(); let cleanup = () => {};
-    setStatus(t('Loading terrain… {0}%', { 0: 0 }));
+    setStatus(t('Loading terrain… {0}%', { 0: 0 })); setFailed(false);
     loadTerrain(props.siteId, n => setStatus(t('Loading terrain… {0}%', { 0: n })), abort.signal).then(data => {
       if (abort.signal.aborted) return;
+      const created: THREE.WebGLRenderer[] = [];
+      try {
       const lowEnd = matchMedia('(max-width: 699px)').matches || navigator.hardwareConcurrency <= 4;
       const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd }); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMappingExposure = 1.25; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.type = THREE.PCFSoftShadowMap; node.appendChild(renderer.domElement);
+      const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd }); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMappingExposure = 1.25; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.type = THREE.PCFSoftShadowMap; created.push(renderer); node.appendChild(renderer.domElement);
       const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(65, 1, .1, 400000);
       const extent = (data.meta.near.n - 1) * data.meta.near.res_m / 2;
       const material = new THREE.MeshStandardMaterial({ color: 0xaaa59d, roughness: 1 });
@@ -157,8 +159,9 @@ export default function Scene3D(props: ViewProps) {
         frame = requestAnimationFrame(draw);
       };
       draw(); setStatus('');
-      cleanup = () => { setModeRef.current = null; cancelAnimationFrame(frame); renderer.domElement.removeEventListener('pointerdown', stopIntro); resize.disconnect(); unlook(); orbit.dispose(); disposeScene(scene); renderer.dispose(); renderer.domElement.remove(); };
-    }).catch(() => { if (!abort.signal.aborted) setStatus(t(MISSING_3D)); });
+      cleanup = () => { setModeRef.current = null; cancelAnimationFrame(frame); renderer.domElement.removeEventListener('pointerdown', stopIntro); resize.disconnect(); unlook(); orbit.dispose(); disposeScene(scene); releaseRenderer(renderer); };
+      } catch (error) { created.forEach(releaseRenderer); throw error; }
+    }).catch((error: unknown) => { if (!abort.signal.aborted) { setFailed(true); setStatus(t(viewerError(error))); } });
     return () => { abort.abort(); cleanup(); };
   }, [props.siteId, props.horizon, props.horizonStep]);
 
@@ -179,6 +182,6 @@ export default function Scene3D(props: ViewProps) {
         ? <>{compass}<br />{t('Mesh horizon approx. (up to ~0.6°); exact horizon in 360°.')}</>
         : <>{t('Drag to orbit · Scroll to zoom')}<br />{t('Sky dome: real Sun (gold) and Earth (blue, dashed) paths; elevation ×{0}; dim = below the horizon.', { 0: DOME_EL_SCALE })}</>}</p>
     </div>
-    {status && <div className="expedition-loading" role="status">{status}{status !== t(MISSING_3D) && <progress max={100} value={Number(status.match(/(\d+)%/)?.[1] ?? 0)} />}</div>}
+    {status && <div className="expedition-loading" role="status">{status}{!failed && <progress max={100} value={Number(status.match(/(\d+)%/)?.[1] ?? 0)} />}</div>}
   </section>;
 }

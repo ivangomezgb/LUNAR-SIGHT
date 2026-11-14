@@ -43,18 +43,22 @@ def get_range(url, first, last, http=None):
                 with session() as s:
                     return get_range(url, first, last, s)
             else:
-                r = http.get(url, headers={'Range': f'bytes={first}-{last}'}, timeout=(15, 45))
-                r.raise_for_status()
-                if r.status_code != 206:
-                    raise ValueError(f'Range ignored: {url}')
-                match = re.fullmatch(r'bytes (\d+)-(\d+)/(\d+)', r.headers.get('Content-Range', ''))
-                if not match or int(match[1]) != first:
-                    raise ValueError('Invalid Content-Range')
-                total = int(match[3])
-                end = min(last, total - 1)
-                if int(match[2]) != end or len(r.content) != end - first + 1:
-                    raise ValueError('Incomplete range')
-                return r.content, total
+                # stream=True: check the status before reading, so a server that ignores
+                # Range (200 + whole multi-GB file) is never pulled into memory
+                with http.get(url, headers={'Range': f'bytes={first}-{last}'}, timeout=(15, 45),
+                              stream=True) as r:
+                    r.raise_for_status()
+                    if r.status_code != 206:
+                        raise ValueError(f'Range ignored: {url}')
+                    match = re.fullmatch(r'bytes (\d+)-(\d+)/(\d+)', r.headers.get('Content-Range', ''))
+                    if not match or int(match[1]) != first:
+                        raise ValueError('Invalid Content-Range')
+                    total = int(match[3])
+                    end = min(last, total - 1)
+                    content = r.content
+                    if int(match[2]) != end or len(content) != end - first + 1:
+                        raise ValueError('Incomplete range')
+                    return content, total
         except (requests.RequestException, ValueError):
             if attempt == 3:
                 raise

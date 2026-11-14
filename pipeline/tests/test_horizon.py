@@ -114,3 +114,22 @@ def test_parabolic_error_documented(d, bound):
     exact = math.atan2(R * math.cos(th) - (R + 2.0), R * math.sin(th))
     parab = math.atan((-2.0 - d * d / (2 * R)) / d)
     assert abs(math.degrees(exact - parab)) < bound
+
+
+def test_multi_height_pass_matches_one_pass_per_height():
+    """scale_masks (all heights in one pass) must equal scale_mask per height, bit for bit,
+    including rays that stop on nodata (reach does not depend on the observer height)."""
+    w, dx, dy = _grid(3000.0, 10.0)
+    rng = np.random.default_rng(7)
+    w.z[:] = (40 * np.sin(dx / 230.0) * np.cos(dy / 170.0) + rng.normal(0, 3, w.z.shape)).astype(np.float32)
+    w.z[(dx > 800) & (dx < 900)] = np.nan  # a band of nodata east of the site
+    z0 = w.sample(*dem.latlon_to_xy(LAT, LON))
+    heights = (1.0, 2.0, 5.0, 10.0)
+    d_start = np.full(720, w.res)
+    d_start[::7] = 450.0
+    els, reach = horizon.scale_masks(w, LAT, LON, [R + z0 + h for h in heights], d_start, 2900.0)
+    for k, h in enumerate(heights):
+        el1, reach1 = horizon.scale_mask(w, LAT, LON, R + z0 + h, d_start, 2900.0)
+        assert np.array_equal(els[k], el1)
+        assert np.array_equal(reach, reach1)
+    assert np.any(reach < 2900.0) and np.all(np.diff(els, axis=0) <= 1e-12)  # higher eye, lower horizon
