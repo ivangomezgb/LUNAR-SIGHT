@@ -1,0 +1,391 @@
+[
+ {
+  "id": "shackleton-rim",
+  "name": "Shackleton Rim (Point A)",
+  "lat_deg": -89.6644,
+  "lon_deg": -165.7935,
+  "elev_m": 1623.5,
+  "group": "science",
+  "tags": [
+   "illumination",
+   "shackleton",
+   "rim"
+  ],
+  "source_url": "https://doi.org/10.1016/j.icarus.2010.03.028",
+  "source_note": "\"Point A\" on the rim of Shackleton crater, 89.68 S 166.0 W, from Bussey et al. (2010), Icarus 208, 558-564, illumination of the south pole from Kaguya topography.",
+  "ref_lat_deg": -89.68,
+  "ref_lon_deg": -166.0,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (474 m away; 36.63% -> 56.55% sunlight in 2027 at 2 m)",
+  "dem_res_m": 5.0,
+  "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 7.49,
+  "map_px": [
+   1011.2,
+   1074.5
+  ]
+ },
+ {
+  "id": "mons-mouton",
+  "name": "Mons Mouton (IM-2 Athena site)",
+  "lat_deg": -84.7906,
+  "lon_deg": 29.1957,
+  "elev_m": 5321.8,
+  "group": "clps",
+  "tags": [
+   "clps",
+   "im-2",
+   "mons-mouton",
+   "viper",
+   "artemis-iii-2024"
+  ],
+  "source_url": "https://lroc.im-ldi.com/images/1408",
+  "source_note": "Resting position of Intuitive Machines' IM-2 Athena lander (landed 2025-03-06), located by LROC at 84.7906 S 29.1957 E inside a ~20 m crater. Mons Mouton is also the VIPER target area and a NASA Artemis III candidate region (2024 list); this point is the Athena site, not the summit of the massif.",
+  "dem_res_m": 10.0,
+  "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 3.09,
+  "map_px": [
+   1418.8,
+   317.5
+  ]
+ },
+ {
+  "id": "connecting-ridge",
+  "name": "Connecting Ridge",
+  "lat_deg": -89.47201,
+  "lon_deg": -137.3538,
+  "elev_m": 1947.3,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "ridge",
+   "illumination"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Connecting Ridge region grid (3200x3200). Agrees with Bussey et al. 2010 Point B (89.44 S 141.8 W) on the same ridge.",
+  "ref_lat_deg": -89.4632,
+  "ref_lon_deg": -137.502,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (270 m away; 47.59% -> 79.22% sunlight in 2027 at 2 m)",
+  "dem_res_m": 5.0,
+  "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 3.69,
+  "map_px": [
+   968.5,
+   1084.3
+  ]
+ },
+ {
+  "id": "connecting-ridge-extension",
+  "name": "Connecting Ridge Extension",
+  "lat_deg": -89.00499,
+  "lon_deg": -99.6395,
+  "elev_m": 1439.2,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "ridge"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Connecting Ridge Extension region grid (4000x4000).",
+  "ref_lat_deg": -89.0325,
+  "ref_lon_deg": -102.0051,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (1485 m away; 35.28% -> 43.55% sunlight in 2027 at 2 m)",
+  "dem_res_m": 5.0,
+  "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 6.26,
+  "map_px": [
+   871.7,
+   1049.9
+  ]
+ },
+ {
+  "id": "de-gerlache-rim-1",
+  "name": "de Gerlache Rim 1",
+  "lat_deg": -88.67157,
+  "lon_deg": -68.3723,
+  "elev_m": 1812.0,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "rim",
+   "de-gerlache"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 de Gerlache Rim 1 region grid (3200x3200).",
+  "ref_lat_deg": -88.6835,
+  "ref_lon_deg": -67.9341,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (474 m away; 52.15% -> 81.16% sunlight in 2027 at 2 m)",
+  "dem_res_m": 5.0,
+  "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 4.34,
+  "map_px": [
+   832.3,
+   948.0
+  ]
+ },
+ {
+  "id": "de-gerlache-rim-2",
+  "name": "de Gerlache Rim 2",
+  "lat_deg": -88.2301,
+  "lon_deg": -64.6297,
+  "elev_m": -87.7,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "artemis-iii-2024",
+   "rim",
+   "de-gerlache"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 de Gerlache Rim 2 region grid (4000x4000).",
+  "dem_res_m": 5.0,
+  "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 9.8,
+  "map_px": [
+   775.7,
+   906.3
+  ]
+ },
+ {
+  "id": "de-gerlache-kocher-massif",
+  "name": "de Gerlache-Kocher Massif",
+  "lat_deg": -85.8296,
+  "lon_deg": -116.3235,
+  "elev_m": 2706.2,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "massif"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 de Gerlache-Kocher Massif region grid (4000x4000); PSRs listed for this region in \"Dynamic Secondary Illumination in Permanent Shadows within Artemis III Candidate Landing Regions\" (PSJ 2024, doi 10.3847/PSJ/ad1b50) lie near 85.5-85.6 S.",
+  "ref_lat_deg": -85.8296,
+  "ref_lon_deg": -116.3235,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (0 m away; 80.06% -> 80.06% sunlight in 2027 at 2 m)",
+  "dem_res_m": 10.0,
+  "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 3.45,
+  "map_px": [
+   443.4,
+   1311.2
+  ]
+ },
+ {
+  "id": "amundsen-rim",
+  "name": "Amundsen Rim",
+  "lat_deg": -84.2503,
+  "lon_deg": 69.1798,
+  "elev_m": 484.4,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "rim",
+   "amundsen"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Amundsen Rim region grid (4000x4000); PSRs listed for this region in PSJ doi 10.3847/PSJ/ad1b50 lie near 84.2-84.5 S, 67-70 E.",
+  "ref_lat_deg": -84.2287,
+  "ref_lon_deg": 69.445,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (1042 m away; 24.99% -> 53.09% sunlight in 2027 at 2 m)",
+  "dem_res_m": 10.0,
+  "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 5.84,
+  "map_px": [
+   1859.1,
+   706.4
+  ]
+ },
+ {
+  "id": "faustini-rim-a",
+  "name": "Faustini Rim A",
+  "lat_deg": -87.87476,
+  "lon_deg": 89.9355,
+  "elev_m": 63.5,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "rim",
+   "faustini"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Faustini Rim A region grid (4000x4000).",
+  "ref_lat_deg": -87.8896,
+  "ref_lon_deg": 90.0022,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (456 m away; 26.65% -> 41.2% sunlight in 2027 at 2 m)",
+  "dem_res_m": 5.0,
+  "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 1.07,
+  "map_px": [
+   1354.0,
+   1023.6
+  ]
+ },
+ {
+  "id": "peak-near-shackleton",
+  "name": "Peak Near Shackleton",
+  "lat_deg": -88.80747,
+  "lon_deg": 123.7242,
+  "elev_m": 1648.6,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "peak",
+   "illumination",
+   "shackleton"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Peak Near Shackleton region grid (3200x3200). Close to the most illuminated point found by Bussey et al. 2010 (88.74 S 124.5 E).",
+  "ref_lat_deg": -88.8109,
+  "ref_lon_deg": 123.6912,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (106 m away; 69.34% -> 83.43% sunlight in 2027 at 2 m)",
+  "dem_res_m": 5.0,
+  "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 1.31,
+  "map_px": [
+   1178.0,
+   1126.8
+  ]
+ },
+ {
+  "id": "haworth",
+  "name": "Haworth",
+  "lat_deg": -86.80239,
+  "lon_deg": -22.393,
+  "elev_m": 1739.6,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "artemis-iii-2024",
+   "haworth"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Haworth region grid (5960x5960, the largest region).",
+  "ref_lat_deg": -86.764,
+  "ref_lon_deg": -22.7762,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (1335 m away; 10.46% -> 37.11% sunlight in 2027 at 2 m)",
+  "dem_res_m": 5.0,
+  "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 4.07,
+  "map_px": [
+   834.8,
+   564.9
+  ]
+ },
+ {
+  "id": "malapert-massif",
+  "name": "Malapert Massif",
+  "lat_deg": -85.99243,
+  "lon_deg": 0.2251,
+  "elev_m": 4855.7,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "artemis-iii-2024",
+   "massif",
+   "malapert"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Malapert Massif region grid (4200x4200).",
+  "ref_lat_deg": -85.9949,
+  "ref_lon_deg": -0.2346,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (978 m away; 20.84% -> 65.67% sunlight in 2027 at 2 m)",
+  "dem_res_m": 10.0,
+  "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 1.96,
+  "map_px": [
+   1026.4,
+   401.6
+  ]
+ },
+ {
+  "id": "leibnitz-beta-plateau",
+  "name": "Leibnitz Beta Plateau",
+  "lat_deg": -85.44338,
+  "lon_deg": 32.1683,
+  "elev_m": 6383.6,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "plateau",
+   "mons-mouton"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Leibnitz Beta Plateau region grid (3200x3200). Leibnitz Beta is the former informal name of Mons Mouton; NASA's 2024 list names this area \"Mons Mouton Plateau\" (region outlines may differ).",
+  "ref_lat_deg": -85.4266,
+  "ref_lon_deg": 31.7442,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (1145 m away; 21.62% -> 73.98% sunlight in 2027 at 2 m)",
+  "dem_res_m": 10.0,
+  "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 3.93,
+  "map_px": [
+   1400.8,
+   424.8
+  ]
+ },
+ {
+  "id": "nobile-rim-1",
+  "name": "Nobile Rim 1",
+  "lat_deg": -85.46764,
+  "lon_deg": 37.4964,
+  "elev_m": 6046.5,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "artemis-iii-2024",
+   "rim",
+   "nobile"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Nobile Rim 1 region grid (4000x4000).",
+  "ref_lat_deg": -85.4381,
+  "ref_lon_deg": 37.3681,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (949 m away; 30.39% -> 47.19% sunlight in 2027 at 2 m)",
+  "dem_res_m": 10.0,
+  "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 1.17,
+  "map_px": [
+   1452.6,
+   465.4
+  ]
+ },
+ {
+  "id": "nobile-rim-2",
+  "name": "Nobile Rim 2",
+  "lat_deg": -83.93667,
+  "lon_deg": 58.8678,
+  "elev_m": 1034.0,
+  "group": "artemis",
+  "tags": [
+   "artemis-iii-2022",
+   "artemis-iii-2024",
+   "rim",
+   "nobile"
+  ],
+  "source_url": "https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components",
+  "source_note": "Centre of NASA's ADC 2023 Nobile Rim 2 region grid (4000x4000).",
+  "ref_lat_deg": -83.954,
+  "ref_lon_deg": 58.8231,
+  "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (546 m away; 39.92% -> 44.28% sunlight in 2027 at 2 m)",
+  "dem_res_m": 10.0,
+  "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
+  "has_clones": false,
+  "slope_deg_50m": 2.1,
+  "map_px": [
+   1830.5,
+   536.8
+  ]
+ }
+]
