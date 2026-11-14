@@ -383,5 +383,8 @@
   "Mesh horizon approx. (up to ~0.6°); exact horizon in 360°.": "Mesh horizon approx. (up to ~0.6°); exact horizon in 360°.",
   "Sky dome: real Sun (gold) and Earth (blue, dashed) paths; elevation ×{0}; dim = below the horizon.": "Sky dome: real Sun (gold) and Earth (blue, dashed) paths; elevation ×{0}; dim = below the horizon.",
   "Astronaut view · exact horizon (±0.2°)": "Astronaut view · exact horizon (±0.2°)",
-  "Orange: real 2 m horizon · gold/blue: Sun and Earth paths, dim when hidden · approximate shading, no cast shadows": "Orange: real 2 m horizon · gold/blue: Sun and Earth paths, dim when hidden · approximate shading, no cast shadows"
+  "Orange: real 2 m horizon · gold/blue: Sun and Earth paths, dim when hidden · approximate shading, no cast shadows": "Orange: real 2 m horizon · gold/blue: Sun and Earth paths, dim when hidden · approximate shading, no cast shadows",
+  "Developed by:": "Developed by:",
+  "We are:": "We are:",
+  "Team Apolo404: the five members together": "Team Apolo404: the five members together"
 }

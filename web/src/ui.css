@@ -1739,3 +1739,10 @@ tbody tr:hover { background: #ffffff07; }
 /* Metric numbers never break mid-value; the unit wraps below if space is short. */
 .metric-value { flex-wrap: wrap; }
 .mv-num, .mv-unit { white-space: nowrap; overflow-wrap: normal; }
+
+/* Team page (Apolo404) */
+.team-name { font-size: clamp(2.4rem, 6vw, 4rem); letter-spacing: -0.04em; margin: 0; }
+.team-photo { margin: 0 0 20px; padding: 0; overflow: hidden; }
+.team-photo img { display: block; width: 100%; height: auto; }
+.team-members ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; }
+.team-members li { padding: 12px 14px; border: 1px solid var(--line-2, #2a3442); border-radius: 8px; font-weight: 600; overflow-wrap: anywhere; }

@@ -383,5 +383,8 @@
   "Mesh horizon approx. (up to ~0.6°); exact horizon in 360°.": "Horizonte de la malla aproximado (hasta ~0,6°); el exacto está en 360°.",
   "Sky dome: real Sun (gold) and Earth (blue, dashed) paths; elevation ×{0}; dim = below the horizon.": "Domo del cielo: trayectorias reales del Sol (dorado) y la Tierra (azul, discontinua); elevación ×{0}; tenue = bajo el horizonte.",
   "Astronaut view · exact horizon (±0.2°)": "Vista del astronauta · horizonte exacto (±0,2°)",
-  "Orange: real 2 m horizon · gold/blue: Sun and Earth paths, dim when hidden · approximate shading, no cast shadows": "Naranja: horizonte real a 2 m · dorado/azul: trayectorias del Sol y la Tierra, tenues si están ocultos · sombreado aproximado, sin sombras proyectadas"
+  "Orange: real 2 m horizon · gold/blue: Sun and Earth paths, dim when hidden · approximate shading, no cast shadows": "Naranja: horizonte real a 2 m · dorado/azul: trayectorias del Sol y la Tierra, tenues si están ocultos · sombreado aproximado, sin sombras proyectadas",
+  "Developed by:": "Desarrollado por:",
+  "We are:": "Nosotros somos:",
+  "Team Apolo404: the five members together": "Equipo Apolo404: los cinco integrantes juntos"
 }
