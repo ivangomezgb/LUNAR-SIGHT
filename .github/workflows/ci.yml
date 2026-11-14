@@ -3,7 +3,7 @@ name: CI
 on:
   pull_request:
   push:
-    branches: [main]
+    branches-ignore: [main] # on main, deploy.yml runs this workflow before publishing
   workflow_call:
 
 permissions:
