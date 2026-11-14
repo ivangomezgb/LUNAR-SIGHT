@@ -17,6 +17,7 @@ export default function Team() {
         <div>
           <div className="eyebrow">{t('NASA Space Apps Challenge 2026')}</div>
           <h1 className="team-name">Apolo404</h1>
+          <p className="lead">{t('We are Systems Engineering students at UPTC (Universidad Pedagógica y Tecnológica de Colombia), Sogamoso campus, and we built this navigator for the NASA Space Apps Challenge.')}</p>
           <p className="lead">{t('Developed by:')}</p>
         </div>
       </header>
@@ -35,6 +36,11 @@ export default function Team() {
           {MEMBERS.map((name) => <li key={name}>{name}</li>)}
         </ul>
       </section>
+
+      <blockquote className="team-quote">
+        <p>{t('Every landing begins on Earth: with a question, real data and a team that refuses to stop asking. From Sogamoso to the lunar south pole.')}</p>
+        <footer>{t('Apolo404 — limits not found.')}</footer>
+      </blockquote>
     </div>
   );
 }
