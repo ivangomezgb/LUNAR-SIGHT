@@ -1,0 +1,9 @@
+numpy>=1.26
+spiceypy>=6.0
+requests>=2.31
+pyyaml>=6.0
+pytest>=8.0
+# DEM / horizon / export steps
+rasterio>=1.3
+pyproj>=3.6
+numba>=0.59
