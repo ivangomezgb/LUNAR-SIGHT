@@ -80,6 +80,7 @@ export default function MetricCards({ metrics, site }: { metrics: Metrics; site?
           {c.sub && <div className="metric-sub">{c.sub}</div>}
           {c.key === 'light' && site?.uncertainty && (
             <div className="uncertainty">
+              <div>{t('Terrain uncertainty · {0}', { 0: site.uncertainty.window ?? t('reference window') })}</div>
               <span>{t("p5–p95:")} {site.uncertainty.illum_pct_p5.toFixed(1)}–{site.uncertainty.illum_pct_p95.toFixed(1)}%</span>
               <ExplainTip topic="uncertainty" />
               <svg viewBox="0 0 100 8" role="img" aria-label={t('Sunlight uncertainty band')}>

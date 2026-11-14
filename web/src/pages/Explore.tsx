@@ -60,6 +60,18 @@ export default function Explore() {
 
   return (
     <div className="explore">
+      <section className="mission-hero" aria-labelledby="mission-heading">
+        <div>
+          <div className="eyebrow">{t('Lunar south pole · Mission planning')}</div>
+          <h1 id="mission-heading">{t('Find your place on the Moon.')}</h1>
+          <p>{t('{0} candidate sites. Real terrain. Every hour matters.', { 0: list.length })}</p>
+          <div className="hero-actions">
+            <Link className="btn btn-primary" to={`/3d?site=${siteId}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Stand on the site in 3D')} <span aria-hidden>↗</span></Link>
+            <Link className="btn btn-ghost" to={`/3d?site=${siteId}&t=${isoShort(landingUtc)}&view=pano&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Look around in 360°')} <span aria-hidden>→</span></Link>
+          </div>
+        </div>
+        <div className="hero-proof"><span className="eyebrow">{t('Built on public science')}</span><strong>{t('LOLA / SPICE')}</strong><span>{t('Terrain from NASA. Positions from JPL.')}</span><Link className="link" to={`/validation?lang=${store.lang}`}>{t('Inspect the validation')} →</Link></div>
+      </section>
       <aside className="explore-side">
         <section className="card">
           <div className="card-head">
@@ -137,7 +149,7 @@ function SiteHeader({ entry }: { entry: SiteIndexEntry }) {
         <div className="eyebrow">
           <i className="dot" style={{ background: groupColor(entry.group) }} aria-hidden /> {groupLabel(entry.group)}
         </div>
-        <h1 className="site-title">{shortName(entry.name)}</h1>
+        <h2 className="site-title">{shortName(entry.name)}</h2>
         <div className="site-meta mono">
           <span>{entry.lat_deg.toFixed(3)}{t("° lat")}</span>
           <span>{entry.lon_deg.toFixed(3)}{t("° lon E")}</span>

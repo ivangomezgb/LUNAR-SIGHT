@@ -336,5 +336,16 @@
   "Immersive lunar panorama": "Immersive lunar panorama",
   "Lambert shading only: per-pixel cast shadows are unavailable. Orange line: 2 m horizon mask. Sun: white; Earth: blue.": "Lambert shading only: per-pixel cast shadows are unavailable. Orange line: 2 m horizon mask. Sun: white; Earth: blue.",
   "3D": "3D",
-  "South pole · Sun & Earth visibility": "South pole · Sun & Earth visibility"
+  "South pole · Sun & Earth visibility": "South pole · Sun & Earth visibility",
+  "Stand on the site in 3D": "Stand on the site in 3D",
+  "Look around in 360°": "Look around in 360°",
+  "{0} candidate sites. Real terrain. Every hour matters.": "{0} candidate sites. Real terrain. Every hour matters.",
+  "Terrain from NASA. Positions from JPL.": "Terrain from NASA. Positions from JPL.",
+  "Lunar south pole · Mission planning": "Lunar south pole · Mission planning",
+  "Built on public science": "Built on public science",
+  "Find your place on the Moon.": "Find your place on the Moon.",
+  "Inspect the validation": "Inspect the validation",
+  "reference window": "reference window",
+  "LOLA / SPICE": "LOLA / SPICE",
+  "Terrain uncertainty · {0}": "Terrain uncertainty · {0}"
 }
