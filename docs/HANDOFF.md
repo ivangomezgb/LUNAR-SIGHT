@@ -17,8 +17,12 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 | 6. Línea de tiempo 30 días | ✅ | `Timeline.tsx` |
 | 7. Modo "Se retrasó" | ✅ máx. 3 fechas por sitio, ~150 ms | `lib/score.ts`, `Replan.tsx` |
 | 8. Validación Horizons + IM-2 | ✅ error máx. 2,7e-5° | `lln/validate.py`, `Validation.tsx`, `docs/validation.md` |
+| T25. Incertidumbre con clones LOLA | 🟡 2/14 sitios (30 clones) | `lln/uncertainty.py`, `docs/uncertainty.md` |
+| T26. Altura del panel 1/2/5/10 m en URL | ✅ `?h=` | `state.ts`, `AssumptionsPanel.tsx` |
+| T27. Escena 3D con sombras + 360° inmersivo | ✅ ruta `#/3d` (`&view=pano`) | `lln/terrain.py`, `lln/pano.py`, `Scene3D.tsx`, `ImmersivePano.tsx` |
+| T28. Bilingüe EN/ES | ✅ `?lang=es` | `i18n.ts`, `locales/*.json` |
 
-Pruebas: 54 en `pytest pipeline/tests` y 8 en `cd web && npx vitest run`, incluida la paridad Python/TS.
+Pruebas: 110 en `pytest pipeline/tests` y 13 en `cd web && npx vitest run`, incluida la paridad Python/TS.
 `npm run build` compila sin errores.
 
 ### Resultados clave (año 2027, altura 2 m)
@@ -33,6 +37,8 @@ un horizonte de 0,83°.
 pip install -r pipeline/requirements.txt
 python pipeline/scripts/download_kernels.py      # kernels SPICE (44 MB, gitignored)
 python pipeline/run_all.py                       # horizontes → efemérides → validación → export (~1 min con caché)
+python pipeline/run_all.py --terrain --pano      # + mallas 3D y panoramas 360° (~3 min)
+python pipeline/run_all.py --uncertainty         # + clones PGDA 78 (≈45 min por sitio; descarga ~GB)
 python pipeline/scripts/refine_sites.py          # SOLO si cambian los sitios: reubica en el punto mejor iluminado (~15 min)
 python -m pytest pipeline/tests
 cd web && npm ci && npm run dev                  # datos reales en web/public/data (versionados)
@@ -53,13 +59,13 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 **Extras del plan (en este orden):**
 
-- [ ] **T25 Incertidumbre con clones de LOLA** (PGDA 78): repetir el horizonte cercano con los 100 clones y
-      llenar `uncertainty` en `sites/<id>.json` (p5/p50/p95 de % de luz). El campo ya existe en el contrato (`null`).
-- [ ] **T26 Control de altura del panel**: los datos ya tienen 1/2/5/10 m y `AssumptionsPanel` ya tiene el
-      selector. Falta revisarlo de punta a punta y mostrar el efecto en Replan.
+- [ ] **T25 Incertidumbre**: hecho para Connecting Ridge (69,0/78,8/81,4 %) y Shackleton Rim (52,5/54,2/55,8 %).
+      Faltan 12 sitios cubiertos: `python pipeline/run_all.py --uncertainty --skip-ephem --skip-validate`
+      (Mons Mouton no está en ningún DEM de PGDA 78).
+- [x] **T26 Control de altura del panel** (Connecting Ridge 1/2/5/10 m: 65,5/79,2/87,3/89,3 % de luz).
 - [ ] Riesgo de luz al aterrizar (Sol bajo, sombras largas, horas de luz restantes tras el aterrizaje).
-- [ ] **T27 Escena 3D con sombras** (ver §5).
-- [ ] **T28 Modo Explora bilingüe** (i18next, EN/ES).
+- [x] **T27 Escena 3D con sombras** y 360° inmersivo (ver §5). Falta medir en celular la carga (< 3 s) y la línea del horizonte 3D contra la máscara.
+- [x] **T28 Bilingüe EN/ES** (diccionario propio, sin i18next).
 - [ ] Asistente en lenguaje natural; reporte exportable (PDF/PNG del escenario).
 
 **Diferido por diseño:**
@@ -87,8 +93,9 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 **Frontend:**
 
 - La banda de luz de la línea de tiempo solo usa color: agregar una señal que no dependa del color (accesibilidad).
-- En móvil, el formulario de Replan aparece antes de los resultados.
-- 6 advertencias de lint (react-refresh) y un bundle de 376 KB (118 KB gzip). Separar `three`/`d3` por ruta cuando entre el 3D.
+- 3 advertencias de lint (react-refresh en `Scene3D.tsx`). Bundle principal 429 KB (132 KB gzip); `three` va aparte (497 KB, solo en `#/3d`).
+- Panorama de de-gerlache-rim-2: 97,7 % de columnas dentro de 0,2° (su horizonte pasa de +15°, el borde de la imagen).
+- El 360° usa solo sombreado Lambert: no hay sombras proyectadas por píxel.
 - `basemap.png` pesa 2,6 MB y los JSON de sitios ~5,8 MB sin comprimir (Pages sirve gzip). Opciones: WebP o
   enviar las efemérides como delta o binario.
 
