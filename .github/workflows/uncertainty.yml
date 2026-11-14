@@ -26,8 +26,13 @@ jobs:
     outputs:
       list: ${{ steps.pick.outputs.list }}
     steps:
+      # Pass the JSON through an env var: inlined into the shell command its quotes would be stripped.
       - id: pick
-        run: echo "list=${{ github.event.inputs.sites || env.DEFAULT_SITES }}" >> "$GITHUB_OUTPUT"
+        env:
+          LIST: ${{ github.event.inputs.sites || env.DEFAULT_SITES }}
+        run: |
+          echo "$LIST" | python3 -c "import json,sys; assert json.load(sys.stdin)"
+          echo "list=$LIST" >> "$GITHUB_OUTPUT"
 
   site:
     needs: sites
@@ -68,7 +73,7 @@ jobs:
 
   publish:
     needs: site
-    if: ${{ !cancelled() }}
+    if: ${{ !cancelled() && needs.site.result != 'skipped' }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
