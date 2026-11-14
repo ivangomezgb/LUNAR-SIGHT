@@ -22,8 +22,16 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 | T27. Escena 3D con sombras + 360° inmersivo | ✅ ruta `#/3d` (`&view=pano`) | `lln/terrain.py`, `lln/pano.py`, `Scene3D.tsx`, `ImmersivePano.tsx` |
 | T28. Bilingüe EN/ES | ✅ `?lang=es` | `i18n.ts`, `locales/*.json` |
 
-Pruebas: 110 en `pytest pipeline/tests` y 13 en `cd web && npx vitest run`, incluida la paridad Python/TS.
-`npm run build` compila sin errores.
+Pruebas: 125 en `pytest pipeline/tests` (114 pasan y 11 se saltan sin kernels SPICE ni intermedios) y 18 en `cd web && npm test`,
+incluida la paridad Python/TS. `npm run lint` y `npm run build` sin errores ni advertencias.
+
+**CI** (`.github/workflows/ci.yml`, en cada PR y antes de cada despliegue): lint + pruebas + build de la web (Node 22),
+pytest del pipeline (Python 3.12) y `pipeline/scripts/check_data.py`, que valida `web/public/data` contra los contratos.
+
+**Auditoría 2026-11-14** (rama `audit-fixes`): línea base de "Se retrasó" ahora es un sitio original elegido; caché de
+tiles DEM sin carreras entre procesos; export recalcula efemérides de sitios movidos; `has_clones` real; visor 3D/360
+robusto en celular (textura de 8 bits) y con errores claros; validación de los JSON en la web; horizontes 2,3× más
+rápidos (todas las alturas en una pasada, resultado idéntico).
 
 ### Resultados clave (año 2027, altura 2 m)
 
@@ -55,7 +63,7 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 - [ ] Pedir la clasificación FortiGuard del dominio (T32).
 - [ ] Storyboard, nombre y logo (T12); capturas y grabaciones (T24); video de 30 s con subtítulos en inglés (T29).
 - [ ] Página del proyecto en inglés con todos los campos (T30) y envío (T33).
-- [ ] Decidir si se eliminan `frontend/` y `backend/` (prototipo anterior "LUNAR SIGHT", sin uso).
+- [x] Se eliminaron `frontend/` y `backend/` (prototipo anterior sin uso; quedan en el historial de git).
 
 **Extras del plan (en este orden):**
 
@@ -72,7 +80,7 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 - [ ] **Coordenadas libres**: una app estática no puede calcular el horizonte de un punto cualquiera. Hay dos
       opciones. (a) Precalcular una grilla de horizontes (p. ej. cada 250 m en zonas de interés) e interpolar.
-      (b) Exponer `pipeline` como API (FastAPI; ya existe un esqueleto en `backend/main.py`) que calcule a
+      (b) Exponer `pipeline` como API (p. ej. FastAPI; el esqueleto viejo de `backend/` está en el historial) que calcule a
       demanda, en ~5–10 s por punto con caché de tiles.
 
 ## 4. Mejoras pendientes y problemas conocidos
@@ -92,8 +100,10 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 **Frontend:**
 
-- La banda de luz de la línea de tiempo solo usa color: agregar una señal que no dependa del color (accesibilidad).
-- 3 advertencias de lint (react-refresh en `Scene3D.tsx`). Bundle principal 429 KB (132 KB gzip); `three` va aparte (497 KB, solo en `#/3d`).
+- Bundle principal 441 KB (135 KB gzip); `three` va aparte (478 KB, solo en `#/3d`).
+- Pendiente menor: los textos de estado del 3D se traducen al cargarse, no al cambiar de idioma con la vista abierta.
+- Pendiente menor: `refine_sites.py` vuelve a leer las ventanas de 20/240 m en cada uno de los 74 candidatos por sitio (cachearlas).
+- `uncertainty.update_report` reescribe `docs/uncertainty.md` en cada corrida (revisar el diff antes de hacer commit).
 - Panorama de de-gerlache-rim-2: 97,7 % de columnas dentro de 0,2° (su horizonte pasa de +15°, el borde de la imagen).
 - El 360° usa solo sombreado Lambert: no hay sombras proyectadas por píxel.
 - `basemap.png` pesa 2,6 MB y los JSON de sitios ~5,8 MB sin comprimir (Pages sirve gzip). Opciones: WebP o

@@ -23,8 +23,12 @@ Frozen at kickoff. Types live in `web/src/lib/types.ts` (single source of truth 
 
 Pipeline intermediates (not committed):
 
-- `pipeline/data/intermediate/horizon/<id>.json` → `{ id, az_step_deg, heights_m, elev_cdeg, max_dist_m, slope_deg_50m, dem_res_m, dem_source, elev_m }`
-- `pipeline/data/intermediate/ephem/<id>.json` → the `ephem` object of `SiteData`
+- `pipeline/data/intermediate/horizon/<id>.json` → `{ id, lat_deg, lon_deg, generated_utc, az_step_deg, heights_m, elev_cdeg, max_dist_m, slope_deg_50m, dem_res_m, dem_source, elev_m, scales }`
+- `pipeline/data/intermediate/ephem/<id>.json` → the `ephem` object of `SiteData` plus the `lat_deg`, `lon_deg` it was computed for.
+  Export uses an intermediate (horizon or ephem) only when those match `sites.yaml` exactly; a stale ephem file is recomputed.
+
+`SiteIndexEntry.has_clones` is `true` exactly when `SiteData.uncertainty` is published.
+`python pipeline/scripts/check_data.py` checks the published files against these contracts (run in CI).
 - `pipeline/data/intermediate/validation.json` → `ValidationData`
 
 ## Web engine API (`web/src/lib/`)
