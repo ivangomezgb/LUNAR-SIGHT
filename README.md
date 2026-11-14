@@ -70,7 +70,7 @@ pipeline/ (Python)                                   web/ (TypeScript, Vite + Re
 
 ```bash
 # pipeline (Python 3.12)
-pip install -r pipeline/requirements.txt
+pip install -r pipeline/requirements-dev.txt
 python pipeline/scripts/download_kernels.py
 python pipeline/run_all.py            # first run downloads ~1.5 GB of LOLA tiles (cached)
 python -m pytest pipeline/tests

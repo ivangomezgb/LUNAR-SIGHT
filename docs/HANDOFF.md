@@ -34,7 +34,7 @@ un horizonte de 0,83°.
 ## 2. Cómo correr
 
 ```bash
-pip install -r pipeline/requirements.txt
+pip install -r pipeline/requirements-dev.txt
 python pipeline/scripts/download_kernels.py      # kernels SPICE (44 MB, gitignored)
 python pipeline/run_all.py                       # horizontes → efemérides → validación → export (~1 min con caché)
 python pipeline/run_all.py --terrain --pano      # + mallas 3D y panoramas 360° (~3 min)
