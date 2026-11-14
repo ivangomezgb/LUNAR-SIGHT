@@ -96,3 +96,44 @@ python -m lln.validate                               # live Horizons; writes dat
 python -m lln.validate --offline                     # re-use cached raw responses
 python -m pytest tests/test_ephem.py tests/test_validate.py
 ```
+
+## Illumination sanity check and site-point selection
+
+The first export used each Artemis III region's grid centre as the site point. Annual sunlight (2027, 2 m)
+came out implausibly low at well-known lit places: 47.6 % at Connecting Ridge and 20.8 % at Malapert, with a
+2826 h longest night. We checked for a bug before changing anything:
+
+- **DEM reader vs rasterio**: elevations sampled at 5 sites agree with GDAL/rasterio to within the
+  bilinear-vs-nearest difference (1.5–40 m on slopes). There is no flip or transposition.
+- **Orientation**: mirroring or rotating the horizon mask does not give plausible values, so the azimuth
+  conventions of the horizon and the ephemerides agree.
+- **Published reference**: Mazarico et al. (2011, *Icarus* 211) give ~86–89 % illumination for the best point
+  on Connecting Ridge, near 89.45° S 137.31° W. A 5 × 5 scan at 200 m around that point found **80.9 %** on a
+  1.2° slope at 2 m, and 35 % on a 10° slope 400 m away.
+
+So the algorithm is right and illumination simply varies a lot over a few hundred metres: grid centres often
+sit on slopes or in hollows. `pipeline/scripts/refine_sites.py` therefore moves each site to the best-lit
+point with slope ≤ 8° within ~1 km of its published reference (300 m grid, then 75 m). The reference
+coordinate and the rule are stored in `sites.yaml` and shown in the app. The IM-2 *Athena* site is fixed.
+
+| Site | Reference point | Selected point | Moved |
+| --- | --- | --- | --- |
+| Peak near Shackleton | 69.3 % | **83.4 %** | 106 m |
+| de Gerlache Rim 1 | 52.1 % | **81.2 %** | 474 m |
+| de Gerlache-Kocher Massif | 80.1 % | 80.1 % | 0 m |
+| Connecting Ridge | 47.6 % | **79.2 %** | 270 m |
+| Leibnitz Beta Plateau | 21.6 % | **74.0 %** | 1145 m |
+| Malapert Massif | 20.8 % | **65.7 %** | 978 m |
+| Shackleton Rim | 36.6 % | 56.5 % | 474 m |
+| Amundsen Rim | 25.0 % | 53.1 % | 1042 m |
+| Nobile Rim 1 | 30.4 % | 47.2 % | 949 m |
+| Nobile Rim 2 | 39.9 % | 44.3 % | 546 m |
+| Connecting Ridge Extension | 35.3 % | 43.5 % | 1485 m |
+| Faustini Rim A | 26.6 % | 41.2 % | 456 m |
+| Haworth | 10.5 % | 37.1 % | 1335 m |
+| de Gerlache Rim 2 | — | not moved (no point ≤ 8° within 1 km) | — |
+
+Remaining differences from the literature (e.g. 79–81 % vs ~86–89 % on Connecting Ridge) are expected
+from different DEMs, observer heights, time spans (one year vs multi-year) and our finite scan; we do not
+force agreement. Connecting Ridge Extension sees the Earth 0 % of the time: from that point the Earth stays
+behind the terrain all year.

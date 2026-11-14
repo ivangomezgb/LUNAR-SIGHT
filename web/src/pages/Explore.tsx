@@ -151,6 +151,13 @@ function SiteHeader({ entry }: { entry: SiteIndexEntry }) {
             DEM {entry.dem_source} · {entry.dem_res_m} m/px
           </span>
         </div>
+        {entry.selection && entry.ref_lat_deg !== undefined && entry.ref_lon_deg !== undefined && (
+          <p className="site-meta">
+            Point selection: {entry.selection}. Published reference: {entry.ref_lat_deg.toFixed(4)}°,{' '}
+            {entry.ref_lon_deg.toFixed(4)}°E{' '}
+            <a href={entry.source_url} target="_blank" rel="noreferrer">(source)</a>
+          </p>
+        )}
       </div>
       {isSynthetic(entry) && (
         <div className="badge badge-warn badge-lg" role="note">

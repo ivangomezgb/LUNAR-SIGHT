@@ -12,6 +12,10 @@ export interface SiteIndexEntry {
   tags: string[];
   source_url: string;
   source_note?: string;
+  // present when the point was moved to the best-lit gentle spot near the published reference
+  ref_lat_deg?: number;
+  ref_lon_deg?: number;
+  selection?: string;
   dem_res_m: number; // finest DEM resolution used near the site
   dem_source: string; // e.g. "PGDA 81 LOLA 5 m/px (87S)"
   has_clones: boolean;
