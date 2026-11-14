@@ -436,3 +436,4 @@ pipeline/data/
 web/public/dev-data/
 web/node_modules/
 web/dist/
+web/.vite/
