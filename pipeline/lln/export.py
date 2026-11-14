@@ -32,6 +32,7 @@ REPO_DIR = PIPELINE_DIR.parent
 SITES_YAML = PIPELINE_DIR / "config" / "sites.yaml"
 INTER_DIR = PIPELINE_DIR / "data" / "intermediate"
 HORIZON_DIR = INTER_DIR / "horizon"
+UNCERTAINTY_DIR = INTER_DIR / "uncertainty"
 EPHEM_DIR = INTER_DIR / "ephem"
 OUT_DIR = REPO_DIR / "web" / "public" / "data"
 
@@ -200,6 +201,26 @@ def site_ephem(site: dict, elev_m: float) -> dict | None:
     return _se(float(site["lat_deg"]), float(site["lon_deg"]), float(elev_m))
 
 
+def site_uncertainty(sid: str) -> dict | None:
+    path = UNCERTAINTY_DIR / f"{sid}.json"
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+        keys = ("illum_pct_p5", "illum_pct_p50", "illum_pct_p95")
+        values = [data[k] for k in keys]
+        if not all(type(v) in (int, float) and math.isfinite(v) for v in values):
+            raise ValueError("percentiles must be finite numbers")
+        if not 0 <= values[0] <= values[1] <= values[2] <= 100:
+            raise ValueError("percentiles must satisfy 0 <= p5 <= p50 <= p95 <= 100")
+        result = {k: round(v, 2) for k, v in zip(keys, values)}
+        result.update({k: data[k] for k in ("n_clones", "window", "source")})
+        return result
+    except FileNotFoundError:
+        return None
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        warn(f"{sid}: invalid uncertainty ({path}): {exc}")
+        return None
+
+
 def export(sites_yaml: Path = SITES_YAML, out_dir: Path = OUT_DIR, basemap: bool = True) -> dict:
     sites = load_sites(sites_yaml)
     meta = build_basemap(out_dir) if basemap else json.loads(
@@ -236,7 +257,7 @@ def export(sites_yaml: Path = SITES_YAML, out_dir: Path = OUT_DIR, basemap: bool
             },
             "ephem": {"t0_utc": eph["t0_utc"], "step_h": eph["step_h"], "n": eph["n"],
                       "sun": eph["sun"], "earth": eph["earth"]},
-            "uncertainty": None,
+            "uncertainty": site_uncertainty(sid),
         }
         atomic_write_json(out_dir / "sites" / f"{sid}.json", site_data)
         entry = {

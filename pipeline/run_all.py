@@ -3,6 +3,8 @@
     python pipeline/run_all.py              # cached horizons are reused
     python pipeline/run_all.py --force      # recompute horizons
     python pipeline/run_all.py --only connecting-ridge,mons-mouton
+    python pipeline/run_all.py --terrain --pano  # optional products after export
+    python pipeline/run_all.py --uncertainty   # slow; downloads data, before export
 
 Horizons run first because lln.ephem reads each site's elevation from
 data/intermediate/horizon/<id>.json. DEM blocks are cached under data/raw/ (gitignored).
@@ -82,6 +84,22 @@ def run_validate(im2_id: str) -> None:
         export.warn(f"validation exited with {r.returncode}; previous validation.json kept")
 
 
+def run_optional(module: str, only: str = "") -> None:
+    name = f"lln.{module}"
+    if importlib.util.find_spec(name) is None:
+        export.warn(f"{name} not present; skipping {module}")
+        return
+    cmd = [sys.executable, "-m", name]
+    if only:
+        cmd += ["--only", only]
+    try:
+        result = subprocess.run(cmd, cwd=PIPELINE_DIR)
+        if result.returncode != 0:
+            export.warn(f"{name} exited with {result.returncode}; continuing")
+    except Exception as exc:  # optional products must not prevent export
+        export.warn(f"{name} failed: {exc}; continuing")
+
+
 def main(argv=None) -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--sites", default=str(export.SITES_YAML))
@@ -90,6 +108,10 @@ def main(argv=None) -> None:
     ap.add_argument("--heights", default="1,2,5,10")
     ap.add_argument("--skip-ephem", action="store_true")
     ap.add_argument("--skip-validate", action="store_true")
+    ap.add_argument("--terrain", action="store_true", help="generate terrain after export")
+    ap.add_argument("--pano", action="store_true", help="generate panoramas after export")
+    ap.add_argument("--uncertainty", action="store_true",
+                    help="compute uncertainty before export (slow; downloads data)")
     a = ap.parse_args(argv)
     t0 = time.time()
     sites_yaml = Path(a.sites)
@@ -105,7 +127,13 @@ def main(argv=None) -> None:
         print(f"--- ephem done {time.time() - t0:.0f} s", flush=True)
     if not a.skip_validate:
         run_validate(IM2_SITE_ID)
+    if a.uncertainty:
+        run_optional("uncertainty", a.only)
     export.export(sites_yaml)
+    if a.terrain:
+        run_optional("terrain", a.only)
+    if a.pano:
+        run_optional("pano", a.only)
     print(f"--- total {time.time() - t0:.0f} s")
 
 

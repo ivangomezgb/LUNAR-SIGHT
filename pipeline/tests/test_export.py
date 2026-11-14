@@ -54,6 +54,7 @@ def env(tmp_path, monkeypatch):
     monkeypatch.setattr(export, "INTER_DIR", inter)
     monkeypatch.setattr(export, "HORIZON_DIR", inter / "horizon")
     monkeypatch.setattr(export, "EPHEM_DIR", inter / "ephem")
+    monkeypatch.setattr(export, "UNCERTAINTY_DIR", inter / "uncertainty")
     # no real ephemerides in tests: sites without an ephem intermediate must be skipped
     monkeypatch.setattr(export, "site_ephem",
                         lambda s, e: json.loads((inter / "ephem" / f"{s['id']}.json").read_text())
@@ -81,6 +82,62 @@ def test_export_writes_contract_and_skips_incomplete(env):
     assert not (out / "sites" / "bb.json").exists()
     assert json.loads((out / "validation.json").read_text()) == {"rows": []}
     assert " " not in (out / "sites" / "aa.json").read_text()[:200]  # compact
+
+
+def _uncertainty():
+    return {"illum_pct_p5": 78.1234, "illum_pct_p50": 79.4567,
+            "illum_pct_p95": 80.9876, "n_clones": 100, "window": "2027",
+            "source": "synthetic test fixture"}
+
+
+def test_export_uncertainty_valid(env):
+    sites, out = env
+    export.export(sites, out, basemap=False)
+    before = json.loads((out / "sites" / "aa.json").read_text())
+    export.UNCERTAINTY_DIR.mkdir()
+    data = _uncertainty()
+    data["extra"] = "ignored"
+    (export.UNCERTAINTY_DIR / "aa.json").write_text(json.dumps(data))
+    export.export(sites, out, basemap=False)
+    after = json.loads((out / "sites" / "aa.json").read_text())
+    expected = _uncertainty()
+    expected.update(illum_pct_p5=78.12, illum_pct_p50=79.46, illum_pct_p95=80.99)
+    assert after.pop("uncertainty") == expected
+    before.pop("uncertainty")
+    assert after == before
+
+
+def test_export_uncertainty_missing_ignores_auxiliary_files(env, monkeypatch):
+    sites, out = env
+    export.UNCERTAINTY_DIR.mkdir()
+    for name in ("coverage.json", "aa.diagnostics.json", "aa.progress.json"):
+        (export.UNCERTAINTY_DIR / name).write_text("invalid JSON")
+    warnings = []
+    monkeypatch.setattr(export, "warn", warnings.append)
+    export.export(sites, out, basemap=False)
+    assert json.loads((out / "sites" / "aa.json").read_text())["uncertainty"] is None
+    assert not any("invalid uncertainty" in w for w in warnings)
+
+
+@pytest.mark.parametrize("bad", [
+    {}, [], {**_uncertainty(), "illum_pct_p5": "78"},
+    {**_uncertainty(), "illum_pct_p5": True},
+    {**_uncertainty(), "illum_pct_p5": -1},
+    {**_uncertainty(), "illum_pct_p95": 101},
+    {**_uncertainty(), "illum_pct_p50": 90},
+    {**_uncertainty(), "illum_pct_p50": float("nan")},
+    {**_uncertainty(), "illum_pct_p95": float("inf")},
+    {k: v for k, v in _uncertainty().items() if k != "source"},
+])
+def test_export_uncertainty_invalid(env, monkeypatch, bad):
+    sites, out = env
+    export.UNCERTAINTY_DIR.mkdir()
+    (export.UNCERTAINTY_DIR / "aa.json").write_text(json.dumps(bad))
+    warnings = []
+    monkeypatch.setattr(export, "warn", warnings.append)
+    export.export(sites, out, basemap=False)
+    assert json.loads((out / "sites" / "aa.json").read_text())["uncertainty"] is None
+    assert any("aa: invalid uncertainty" in w for w in warnings)
 
 
 def test_export_is_deterministic(env):

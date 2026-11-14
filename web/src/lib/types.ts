@@ -40,7 +40,7 @@ export interface SiteData {
     sun: { az_cdeg: number[]; el_cdeg: number[] };
     earth: { az_cdeg: number[]; el_cdeg: number[] };
   };
-  uncertainty: { illum_pct_p5: number; illum_pct_p50: number; illum_pct_p95: number } | null;
+  uncertainty: { illum_pct_p5: number; illum_pct_p50: number; illum_pct_p95: number; n_clones?: number; window?: string; source?: string } | null;
 }
 
 export interface ValidationRow {
