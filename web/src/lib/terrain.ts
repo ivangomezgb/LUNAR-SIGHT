@@ -3,7 +3,13 @@ export interface TerrainMeta { id: string; frame: string; near: GridSpec; far: G
 export interface PanoMeta { id: string; observer_height_m: number; width: number; height: number; az0_deg: number; el_top_deg: number; el_bottom_deg: number; dist: {file: string; dtype: 'uint16'; unit_m: number; sky: number}; normal: {file: string; dtype: 'uint8x2'; encoding: string}; max_dist_m: number }
 export interface TerrainData { meta: TerrainMeta; near: Float32Array; far: Float32Array }
 export interface PanoData { meta: PanoMeta; distances: Float32Array; normals: Float32Array }
-export interface ViewProps { siteId: string; sunAz: number; sunEl: number; earthAz: number; earthEl: number; horizon: number[]; horizonStep: number }
+/** Sampled az/el path of a body; `visible` = above the 2 m horizon mask at that hour. */
+export interface Trail { az: ArrayLike<number>; el: ArrayLike<number>; visible: ArrayLike<boolean>; dayMarks: number[] }
+export type CameraMode = 'overview' | 'first' | 'pano';
+export interface ViewProps {
+  siteId: string; sunAz: number; sunEl: number; earthAz: number; earthEl: number; horizon: number[]; horizonStep: number;
+  sunTrail?: Trail; earthTrail?: Trail; mode?: CameraMode; onMode?: (mode: CameraMode) => void;
+}
 export const MISSING_3D = '3D data not generated yet for this site';
 export function azElToThree(az: number, el: number): [number, number, number] {
   const a = az * Math.PI / 180, e = el * Math.PI / 180;

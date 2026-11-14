@@ -373,5 +373,15 @@
   "E": "E",
   "S": "S",
   "W": "O",
-  "Local mesh horizon is approximate; use 360° for the full horizon.": "El horizonte de la malla local es aproximado; usa 360° para ver el horizonte completo."
+  "Local mesh horizon is approximate; use 360° for the full horizon.": "El horizonte de la malla local es aproximado; usa 360° para ver el horizonte completo.",
+  "3D overview": "Vista general 3D",
+  "Astronaut 360°": "Astronauta 360°",
+  "Paths": "Trayectorias",
+  "{0} d": "{0} d",
+  "Back to 3D overview": "Volver a la vista general 3D",
+  "Astronaut view (360°)": "Vista del astronauta (360°)",
+  "Mesh horizon approx. (up to ~0.6°); exact horizon in 360°.": "Horizonte de la malla aproximado (hasta ~0,6°); el exacto está en 360°.",
+  "Sky dome: real Sun (gold) and Earth (blue, dashed) paths; elevation ×{0}; dim = below the horizon.": "Domo del cielo: trayectorias reales del Sol (dorado) y la Tierra (azul, discontinua); elevación ×{0}; tenue = bajo el horizonte.",
+  "Astronaut view · exact horizon (±0.2°)": "Vista del astronauta · horizonte exacto (±0,2°)",
+  "Orange: real 2 m horizon · gold/blue: Sun and Earth paths, dim when hidden · approximate shading, no cast shadows": "Naranja: horizonte real a 2 m · dorado/azul: trayectorias del Sol y la Tierra, tenues si están ocultos · sombreado aproximado, sin sombras proyectadas"
 }

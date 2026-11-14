@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { attachLook, disposeScene, marker, phaseEarth } from './three/sceneTools';
+import { attachLook, disposeObject, disposeScene, marker, phaseEarth, trailLine } from './three/sceneTools';
 import { azElToThree, loadPano, MISSING_3D } from '../lib/terrain';
-import type { ViewProps } from '../lib/terrain';
+import type { Trail, ViewProps } from '../lib/terrain';
 import { t } from '../i18n';
 export default function ImmersivePano(props: ViewProps) {
   const host = useRef<HTMLDivElement>(null), latest = useRef(props); latest.current = props;
@@ -22,8 +22,11 @@ export default function ImmersivePano(props: ViewProps) {
       const sun = marker(.267, 0xffffff, 110), earth = phaseEarth(110); scene.add(sun, earth);
       const points = props.horizon.map((h, i) => new THREE.Vector3(...azElToThree(i * props.horizonStep, h / 100)).multiplyScalar(89)); if (points.length) points.push(points[0].clone());
       scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(points), new THREE.LineBasicMaterial({color: 0xffbe55})));
+      const trails = new THREE.Group(); scene.add(trails); let lastTrails: [Trail | undefined, Trail | undefined] = [undefined, undefined];
+      const rebuild = (p: ViewProps) => { for (const c of [...trails.children]) { disposeObject(c); trails.remove(c); } if (p.sunTrail) trails.add(trailLine(p.sunTrail, 88, 0xf5c451)); if (p.earthTrail) trails.add(trailLine(p.earthTrail, 88, 0x6fa8ff, { dashed: true })); lastTrails = [p.sunTrail, p.earthTrail]; };
+      rebuild(latest.current);
       const unlook = attachLook(renderer.domElement, camera, setCompass, latest.current.sunAz), resize = new ResizeObserver(() => { renderer.setSize(node.clientWidth, node.clientHeight); camera.aspect = node.clientWidth / node.clientHeight; camera.updateProjectionMatrix(); }); resize.observe(node);renderer.setSize(node.clientWidth,node.clientHeight);camera.aspect=node.clientWidth/node.clientHeight;camera.updateProjectionMatrix();
-      let frame = 0; const draw = () => { const p = latest.current; const dir = azElToThree(p.sunAz, p.sunEl); material.uniforms.sun.value.set(dir[0], -dir[2], dir[1]); sun.position.set(...dir).multiplyScalar(110); const earthDir=azElToThree(p.earthAz,p.earthEl); earth.position.set(...earthDir).multiplyScalar(110); earth.material.uniforms.sunDirection.value.set(...dir); material.uniforms.earthDirection.value.set(earthDir[0],-earthDir[2],earthDir[1]);
+      let frame = 0; const draw = () => { const p = latest.current; if (p.sunTrail !== lastTrails[0] || p.earthTrail !== lastTrails[1]) rebuild(p); const dir = azElToThree(p.sunAz, p.sunEl); material.uniforms.sun.value.set(dir[0], -dir[2], dir[1]); sun.position.set(...dir).multiplyScalar(110); const earthDir=azElToThree(p.earthAz,p.earthEl); earth.position.set(...earthDir).multiplyScalar(110); earth.material.uniforms.sunDirection.value.set(...dir); material.uniforms.earthDirection.value.set(earthDir[0],-earthDir[2],earthDir[1]);
  renderer.render(scene,camera); frame=requestAnimationFrame(draw); }; draw(); setStatus('');
       cleanup = () => { cancelAnimationFrame(frame); unlook(); resize.disconnect(); texture.dispose(); disposeScene(scene); renderer.dispose(); renderer.domElement.remove(); };
     }).catch(() => {if(!abort.signal.aborted) setStatus(t(MISSING_3D));});
@@ -31,7 +34,7 @@ export default function ImmersivePano(props: ViewProps) {
   }, [props.siteId, props.horizon, props.horizonStep]);
   return <section className="expedition-renderer">
     <div ref={host} className="expedition-canvas" aria-label={t('Immersive lunar panorama')} />
-    <div className="expedition-camera"><p>{compass}<br />{t('Drag or use arrow keys to look')}<br />{t('Orange: real 2 m horizon · Approximate shading, no cast shadows')}</p></div>
+    <div className="expedition-camera"><div className="expedition-cta"><span className="expedition-mode-title">{t('Astronaut view · exact horizon (±0.2°)')}</span><button type="button" onClick={() => props.onMode?.('overview')}>↑ {t('Back to 3D overview')}</button></div><p>{compass}<br />{t('Drag or use arrow keys to look')}<br />{t('Orange: real 2 m horizon · gold/blue: Sun and Earth paths, dim when hidden · approximate shading, no cast shadows')}</p></div>
     {status && <div className="expedition-loading" role="status">{status}{status !== t(MISSING_3D) && <progress max={100} value={Number(status.match(/(\d+)%/)?.[1] ?? 0)} />}</div>}
   </section>;
 }
