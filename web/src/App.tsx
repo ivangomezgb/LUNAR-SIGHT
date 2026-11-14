@@ -1,5 +1,6 @@
-import { HashRouter, NavLink, Route, Routes, useLocation } from 'react-router-dom';
-import { useEffect } from 'react';
+import { t } from './i18n';
+import { HashRouter, NavLink, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
+import { lazy, Suspense, useEffect, useRef } from 'react';
 import ErrorBoundary from './components/ErrorBoundary';
 import Explore from './pages/Explore';
 import Compare from './pages/Compare';
@@ -10,42 +11,41 @@ import { useApp } from './state';
 import { isoShort } from './components/format';
 import { DATA_DIR } from './components/hooks';
 
+const View3D = lazy(() => import('./pages/View3D'));
+
 function Nav() {
-  const { siteId, landingUtc } = useApp();
+  const { siteId, landingUtc, lang, setLang, assumptions } = useApp();
+  const shared = `h=${assumptions.heightM}&lang=${lang}`;
+  const to = (path: string) => `${path}?${shared}`;
   const exploreTo = siteId ? `/?site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : '/';
+  const exploreLink = `${exploreTo}${exploreTo.includes('?') ? '&' : '?'}${shared}`;
   const cls = ({ isActive }: { isActive: boolean }) => `nav-link${isActive ? ' is-active' : ''}`;
   return (
     <header className="topbar">
-      <a href="#main" className="skip-link">
-        Skip to content
-      </a>
-      <NavLink to={exploreTo} className="brand" aria-label="Lunar Landing Site Navigator, home">
+      <a href="#main" className="skip-link"> {t("Skip to content")} </a>
+      <NavLink to={exploreLink} className="brand" aria-label={t("Lunar Landing Site Navigator, home")}>
         <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden>
           <path d="M2 24 L9 17 L13 20 L19 12 L30 22 L30 30 L2 30 Z" fill="var(--terrain-hi)" />
           <circle cx="23" cy="8" r="4" fill="var(--sun)" />
           <circle cx="8" cy="8" r="2.6" fill="var(--earth)" />
         </svg>
         <span className="brand-text">
-          <span className="brand-name">Lunar Landing Site Navigator</span>
-          <span className="brand-sub">South pole · Sun &amp; Earth visibility</span>
+          <span className="brand-name">{t("Lunar Landing Site Navigator")}</span>
+          <span className="brand-sub">{t("South pole · Sun & Earth visibility")}</span>
         </span>
       </NavLink>
-      <nav aria-label="Main">
-        <NavLink to={exploreTo} end className={({ isActive }) => cls({ isActive })}>
-          Explore
-        </NavLink>
-        <NavLink to="/compare" className={cls}>
-          Compare
-        </NavLink>
-        <NavLink to="/replan" className={cls}>
-          Mission delayed
-        </NavLink>
-        <NavLink to="/validation" className={cls}>
-          Validation
-        </NavLink>
-        <NavLink to="/about" className={cls}>
-          About
-        </NavLink>
+      <nav aria-label={t("Main")}>
+        <NavLink to={exploreLink} end className={({ isActive }) => cls({ isActive })}> {t("Explore")} </NavLink>
+        <NavLink to={to('/compare')} className={cls}> {t("Compare")} </NavLink>
+        <NavLink to={to('/replan')} className={cls}> {t("Mission delayed")} </NavLink>
+        <NavLink to={to('/validation')} className={cls}> {t("Validation")} </NavLink>
+        <NavLink to={to('/about')} className={cls}> {t("About")} </NavLink>
+        <NavLink to={`/3d?${shared}${siteId ? `&site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : ''}`} className={cls}> {t('3D')} </NavLink>
+        <span className="lang-toggle" role="group" aria-label={t('Language')}>
+          <button type="button" className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
+          <span aria-hidden>|</span>
+          <button type="button" className="chip" aria-pressed={lang === 'es'} onClick={() => setLang('es')}>ES</button>
+        </span>
       </nav>
     </header>
   );
@@ -59,31 +59,63 @@ function ScrollTop() {
   return null;
 }
 
+/** URL changes restore preferences; control changes update the current route's query. */
+function PreferencesUrl() {
+  const [params, setParams] = useSearchParams();
+  const { search } = useLocation();
+  const { lang, assumptions: { heightM }, setLang, setAssumptions } = useApp();
+  const previous = useRef<string | null>(null);
+  useEffect(() => {
+    let nextLang = lang, nextHeight = heightM;
+    if (previous.current !== search) {
+      const urlLang = params.get('lang');
+      const urlHeight = Number(params.get('h'));
+      if (urlLang === 'en' || urlLang === 'es') nextLang = urlLang;
+      if ([1, 2, 5, 10].includes(urlHeight)) nextHeight = urlHeight;
+      previous.current = search;
+      if (nextLang !== lang) setLang(nextLang);
+      if (nextHeight !== heightM) setAssumptions({ heightM: nextHeight });
+    }
+    const next = new URLSearchParams(params);
+    next.set('lang', nextLang);
+    next.set('h', String(nextHeight));
+    if (next.toString() !== params.toString()) {
+      previous.current = `?${next}`;
+      setParams(next, { replace: true });
+    }
+  }, [search, params, setParams, lang, heightM, setLang, setAssumptions]);
+  return null;
+}
+
 export default function App() {
+  const lang = useApp((state) => state.lang);
+  useEffect(() => { document.documentElement.lang = lang; }, [lang]);
   return (
     <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <PreferencesUrl />
       <ScrollTop />
       <Nav />
       {DATA_DIR !== 'data' && (
-        <div className="dev-banner" role="note">
-          Development fixtures from <code>/{DATA_DIR}</code> — synthetic data, not real results.
-        </div>
+        <div className="dev-banner" role="note"> {t("Development fixtures from")} <code>/{DATA_DIR}</code> {t("— synthetic data, not real results.")} </div>
       )}
       <main id="main" className="main">
         <ErrorBoundary>
-        <Routes>
+          <Suspense fallback={<div role="status">{t('Loading data…')}</div>}>
+            <Routes>
           <Route path="/" element={<Explore />} />
           <Route path="/compare" element={<Compare />} />
           <Route path="/replan" element={<Replan />} />
           <Route path="/validation" element={<Validation />} />
+          <Route path="/3d" element={<View3D />} />
           <Route path="/about" element={<About />} />
           <Route path="*" element={<Explore />} />
-        </Routes>
+            </Routes>
+          </Suspense>
         </ErrorBoundary>
       </main>
       <footer className="footer">
-        <span>NASA Space Apps 2026 · LOLA (PGDA) · NAIF SPICE DE440 · JPL Horizons</span>
-        <span className="mono">All times UTC</span>
+        <span>{t("NASA Space Apps 2026 · LOLA (PGDA) · NAIF SPICE DE440 · JPL Horizons")}</span>
+        <span className="mono">{t("All times UTC")}</span>
       </footer>
     </HashRouter>
   );
