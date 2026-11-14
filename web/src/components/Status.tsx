@@ -1,6 +1,7 @@
+import { t, sourceText } from '../i18n';
 import type { ReactNode } from 'react';
 
-export function Loading({ label = 'Loading data…' }: { label?: string }) {
+export function Loading({ label = t("Loading data…") }: { label?: string }) {
   return (
     <div className="status status-loading" role="status" aria-live="polite">
       <span className="spinner" aria-hidden />
@@ -9,11 +10,11 @@ export function Loading({ label = 'Loading data…' }: { label?: string }) {
   );
 }
 
-export function ErrorBox({ title = 'Could not load data', error, children }: { title?: string; error?: Error | null; children?: ReactNode }) {
+export function ErrorBox({ title = t("Could not load data"), error, children }: { title?: string; error?: Error | null; children?: ReactNode }) {
   return (
     <div className="status status-error" role="alert">
       <div className="status-title">{title}</div>
-      {error && <div className="mono status-detail">{error.message}</div>}
+      {error && <div className="mono status-detail">{sourceText(error.message)}</div>}
       {children}
     </div>
   );

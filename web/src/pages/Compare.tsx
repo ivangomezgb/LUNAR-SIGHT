@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+import AssumptionsPanel from '../components/AssumptionsPanel';
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import type { Assumptions, Metrics, SiteData, SiteIndexEntry } from '../lib/types';
@@ -8,12 +10,12 @@ import { ErrorBox, Loading, Empty } from '../components/Status';
 import DateTimePicker from '../components/DateTimePicker';
 import Timeline from '../components/Timeline';
 import PanoramaChart, { type PathPoint } from '../components/PanoramaChart';
-import { maskFor } from '../components/Panorama';
-import { groupColor, shortName } from '../components/SiteMap';
+import { maskFor } from '../components/series';
+import { groupColor, shortName } from '../components/format';
 import { assumptionsFor, coverage, seriesFor } from '../components/series';
 import { hourIndex } from '../lib/metrics';
 import { fmtNum, fmtUtc, HOUR_MS, isoShort } from '../components/format';
-import { isSynthetic } from './Explore';
+import { isSynthetic } from '../components/format';
 
 interface Row {
   label: string;
@@ -33,21 +35,21 @@ const ROWS: Row[] = [
     unit: 'h',
     get: (m) => (m.hoursToSunset == null ? Infinity : m.hoursToSunset),
     better: 'high',
-    fmt: (v) => (v === Infinity ? '> data' : fmtNum(v, 0)),
+    fmt: (v) => (v === Infinity ? t("> data") : fmtNum(v, 0)),
   },
   {
     label: 'Hours to Earthset',
     unit: 'h',
     get: (m) => (m.hoursToEarthset == null ? Infinity : m.hoursToEarthset),
     better: 'high',
-    fmt: (v) => (v === Infinity ? '> data' : fmtNum(v, 0)),
+    fmt: (v) => (v === Infinity ? t("> data") : fmtNum(v, 0)),
   },
   {
     label: 'Next Earth window',
     unit: 'duration',
     get: (m) => m.nextEarthWindow?.durationH ?? null,
     better: 'high',
-    fmt: (v, m) => (v == null ? '—' : `${v >= 72 ? `${fmtNum(v / 24, 1)} d` : `${fmtNum(v, 0)} h`} from ${fmtUtc(m.nextEarthWindow!.startUtc, false)}`),
+    fmt: (v, m) => (v == null ? '—' : t("{0} from {1}", { 0: v >= 72 ? `${fmtNum(v / 24, 1)} d` : `${fmtNum(v, 0)} h`, 1: fmtUtc(m.nextEarthWindow!.startUtc, false) })),
   },
   { label: 'Sun at landing', unit: '°', get: (m) => m.sunElAtLandingDeg, better: 'high', fmt: (v) => (v == null ? '—' : (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(2)) },
 ];
@@ -62,8 +64,8 @@ export default function Compare() {
   const data = useSitesData(ids);
 
   if (sites.loading) return <Loading />;
-  if (sites.error) return <ErrorBox error={sites.error} title="Site index not available" />;
-  if (!list.length) return <Empty title="No sites published yet" />;
+  if (sites.error) return <ErrorBox error={sites.error} title={t("Site index not available")} />;
+  if (!list.length) return <Empty title={t("No sites published yet")} />;
 
   const setSlot = (k: number, id: string) => {
     const next = [...ids];
@@ -79,8 +81,8 @@ export default function Compare() {
     <div className="page">
       <header className="page-head">
         <div>
-          <h1>Compare sites</h1>
-          <p className="muted">Up to {MAX_COMPARE} sites, same landing time and mission duration. Best value in each row is highlighted.</p>
+          <h1>{t("Compare sites")}</h1>
+          <p className="muted">{t("Up to")} {MAX_COMPARE} {t("sites, same landing time and mission duration. Best value in each row is highlighted.")}</p>
         </div>
       </header>
 
@@ -88,9 +90,9 @@ export default function Compare() {
         <div className="slots">
           {Array.from({ length: MAX_COMPARE }, (_, k) => (
             <div className="field" key={k}>
-              <label htmlFor={`slot-${k}`}>Site {k + 1}</label>
+              <label htmlFor={`slot-${k}`}>{t("Site")} {k + 1}</label>
               <select id={`slot-${k}`} className="select" value={ids[k] ?? ''} onChange={(e) => setSlot(k, e.target.value)} disabled={k > ids.length}>
-                <option value="">{k < ids.length ? '— remove —' : '— add a site —'}</option>
+                <option value="">{k < ids.length ? t("— remove —") : t("— add a site —")}</option>
                 {list.map((s) => (
                   <option key={s.id} value={s.id} disabled={ids.includes(s.id) && ids[k] !== s.id}>
                     {shortName(s.name)}
@@ -109,8 +111,9 @@ export default function Compare() {
           {...(cov ? { minMs: cov[0], maxMs: cov[1] } : {})}
         />
       </section>
+      <AssumptionsPanel heights={[1, 2, 5, 10]} />
 
-      {data.loading && <Loading label="Loading sites…" />}
+      {data.loading && <Loading label={t("Loading sites…")} />}
       {data.error && <ErrorBox error={data.error} />}
       {data.data && ids.length > 0 && (
         <CompareGrid ids={ids} index={list} data={data.data} landingUtc={landingUtc} missionDays={missionDays} assumptions={assumptions} />
@@ -180,37 +183,36 @@ function CompareGrid({
               <i className="dot" style={{ background: groupColor(c.entry.group) }} aria-hidden /> {c.entry.lat_deg.toFixed(2)}°, {c.entry.lon_deg.toFixed(2)}°E
             </div>
             <h2 className="compare-name">{shortName(c.entry.name)}</h2>
-            {isSynthetic(c.entry) && <span className="badge badge-warn">synthetic</span>}
-            <PanoramaChart compact height={170} maskCdeg={maskFor(c.site, assumptionsFor(c.site, assumptions).heightM)} stepDeg={c.site.horizon.az_step_deg} sunPath={c.sp} earthPath={c.ep} ariaLabel={`Horizon of ${c.entry.name}`} />
+            {isSynthetic(c.entry) && <span className="badge badge-warn">{t("synthetic")}</span>}
+            <div className="muted small">{t("Observer / panel height:")} {assumptionsFor(c.site, assumptions).heightM} m</div>
+            <PanoramaChart compact height={170} maskCdeg={maskFor(c.site, assumptionsFor(c.site, assumptions).heightM)} stepDeg={c.site.horizon.az_step_deg} sunPath={c.sp} earthPath={c.ep} ariaLabel={t("Horizon of {0}", { 0: c.entry.name })} />
             {c.metrics ? (
               <div className="mini-metrics">
                 <div>
                   <span className="mm-v">{fmtNum(c.metrics.lightPct, 0)}<small>%</small></span>
-                  <span className="mm-l">light</span>
+                  <span className="mm-l">{t("light")}</span>
                 </div>
                 <div>
                   <span className="mm-v">{fmtNum(c.metrics.earthPct, 0)}<small>%</small></span>
-                  <span className="mm-l">Earth</span>
+                  <span className="mm-l">{t("Earth")}</span>
                 </div>
                 <div>
                   <span className="mm-v">{fmtNum(c.metrics.longestNightH, 0)}<small>h</small></span>
-                  <span className="mm-l">longest night</span>
+                  <span className="mm-l">{t("longest night")}</span>
                 </div>
               </div>
             ) : (
-              <p className="muted">Mission window outside data coverage.</p>
+              <p className="muted">{t("Mission window outside data coverage.")}</p>
             )}
-            <Link className="btn btn-ghost btn-sm" to={`/?site=${encodeURIComponent(c.id)}&t=${isoShort(landingUtc)}`}>
-              Open in panorama →
-            </Link>
+            <Link className="btn btn-ghost btn-sm" to={`/?site=${encodeURIComponent(c.id)}&t=${isoShort(landingUtc)}&h=${assumptions.heightM}&lang=${useApp.getState().lang}`}> {t("Open in panorama →")} </Link>
           </section>
         ))}
       </div>
 
       <section className="card">
         <div className="card-head">
-          <h2 className="card-title">Aligned 30-day timelines</h2>
-          <span className="muted small">Same time axis for every site</span>
+          <h2 className="card-title">{t("Aligned 30-day timelines")}</h2>
+          <span className="muted small">{t("Same time axis for every site")}</span>
         </div>
         <div className="timeline-stack">
           {computed.map((c) => (
@@ -231,12 +233,12 @@ function CompareGrid({
       </section>
 
       <section className="card table-card">
-        <h2 className="card-title">Metrics over the {missionDays}-day mission</h2>
+        <h2 className="card-title">{t("Metrics over the")} {missionDays}{t("-day mission")}</h2>
         <div className="table-scroll">
           <table className="table">
             <thead>
               <tr>
-                <th scope="col">Metric</th>
+                <th scope="col">{t("Metric")}</th>
                 {computed.map((c) => (
                   <th scope="col" key={c.id}>
                     {shortName(c.entry.name)}
@@ -246,9 +248,9 @@ function CompareGrid({
             </thead>
             <tbody>
               {ROWS.map((r, k) => (
-                <tr key={r.label}>
+                <tr key={t(r.label)}>
                   <th scope="row">
-                    {r.label} <span className="unit">({r.unit}, {r.better === 'high' ? 'higher' : 'lower'} is better)</span>
+                    {t(r.label)} <span className="unit">({t(r.unit)}, {r.better === 'high' ? t("higher") : t("lower")} {t("is better)")}</span>
                   </th>
                   {computed.map((c) => {
                     const v = c.metrics ? r.get(c.metrics) : null;
@@ -256,7 +258,7 @@ function CompareGrid({
                     return (
                       <td key={c.id} className={`mono${isBest ? ' is-best' : ''}`}>
                         {c.metrics ? (r.fmt ? r.fmt(v, c.metrics) : fmtNum(v)) : '—'}
-                        {isBest && <span className="best-tag">best</span>}
+                        {isBest && <span className="best-tag">{t("best")}</span>}
                       </td>
                     );
                   })}

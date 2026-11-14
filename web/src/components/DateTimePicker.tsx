@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useEffect, useState } from 'react';
 import { fromLocalInput, isoHour, toLocalInput, HOUR_MS } from './format';
 
@@ -34,9 +35,9 @@ export default function DateTimePicker({ landingUtc, missionDays, onLanding, onM
   return (
     <div className="dtp">
       <div className="field">
-        <label htmlFor={`${idPrefix}-landing`}>Landing time (UTC)</label>
+        <label htmlFor={`${idPrefix}-landing`}>{t("Landing time (UTC)")}</label>
         <div className="dtp-row">
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => shift(-24)} aria-label="One day earlier">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => shift(-24)} aria-label={t("One day earlier")}>
             −1 d
           </button>
           <input
@@ -55,13 +56,13 @@ export default function DateTimePicker({ landingUtc, missionDays, onLanding, onM
             onBlur={(e) => commit(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && commit((e.target as HTMLInputElement).value)}
           />
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => shift(24)} aria-label="One day later">
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => shift(24)} aria-label={t("One day later")}>
             +1 d
           </button>
         </div>
       </div>
       <div className="field">
-        <label htmlFor={`${idPrefix}-days`}>Mission duration</label>
+        <label htmlFor={`${idPrefix}-days`}>{t("Mission duration")}</label>
         <div className="dtp-row">
           <input
             id={`${idPrefix}-days`}
@@ -76,7 +77,7 @@ export default function DateTimePicker({ landingUtc, missionDays, onLanding, onM
               if (d >= 1 && d <= 60) onMissionDays(d);
             }}
           />
-          <span className="unit">days</span>
+          <span className="unit">{t("days")}</span>
           {[7, 14, 28].map((d) => (
             <button key={d} type="button" className={`chip${missionDays === d ? ' is-on' : ''}`} onClick={() => onMissionDays(d)} aria-pressed={missionDays === d}>
               {d} d

@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+import AssumptionsPanel from '../components/AssumptionsPanel';
 import { useDeferredValue, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { RankedOption, ReplanInput } from '../lib/types';
@@ -26,11 +28,12 @@ export default function Replan() {
     const input: ReplanInput = { ...deferred, siteIds: ids };
     const t0 = performance.now();
     try {
-      const allHave = ids.every((id) => {
-        const s = data.data!.get(id);
-        return !s || String(assumptions.heightM) in s.horizon.elev_cdeg;
+      const missing = ids.filter((id) => {
+        const site = data.data!.get(id);
+        return site && !(String(assumptions.heightM) in site.horizon.elev_cdeg);
       });
-      const out = rankAlternatives(data.data, list, input, allHave ? assumptions : { ...assumptions, heightM: 2 });
+      if (missing.length) throw new Error(t('Selected height is unavailable for: {0}', { 0: missing.join(', ') }));
+      const out = rankAlternatives(data.data, list, input, assumptions);
       return { out, ms: performance.now() - t0, error: null as Error | null };
     } catch (e) {
       return { out: [] as RankedOption[], ms: 0, error: e instanceof Error ? e : new Error(String(e)) };
@@ -39,8 +42,8 @@ export default function Replan() {
   }, [data.data, deferred, assumptions]);
 
   if (sites.loading) return <Loading />;
-  if (sites.error) return <ErrorBox error={sites.error} title="Site index not available" />;
-  if (!list.length) return <Empty title="No sites published yet" />;
+  if (sites.error) return <ErrorBox error={sites.error} title={t("Site index not available")} />;
+  if (!list.length) return <Empty title={t("No sites published yet")} />;
 
   const center = Date.parse(replan.originalUtc) + replan.delayDays * 24 * HOUR_MS;
   const from = center - replan.toleranceDays * 24 * HOUR_MS;
@@ -50,57 +53,55 @@ export default function Replan() {
 
   const view = (o: RankedOption) => {
     setMissionDays(replan.missionDays);
-    navigate(`/?site=${encodeURIComponent(o.siteId)}&t=${isoShort(o.landingUtc)}`);
+    navigate(`/?site=${encodeURIComponent(o.siteId)}&t=${isoShort(o.landingUtc)}&h=${assumptions.heightM}&lang=${useApp.getState().lang}`);
   };
 
   return (
     <div className="page">
       <header className="page-head">
         <div>
-          <div className="eyebrow eyebrow-warn">Mission delayed</div>
-          <h1>Find the best new landing</h1>
-          <p className="muted">
-            Every site × every candidate landing time in the new window is scored with the same metrics engine as the panorama. Adjust weights and
-            filters — the ranking updates instantly.
-          </p>
+          <div className="eyebrow eyebrow-warn">{t("Mission delayed")}</div>
+          <h1>{t("Find the best new landing")}</h1>
+          <p className="muted"> {t("Every site × every candidate landing time in the new window is scored with the same metrics engine as the panorama. Adjust weights and filters — the ranking updates instantly.")} </p>
         </div>
       </header>
 
       <div className="replan">
         <section className="card replan-side">
+          <AssumptionsPanel heights={[1, 2, 5, 10]} />
           <ReplanForm form={replan} sites={list} onChange={setReplan} />
         </section>
 
         <section className="replan-main">
           <div className="card search-summary">
             <div>
-              <div className="ss-label">Search window</div>
+              <div className="ss-label">{t("Search window")}</div>
               <div className="ss-value mono">
                 {fmtUtc(from)} → {fmtUtc(to)}
               </div>
             </div>
             <div>
-              <div className="ss-label">Candidates</div>
+              <div className="ss-label">{t("Candidates")}</div>
               <div className="ss-value mono">
-                {nCand.toLocaleString('en-US')} <span className="unit">({nSites} sites, every {replan.stepH} h)</span>
+                {nCand.toLocaleString('en-US')} <span className="unit">({nSites} {t("sites, every")} {replan.stepH} h)</span>
               </div>
             </div>
             <div>
-              <div className="ss-label">Evaluated in</div>
+              <div className="ss-label">{t("Evaluated in")}</div>
               <div className="ss-value mono">{result ? `${result.ms.toFixed(0)} ms` : '…'}</div>
             </div>
           </div>
 
-          {data.loading && <Loading label={`Loading ${list.length} sites…`} />}
+          {data.loading && <Loading label={t("Loading {0} sites…", { 0: list.length })} />}
           {data.error && <ErrorBox error={data.error} />}
-          {result?.error && <ErrorBox error={result.error} title="Ranking failed" />}
+          {result?.error && <ErrorBox error={result.error} title={t("Ranking failed")} />}
           {result && !result.error && (
             <div className={stale ? 'is-stale' : ''}>
               {result.out.length ? (
                 <RankingTable options={result.out} index={list} onView={view} />
               ) : (
-                <Empty title="No option passes the filters">
-                  <p className="muted">Relax the minimum sunlight / Earth visibility, allow a steeper slope, or widen the tolerance.</p>
+                <Empty title={t("No option passes the filters")}>
+                  <p className="muted">{t("Relax the minimum sunlight / Earth visibility, allow a steeper slope, or widen the tolerance.")}</p>
                 </Empty>
               )}
             </div>

@@ -1,10 +1,12 @@
+import { t, sourceText } from '../i18n';
 import { useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { SiteData, SiteIndexEntry } from '../lib/types';
 import { computeMetrics } from '../lib/metrics';
 import { useApp, MAX_COMPARE } from '../state';
 import { useBasemap, useSite, useSites } from '../components/hooks';
-import SiteMap, { groupColor, shortName } from '../components/SiteMap';
+import SiteMap from '../components/SiteMap';
+import { groupColor, shortName, isSynthetic } from '../components/format';
 import Panorama from '../components/Panorama';
 import MetricCards from '../components/MetricCards';
 import Timeline from '../components/Timeline';
@@ -13,10 +15,6 @@ import AssumptionsPanel from '../components/AssumptionsPanel';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import { seriesFor, coverage, assumptionsFor } from '../components/series';
 import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc } from '../components/format';
-
-export function isSynthetic(s: { id: string; tags?: string[] }): boolean {
-  return s.id.startsWith('synthetic-') || !!s.tags?.includes('synthetic');
-}
 
 export default function Explore() {
   const sites = useSites();
@@ -39,35 +37,34 @@ export default function Explore() {
     if (siteId && siteId !== store.siteId) store.setSite(siteId);
     if (landingUtc !== store.landingUtc) store.setLanding(landingUtc);
     if (siteId && (urlSite !== siteId || !sp.get('t'))) {
-      setSp({ site: siteId, t: isoShort(landingUtc) }, { replace: true });
+      setSp((prev) => { const next = new URLSearchParams(prev); next.set('site', siteId); next.set('t', isoShort(landingUtc)); return next; }, { replace: true });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [siteId, landingUtc]);
 
-  const go = (id: string, t: string) => setSp({ site: id, t: isoShort(t) }, { replace: true });
+  const go = (id: string, t: string) => setSp((prev) => { const next = new URLSearchParams(prev); next.set('site', id); next.set('t', isoShort(t)); return next; }, { replace: true });
 
   const site = useSite(siteId);
   const entry = list.find((s) => s.id === siteId);
 
-  if (sites.loading) return <Loading label="Loading site index…" />;
+  if (sites.loading) return <Loading label={t("Loading site index…")} />;
   if (sites.error)
     return (
-      <ErrorBox error={sites.error} title="Site index not available">
-        <p>
-          The data pipeline has not published <code>sites.json</code> yet. For development run{' '}
-          <code>node scripts/make-dev-data.mjs</code> and <code>VITE_DATA_DIR=dev-data npm run dev</code>.
+      <ErrorBox error={sites.error} title={t("Site index not available")}>
+        <p> {t("The data pipeline has not published")} <code>sites.json</code> {t("yet. For development run")}{' '}
+          <code>node scripts/make-dev-data.mjs</code> {t("and")} <code>VITE_DATA_DIR=dev-data npm run dev</code>.
         </p>
       </ErrorBox>
     );
-  if (!list.length) return <Empty title="No sites published yet" />;
+  if (!list.length) return <Empty title={t("No sites published yet")} />;
 
   return (
     <div className="explore">
       <aside className="explore-side">
         <section className="card">
           <div className="card-head">
-            <h2 className="card-title">South polar region</h2>
-            <span className="muted small">{list.length} sites</span>
+            <h2 className="card-title">{t("South polar region")}</h2>
+            <span className="muted small">{list.length} {t("sites")}</span>
           </div>
           <SiteMap
             sites={list}
@@ -79,7 +76,7 @@ export default function Explore() {
         </section>
         <SiteList list={list} selectedId={siteId} onSelect={(id) => go(id, landingUtc)} />
         <section className="card">
-          <h2 className="card-title">Mission</h2>
+          <h2 className="card-title">{t("Mission")}</h2>
           <DateTimePicker
             landingUtc={landingUtc}
             missionDays={store.missionDays}
@@ -93,8 +90,8 @@ export default function Explore() {
 
       <div className="explore-main">
         {entry && <SiteHeader entry={entry} />}
-        {site.loading && <Loading label="Loading horizon and ephemeris…" />}
-        {site.error && <ErrorBox error={site.error} title="Site data not available" />}
+        {site.loading && <Loading label={t("Loading horizon and ephemeris…")} />}
+        {site.error && <ErrorBox error={site.error} title={t("Site data not available")} />}
         {site.data && <SiteView site={site.data} landingUtc={landingUtc} onLanding={(t) => siteId && go(siteId, t)} />}
       </div>
     </div>
@@ -106,9 +103,8 @@ function SiteList({ list, selectedId, onSelect }: { list: SiteIndexEntry[]; sele
   return (
     <section className="card">
       <div className="card-head">
-        <h2 className="card-title">Sites</h2>
-        <Link to="/compare" className="small link">
-          Compare {compareIds.length}/{MAX_COMPARE} →
+        <h2 className="card-title">{t("Sites")}</h2>
+        <Link to={`/compare?h=${useApp.getState().assumptions.heightM}&lang=${useApp.getState().lang}`} className="small link"> {t("Compare")} {compareIds.length}/{MAX_COMPARE} →
         </Link>
       </div>
       <ul className="site-list">
@@ -122,9 +118,9 @@ function SiteList({ list, selectedId, onSelect }: { list: SiteIndexEntry[]; sele
                 <span className="site-name">{shortName(s.name)}</span>
                 <span className="site-coord mono">{s.lat_deg.toFixed(2)}°</span>
               </button>
-              <label className="cmp-toggle" title="Add to comparison">
-                <input type="checkbox" checked={cmp} onChange={() => toggleCompare(s.id)} aria-label={`Compare ${shortName(s.name)}`} />
-                <span aria-hidden>Cmp</span>
+              <label className="cmp-toggle" title={t("Add to comparison")}>
+                <input type="checkbox" checked={cmp} onChange={() => toggleCompare(s.id)} aria-label={t("Compare {0}", { 0: shortName(s.name) })} />
+                <span aria-hidden>{t("Cmp")}</span>
               </label>
             </li>
           );
@@ -143,26 +139,22 @@ function SiteHeader({ entry }: { entry: SiteIndexEntry }) {
         </div>
         <h1 className="site-title">{shortName(entry.name)}</h1>
         <div className="site-meta mono">
-          <span>{entry.lat_deg.toFixed(3)}° lat</span>
-          <span>{entry.lon_deg.toFixed(3)}° lon E</span>
-          <span>{Math.round(entry.elev_m).toLocaleString('en-US')} m elev.</span>
-          <span>{entry.slope_deg_50m.toFixed(1)}° slope (50 m)</span>
-          <span>
-            DEM {entry.dem_source} · {entry.dem_res_m} m/px
+          <span>{entry.lat_deg.toFixed(3)}{t("° lat")}</span>
+          <span>{entry.lon_deg.toFixed(3)}{t("° lon E")}</span>
+          <span>{Math.round(entry.elev_m).toLocaleString('en-US')} {t("m elev.")}</span>
+          <span>{entry.slope_deg_50m.toFixed(1)}{t("° slope (50 m)")}</span>
+          <span> {t("DEM")} {entry.dem_source} · {entry.dem_res_m} m/px
           </span>
         </div>
         {entry.selection && entry.ref_lat_deg !== undefined && entry.ref_lon_deg !== undefined && (
-          <p className="site-meta">
-            Point selection: {entry.selection}. Published reference: {entry.ref_lat_deg.toFixed(4)}°,{' '}
+          <p className="site-meta"> {t("Point selection:")} {sourceText(entry.selection)}{t(". Published reference:")} {entry.ref_lat_deg.toFixed(4)}°,{' '}
             {entry.ref_lon_deg.toFixed(4)}°E{' '}
-            <a href={entry.source_url} target="_blank" rel="noreferrer">(source)</a>
+            <a href={entry.source_url} target="_blank" rel="noreferrer">{t("(source)")}</a>
           </p>
         )}
       </div>
       {isSynthetic(entry) && (
-        <div className="badge badge-warn badge-lg" role="note">
-          SYNTHETIC dev data — not real
-        </div>
+        <div className="badge badge-warn badge-lg" role="note"> {t("SYNTHETIC dev data — not real")} </div>
       )}
     </header>
   );
@@ -182,13 +174,9 @@ function SiteView({ site, landingUtc, onLanding }: { site: SiteData; landingUtc:
 
   if (outOfRange)
     return (
-      <ErrorBox title="Landing time outside data coverage">
-        <p>
-          Ephemeris covers {fmtUtc(c0)} to {fmtUtc(c1)}. Pick a landing time so the whole {missionDays}-day mission fits.
-        </p>
-        <button type="button" className="btn" onClick={() => onLanding(isoHour(Math.min(Math.max(landMs, c0), c1 - missionH * HOUR_MS)))}>
-          Move into range
-        </button>
+      <ErrorBox title={t("Landing time outside data coverage")}>
+        <p> {t("Ephemeris covers")} {fmtUtc(c0)} {t("to")} {fmtUtc(c1)}{t(". Pick a landing time so the whole")} {missionDays}{t("-day mission fits.")} </p>
+        <button type="button" className="btn" onClick={() => onLanding(isoHour(Math.min(Math.max(landMs, c0), c1 - missionH * HOUR_MS)))}> {t("Move into range")} </button>
       </ErrorBox>
     );
 
@@ -201,8 +189,8 @@ function SiteView({ site, landingUtc, onLanding }: { site: SiteData; landingUtc:
       {metrics && <MetricCards metrics={metrics} site={site} />}
       <section className="card">
         <div className="card-head">
-          <h2 className="card-title">30-day timeline</h2>
-          <span className="muted small">Click inside the window to scrub, outside to move the landing</span>
+          <h2 className="card-title">{t("30-day timeline")}</h2>
+          <span className="muted small">{t("Click inside the window to scrub, outside to move the landing")}</span>
         </div>
         <Timeline
           site={site}

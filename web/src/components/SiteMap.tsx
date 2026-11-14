@@ -1,3 +1,5 @@
+import { t } from '../i18n';
+import { groupColor, shortName } from './format';
 import { useMemo, useState } from 'react';
 import type { Basemap, SiteIndexEntry } from '../lib/types';
 import { dataUrl } from './hooks';
@@ -16,12 +18,6 @@ const GROUP_COLOR: Record<string, string> = {
   isro: '#ff8a5c',
   science: '#b49cff',
 };
-export const groupColor = (g: string) => GROUP_COLOR[g] ?? '#cfd6e4';
-
-export function shortName(name: string): string {
-  return name.replace(/\s*\(synthetic\)\s*/i, '');
-}
-
 const VB = 400;
 
 export default function SiteMap({ sites, basemap, selectedId, compareIds, onSelect }: Props) {
@@ -63,7 +59,7 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
 
   return (
     <div className="sitemap">
-      <svg viewBox={layout.viewBox} role="group" aria-label="Polar map of candidate landing sites around the lunar south pole" className="sitemap-svg">
+      <svg viewBox={layout.viewBox} role="group" aria-label={t("Polar map of candidate landing sites around the lunar south pole")} className="sitemap-svg">
         {layout.kind === 'basemap' && basemap ? (
           <image href={dataUrl(basemap.image)} x={0} y={0} width={basemap.width_px} height={basemap.height_px} preserveAspectRatio="none" className="sitemap-img" />
         ) : (
@@ -95,9 +91,7 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
                   </g>
                 );
               })}
-              <text x={VB / 2} y={VB / 2 + 12} textAnchor="middle" className="pg-pole">
-                S. Pole
-              </text>
+              <text x={VB / 2} y={VB / 2 + 12} textAnchor="middle" className="pg-pole"> {t("S. Pole")} </text>
             </g>
           )
         )}
@@ -115,7 +109,7 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
               role="button"
               tabIndex={0}
               aria-pressed={sel}
-              aria-label={`${shortName(s.name)}, ${s.lat_deg.toFixed(2)}°, ${s.lon_deg.toFixed(2)}°${cmp ? ', in comparison' : ''}`}
+              aria-label={`${shortName(s.name)}, ${s.lat_deg.toFixed(2)}°, ${s.lon_deg.toFixed(2)}°${cmp ? t(", in comparison") : ''}`}
               onClick={() => onSelect(s.id)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' || e.key === ' ') {
@@ -146,13 +140,12 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
           .filter(([g]) => sites.some((s) => s.group === g))
           .map(([g, c]) => (
             <span key={g}>
-              <i style={{ background: c }} /> {g === 'artemis' ? 'Artemis III' : g === 'clps' ? 'CLPS' : g === 'isro' ? 'ISRO' : 'Science'}
+              <i style={{ background: c }} /> {g === 'artemis' ? t("Artemis III") : g === 'clps' ? t("CLPS") : g === 'isro' ? t("ISRO") : t("Science")}
             </span>
           ))}
         <span>
-          <i className="sm-cmp-swatch" /> In comparison
-        </span>
-        {layout.kind === 'grid' && <span className="muted">Schematic polar grid (no basemap)</span>}
+          <i className="sm-cmp-swatch" /> {t("In comparison")} </span>
+        {layout.kind === 'grid' && <span className="muted">{t("Schematic polar grid (no basemap)")}</span>}
       </div>
     </div>
   );

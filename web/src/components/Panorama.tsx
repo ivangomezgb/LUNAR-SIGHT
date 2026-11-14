@@ -1,3 +1,6 @@
+import { t } from '../i18n';
+import { maskFor } from './series';
+import ExplainTip from './ExplainTip';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { SiteData } from '../lib/types';
 import { useApp } from '../state';
@@ -5,11 +8,6 @@ import PanoramaChart, { type BodyMarker, type PathPoint } from './PanoramaChart'
 import { seriesFor, hoursToChange, lerpAngle, assumptionsFor } from './series';
 import { hourIndex } from '../lib/metrics';
 import { fmtHours, fmtUtc, HOUR_MS } from './format';
-
-export function maskFor(site: SiteData, heightM: number): number[] {
-  const e = site.horizon.elev_cdeg;
-  return e[String(heightM)] ?? e['2'] ?? Object.values(e)[0] ?? new Array(720).fill(0);
-}
 
 const SPEEDS = [6, 24, 72];
 
@@ -92,15 +90,15 @@ export default function Panorama({ site }: { site: SiteData }) {
       az: lerpAngle(series.sunAz[k], series.sunAz[k + 1], f),
       el: sEl,
       vis: sunVis,
-      label: sunVis ? 'Sun' : 'Sun (hidden)',
-      detail: `${sgn(sunAboveHorizon)}° vs horizon · ${Math.round(series.sunFrac[k] * 100)}% disk`,
+      label: sunVis ? t("Sun") : t("Sun (hidden)"),
+      detail: t("{0}° vs horizon · {1}% disk", { 0: sgn(sunAboveHorizon), 1: Math.round(series.sunFrac[k] * 100) }),
     };
     earth = {
       az: lerpAngle(series.earthAz[k], series.earthAz[k + 1], f),
       el: eEl,
       vis: earthVis,
-      label: earthVis ? 'Earth' : 'Earth (hidden)',
-      detail: `${sgn(eEl - hE)}° vs horizon`,
+      label: earthVis ? t("Earth") : t("Earth (hidden)"),
+      detail: t("{0}° vs horizon", { 0: sgn(eEl - hE) }),
     };
     sunState = hoursToChange((i) => series.sunFrac[i] >= df, pos, n);
     earthState = hoursToChange((i) => series.earthVis[i] > 0, pos, n);
@@ -108,15 +106,15 @@ export default function Panorama({ site }: { site: SiteData }) {
 
   const cursorTime = new Date(Date.parse(landingUtc) + Math.floor(cursorH) * HOUR_MS);
   const sunText = !inRange
-    ? 'Outside data coverage'
+    ? t("Outside data coverage")
     : sunState.on
-      ? sunState.hours == null ? 'No sunset in data' : `Sunset in ${fmtHours(sunState.hours)}`
-      : sunState.hours == null ? 'No sunrise in data' : `Sunrise in ${fmtHours(sunState.hours)}`;
+      ? sunState.hours == null ? t("No sunset in data") : t("Sunset in {0}", { 0: fmtHours(sunState.hours) })
+      : sunState.hours == null ? t("No sunrise in data") : t("Sunrise in {0}", { 0: fmtHours(sunState.hours) });
   const earthText = !inRange
     ? ''
     : earthState.on
-      ? earthState.hours == null ? 'No Earthset in data' : `Earthset in ${fmtHours(earthState.hours)}`
-      : earthState.hours == null ? 'No Earthrise in data' : `Earthrise in ${fmtHours(earthState.hours)}`;
+      ? earthState.hours == null ? t("No Earthset in data") : t("Earthset in {0}", { 0: fmtHours(earthState.hours) })
+      : earthState.hours == null ? t("No Earthrise in data") : t("Earthrise in {0}", { 0: fmtHours(earthState.hours) });
 
   const onKey = (e: React.KeyboardEvent) => {
     if (e.key === ' ' || e.key === 'k') {
@@ -127,7 +125,7 @@ export default function Panorama({ site }: { site: SiteData }) {
   };
 
   return (
-    <section className="card pano-card" aria-label="Horizon panorama" onKeyDown={onKey}>
+    <section className="card pano-card" aria-label={t("Horizon panorama")} onKeyDown={onKey}>
       <div className="headline" aria-live="polite">
         <span className={`hl-sun${sunState.on ? '' : ' is-off'}`}>
           <span className="hl-icon sun" aria-hidden />
@@ -151,19 +149,18 @@ export default function Panorama({ site }: { site: SiteData }) {
         earth={earth}
         height={380}
         azStart={centre === 'N' ? 180 : 0}
-        ariaLabel={`Horizon panorama for ${site.id}. ${sunText}. ${earthText}.`}
+        ariaLabel={t("Horizon panorama for {0}. {1}. {2}.", { 0: site.id, 1: sunText, 2: earthText })}
       />
 
       <div className="pano-legend">
-        <span aria-hidden><i className="lg-sun" /> Sun path (visible)</span>
-        <span aria-hidden><i className="lg-earth" /> Earth path (visible, dashed)</span>
-        <span aria-hidden><i className="lg-hidden" /> Below terrain</span>
-        <span aria-hidden><i className="lg-terrain" /> Terrain horizon at {assumptions.heightM} m</span>
-        <span className="centre-toggle" role="group" aria-label="Panorama centre">
-          Centre on
-          {(['N', 'S'] as const).map((c) => (
+        <ExplainTip topic="vertical" />
+        <span aria-hidden><i className="lg-sun" /> {t("Sun path (visible)")}</span>
+        <span aria-hidden><i className="lg-earth" /> {t("Earth path (visible, dashed)")}</span>
+        <span aria-hidden><i className="lg-hidden" /> {t("Below terrain")}</span>
+        <span><i className="lg-terrain" /> {t("Terrain horizon at")} {assumptionsFor(site, assumptions).heightM} m <ExplainTip topic="horizon" /></span>
+        <span className="centre-toggle" role="group" aria-label={t("Panorama centre")}> {t("Centre on")} {(['N', 'S'] as const).map((c) => (
             <button key={c} type="button" className={`chip${centre === c ? ' is-on' : ''}`} aria-pressed={centre === c} onClick={() => setCentre(c)}>
-              {c === 'N' ? 'North (Earth side)' : 'South'}
+              {c === 'N' ? t("North (Earth side)") : t("South")}
             </button>
           ))}
         </span>
@@ -177,7 +174,7 @@ export default function Panorama({ site }: { site: SiteData }) {
             if (!playing && cursorH >= totalH) setCursorH(0);
             setPlaying(!playing);
           }}
-          aria-label={playing ? 'Pause animation' : 'Play animation'}
+          aria-label={playing ? t("Pause animation") : t("Play animation")}
         >
           {playing ? (
             <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden><rect x="3" y="2" width="3.5" height="12" fill="currentColor" /><rect x="9.5" y="2" width="3.5" height="12" fill="currentColor" /></svg>
@@ -196,13 +193,13 @@ export default function Panorama({ site }: { site: SiteData }) {
               setPlaying(false);
               setCursorH(Number(e.target.value));
             }}
-            aria-label="Time after landing"
-            aria-valuetext={`T+${Math.round(cursorH)} hours, ${fmtUtc(cursorTime)}`}
+            aria-label={t("Time after landing")}
+            aria-valuetext={t("T+{0} hours, {1}", { 0: Math.round(cursorH), 1: fmtUtc(cursorTime) })}
             className="time-slider"
             style={{ ['--pct' as string]: `${(cursorH / totalH) * 100}%` }}
           />
           <div className="slider-ends mono">
-            <span>Landing</span>
+            <span>{t("Landing")}</span>
             <span>+{missionDays} d</span>
           </div>
         </div>
@@ -211,7 +208,7 @@ export default function Panorama({ site }: { site: SiteData }) {
           <div className="tr-sub">{fmtUtc(cursorTime)}</div>
         </div>
         <label className="speed">
-          <span className="sr-only">Playback speed</span>
+          <span className="sr-only">{t("Playback speed")}</span>
           <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="select">
             {SPEEDS.map((s) => (
               <option key={s} value={s}>

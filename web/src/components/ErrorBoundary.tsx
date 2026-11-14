@@ -1,3 +1,4 @@
+import { t, sourceText } from '../i18n';
 import { Component, type ReactNode } from 'react';
 
 interface State {
@@ -15,11 +16,9 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, St
     if (this.state.error)
       return (
         <div className="status status-error" role="alert">
-          <div className="status-title">Something went wrong while rendering this view</div>
-          <div className="mono status-detail">{this.state.error.message}</div>
-          <button type="button" className="btn btn-sm" onClick={() => this.setState({ error: null })}>
-            Try again
-          </button>
+          <div className="status-title">{t("Something went wrong while rendering this view")}</div>
+          <div className="mono status-detail">{sourceText(this.state.error.message)}</div>
+          <button type="button" className="btn btn-sm" onClick={() => this.setState({ error: null })}> {t("Try again")} </button>
         </div>
       );
     return this.props.children;

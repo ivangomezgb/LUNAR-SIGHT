@@ -46,3 +46,8 @@ export function lerpAngle(a: number, b: number, f: number): number {
   if (d < -180) d += 360;
   return (((a + d * f) % 360) + 360) % 360;
 }
+
+export function maskFor(site: SiteData, heightM: number): number[] {
+  const e = site.horizon.elev_cdeg;
+  return e[String(heightM)] ?? e['2'] ?? Object.values(e)[0] ?? [];
+}

@@ -17,7 +17,22 @@ export interface ReplanForm {
   filters: { minLightPct: number; minEarthPct: number; maxSlopeDeg: number; requireSunAtLanding: boolean };
 }
 
+export type Lang = 'en' | 'es';
+function initialLang(): Lang {
+  const hash = new URLSearchParams(window.location.hash.split('?')[1] ?? '');
+  const query = hash.get('lang') ?? new URLSearchParams(window.location.search).get('lang');
+  if (query === 'es' || query === 'en') return query;
+  try { return localStorage.getItem('lln.lang') === 'es' ? 'es' : 'en'; } catch { return 'en'; }
+}
+function initialHeight(): number {
+  const hash = new URLSearchParams(window.location.hash.split('?')[1] ?? '');
+  const h = Number(hash.get('h') ?? new URLSearchParams(window.location.search).get('h'));
+  return [1, 2, 5, 10].includes(h) ? h : 2;
+}
+
 interface AppState {
+  lang: Lang;
+  setLang: (lang: Lang) => void;
   siteId: string | null;
   compareIds: string[];
   landingUtc: string;
@@ -38,13 +53,18 @@ interface AppState {
 }
 
 export const useApp = create<AppState>((set) => ({
+  lang: initialLang(),
+  setLang: (lang) => {
+    try { localStorage.setItem('lln.lang', lang); } catch { /* Storage may be blocked. */ }
+    set({ lang });
+  },
   siteId: null,
   compareIds: [],
   landingUtc: DEFAULT_LANDING_UTC,
   missionDays: 14,
   cursorH: 0,
   playing: false,
-  assumptions: { ...DEFAULT_ASSUMPTIONS },
+  assumptions: { ...DEFAULT_ASSUMPTIONS, heightM: initialHeight() },
   replan: {
     siteIds: [],
     originalUtc: DEFAULT_LANDING_UTC,

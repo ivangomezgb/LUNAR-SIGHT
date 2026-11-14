@@ -1,3 +1,4 @@
+import { t } from '../i18n';
 import { useId, useMemo, useState } from 'react';
 import { area, line, curveLinear } from 'd3';
 import { useElementWidth } from './hooks';
@@ -41,7 +42,7 @@ interface Segment {
 }
 
 /** Split a path into runs of equal visibility, breaking (with edge interpolation) at the 0/360 wrap. */
-export function buildSegments(points: PathPoint[]): Segment[] {
+function buildSegments(points: PathPoint[]): Segment[] {
   const segs: Segment[] = [];
   if (!points.length) return segs;
   let cur: Segment = { vis: points[0].vis, pts: [[points[0].az, points[0].el]] };
@@ -81,7 +82,7 @@ export default function PanoramaChart({
   compact = false,
   elMin = -5,
   elMax = 10,
-  ariaLabel = 'Horizon panorama',
+  ariaLabel = t("Horizon panorama"),
   azStart = 180,
 }: Props) {
   const [ref, measured] = useElementWidth<HTMLDivElement>();
@@ -174,7 +175,7 @@ export default function PanoramaChart({
         )}
         {!compact && (
           <text x={tx} y={cy - 2} textAnchor={labelLeft ? 'end' : 'start'} className="pano-marker-label">
-            <tspan>{b.label}</tspan>
+            <tspan>{t(b.label)}</tspan>
             {b.detail && (
               <tspan x={tx} dy="1.25em" className="pano-marker-detail">
                 {b.detail}
@@ -283,20 +284,17 @@ export default function PanoramaChart({
 
         {!compact && (
           <text x={m.l + pw} y={m.t - 9} textAnchor="end" className="pano-ve">
-            {pw >= 560 ? `Vertical exaggeration ×${ve.toFixed(1)} · elevation ${elMin}° to +${elMax}°` : `Vertical exag. ×${ve.toFixed(1)}`}
+            {pw >= 560 ? t("Vertical exaggeration ×{0} · elevation {1}° to +{2}°", { 0: ve.toFixed(1), 1: elMin, 2: elMax }) : t("Vertical exag. ×{0}", { 0: ve.toFixed(1) })}
           </text>
         )}
         {!compact && pw >= 560 && (
-          <text x={m.l} y={m.t - 9} className="pano-ve">
-            Azimuth from north, clockwise
-          </text>
+          <text x={m.l} y={m.t - 9} className="pano-ve"> {t("Azimuth from north, clockwise")} </text>
         )}
 
         {hover != null && (
           <g className="pano-hover" pointerEvents="none">
             <line x1={x(hover)} x2={x(hover)} y1={m.t} y2={m.t + ph} />
-            <text x={x(hover) + (x(hover) > m.l + pw - 150 ? -6 : 6)} y={m.t + 14} textAnchor={x(hover) > m.l + pw - 150 ? 'end' : 'start'}>
-              Az {((hover + azStart) % 360).toFixed(1)}° · horizon {horizonAtAz(hover + azStart) >= 0 ? '+' : ''}
+            <text x={x(hover) + (x(hover) > m.l + pw - 150 ? -6 : 6)} y={m.t + 14} textAnchor={x(hover) > m.l + pw - 150 ? 'end' : 'start'}> {t("Az")} {((hover + azStart) % 360).toFixed(1)}{t("° · horizon")} {horizonAtAz(hover + azStart) >= 0 ? '+' : ''}
               {horizonAtAz(hover + azStart).toFixed(2)}°
             </text>
           </g>

@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+import { t } from '../i18n';
+import { useId, useMemo } from 'react';
 import { interpolateRgb } from 'd3';
 import type { SiteData } from '../lib/types';
 import { hourIndex } from '../lib/metrics';
@@ -37,6 +38,9 @@ export default function Timeline({
   compact = false,
   title,
 }: Props) {
+  const patternId = useId().replace(/:/g, '');
+  const nightId = `night-${patternId}`;
+  const nodataId = `nodata-${patternId}`;
   const [ref, measured] = useElementWidth<HTMLDivElement>();
   const width = Math.max(300, measured || 800);
   const labelW = compact ? 56 : 74;
@@ -59,10 +63,10 @@ export default function Timeline({
     for (let h = 0; h < hours; h++) {
       const i = i0 + h;
       if (i < 0 || i >= n) {
-        sr.push({ x: m.l + h * cw, w: cw + 0.6, c: 'url(#tl-nodata)' });
+        sr.push({ x: m.l + h * cw, w: cw + 0.6, c: `url(#${nodataId})` });
         continue;
       }
-      sr.push({ x: m.l + h * cw, w: cw + 0.6, c: sunColor(series.sunFrac[i]) });
+      sr.push({ x: m.l + h * cw, w: cw + 0.6, c: series.sunFrac[i] < dayFraction ? `url(#${nightId})` : sunColor(series.sunFrac[i]) });
       const v = series.earthVis[i] > 0;
       if (v && runStart < 0) runStart = h;
       if (!v && runStart >= 0) {
@@ -73,9 +77,9 @@ export default function Timeline({
     if (runStart >= 0) er.push({ x: m.l + runStart * cw, w: (hours - runStart) * cw });
     return { sunRects: sr, earthRects: er };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [series, i0, n, hours, pw]);
+  }, [series, i0, n, hours, pw, dayFraction, nightId, nodataId]);
 
-  // day threshold contour: tiny marks where sun crosses "day" level are implied by colour; ticks every day
+  // Daily ticks share an axis with both visibility bands.
   const labelEvery = pw / days < 28 ? 5 : pw / days < 50 ? 2 : 1;
   const ticks = Array.from({ length: days + 1 }, (_, d) => d);
 
@@ -107,28 +111,32 @@ export default function Timeline({
 
   return (
     <div ref={ref} className={`timeline${compact ? ' timeline-compact' : ''}`}>
+      <div className="muted small">{t("Hatched = night · crosshatch = no data")}</div>
       {title && <div className="timeline-title">{title}</div>}
       <svg
         width={width}
         height={height}
         role="group"
-        aria-label={`${days}-day timeline of sunlight and Earth visibility${onPick ? '. Click to set time; arrow keys step 6 h, Shift+arrow 24 h.' : ''}`}
+        aria-label={t("{0}-day timeline of sunlight and Earth visibility{1}", { 0: days, 1: onPick ? t('. Click to set time; arrow keys step 6 h, Shift+arrow 24 h.') : '' })}
         tabIndex={onKeyStep ? 0 : undefined}
         onKeyDown={onKey}
         className="timeline-svg"
       >
         <defs>
-          <pattern id="tl-nodata" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+          <pattern id={nightId} width="5" height="5" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <rect width="5" height="5" fill="#1a1d24" />
+            <line x1="0" y1="0" x2="0" y2="5" stroke="#aab3c3" strokeWidth="1" />
+          </pattern>
+          <pattern id={nodataId} width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
             <rect width="6" height="6" fill="#111318" />
             <line x1="0" y1="0" x2="0" y2="6" stroke="#2a2e38" strokeWidth="2" />
+            <line x1="0" y1="0" x2="6" y2="0" stroke="#2a2e38" strokeWidth="2" />
           </pattern>
         </defs>
         <text x={4} y={yS + bandH / 2 + 4} className="tl-label">
-          {compact ? 'Sun' : 'Sunlight'}
+          {compact ? t("Sun") : t("Sunlight")}
         </text>
-        <text x={4} y={yE + bandH / 2 + 4} className="tl-label">
-          Earth
-        </text>
+        <text x={4} y={yE + bandH / 2 + 4} className="tl-label"> {t("Earth")} </text>
         <g>
           {sunRects.map((r, k) => (
             <rect key={k} x={r.x} y={yS} width={r.w} height={bandH} fill={r.c} />
@@ -167,9 +175,7 @@ export default function Timeline({
             {!compact && (
               <>
                 <path d={`M${x(landRel)},${yS - 14} l9,4 l-9,4 Z`} />
-                <text x={x(landRel) + 12} y={yS - 6}>
-                  Landing
-                </text>
+                <text x={x(landRel) + 12} y={yS - 6}> {t("Landing")} </text>
               </>
             )}
           </g>
@@ -178,9 +184,7 @@ export default function Timeline({
           <line className="tl-cursor" x1={x(landRel + cursorH)} x2={x(landRel + cursorH)} y1={yS - 2} y2={yE + bandH + 2} />
         )}
         {!compact && pw >= 560 && (
-          <text x={m.l + pw} y={yS - 6} textAnchor="end" className="tl-hint">
-            Mission window shaded · day = ≥{Math.round(dayFraction * 100)}% solar disk
-          </text>
+          <text x={m.l + pw} y={yS - 6} textAnchor="end" className="tl-hint"> {t("Mission window shaded · day = ≥")}{Math.round(dayFraction * 100)}{t("% solar disk")} </text>
         )}
         {onPick && (
           <rect x={m.l} y={yS} width={pw} height={bandH * 2 + gap} fill="transparent" style={{ cursor: 'crosshair' }} onClick={handleClick} />

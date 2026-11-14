@@ -1,3 +1,5 @@
+import { useApp } from '../state';
+import { t } from '../i18n';
 // Small formatting / time helpers shared by UI components.
 
 export const HOUR_MS = 3600_000;
@@ -26,7 +28,7 @@ export function parseUtc(s: string | null | undefined): Date | null {
 /** "12 Jan 2027 06:00 UTC" */
 export function fmtUtc(d: Date | string | number, withYear = true): string {
   const t = new Date(d);
-  const mon = t.toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' });
+  const mon = t.toLocaleString(useApp.getState().lang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', timeZone: 'UTC' });
   const dd = String(t.getUTCDate()).padStart(2, '0');
   const hh = String(t.getUTCHours()).padStart(2, '0');
   const mm = String(t.getUTCMinutes()).padStart(2, '0');
@@ -35,7 +37,7 @@ export function fmtUtc(d: Date | string | number, withYear = true): string {
 
 export function fmtDay(d: Date | string | number): string {
   const t = new Date(d);
-  return `${String(t.getUTCDate()).padStart(2, '0')} ${t.toLocaleString('en-GB', { month: 'short', timeZone: 'UTC' })}`;
+  return `${String(t.getUTCDate()).padStart(2, '0')} ${t.toLocaleString(useApp.getState().lang === 'es' ? 'es-ES' : 'en-GB', { month: 'short', timeZone: 'UTC' })}`;
 }
 
 /** Hours as "41 h" or "3.2 d" for long spans. */
@@ -72,7 +74,7 @@ export const GROUP_LABEL: Record<string, string> = {
 };
 
 export function groupLabel(g: string): string {
-  return GROUP_LABEL[g] ?? g;
+  return t(GROUP_LABEL[g] ?? g);
 }
 
 /** Angular error in degrees: scientific notation for tiny values so they don't read as exactly 0. */
@@ -80,4 +82,16 @@ export function fmtErr(deg: number): string {
   const a = Math.abs(deg);
   if (a === 0) return '0';
   return a < 1e-3 ? deg.toExponential(1) : deg.toFixed(4);
+}
+
+export function isSynthetic(s: { id: string; tags?: string[] }): boolean {
+  return s.id.startsWith('synthetic-') || !!s.tags?.includes('synthetic');
+}
+
+const GROUP_COLOR: Record<string, string> = {
+  artemis: '#f5c542', clps: '#5fd1b3', isro: '#ff8a5c', science: '#b49cff',
+};
+export const groupColor = (g: string) => GROUP_COLOR[g] ?? '#cfd6e4';
+export function shortName(name: string): string {
+  return name.replace(/\s*\(synthetic\)\s*/i, '');
 }

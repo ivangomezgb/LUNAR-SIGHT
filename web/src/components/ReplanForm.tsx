@@ -1,7 +1,8 @@
+import { t } from '../i18n';
 import type { SiteIndexEntry } from '../lib/types';
 import type { ReplanForm as Form } from '../state';
 import { fromLocalInput, toLocalInput } from './format';
-import { shortName, groupColor } from './SiteMap';
+import { shortName, groupColor } from './format';
 import WeightSliders from './WeightSliders';
 
 interface Props {
@@ -46,9 +47,9 @@ export default function ReplanForm({ form, sites, onChange }: Props) {
   return (
     <form className="replan-form" onSubmit={(e) => e.preventDefault()}>
       <fieldset>
-        <legend>Schedule</legend>
+        <legend>{t("Schedule")}</legend>
         <div className="field">
-          <label htmlFor="rp-orig">Original landing (UTC)</label>
+          <label htmlFor="rp-orig">{t("Original landing (UTC)")}</label>
           <input
             id="rp-orig"
             type="datetime-local"
@@ -63,15 +64,14 @@ export default function ReplanForm({ form, sites, onChange }: Props) {
           />
         </div>
         <div className="field-grid">
-          <NumField id="rp-delay" label="Delay" value={form.delayDays} unit="days" min={0} max={365} onChange={(v) => onChange({ delayDays: v })} />
-          <NumField id="rp-tol" label="Tolerance ±" value={form.toleranceDays} unit="days" min={0} max={30} onChange={(v) => onChange({ toleranceDays: v })} />
-          <NumField id="rp-dur" label="Mission" value={form.missionDays} unit="days" min={1} max={60} onChange={(v) => onChange({ missionDays: v })} />
+          <NumField id="rp-delay" label={t("Delay")} value={form.delayDays} unit={t("days")} min={0} max={365} onChange={(v) => onChange({ delayDays: v })} />
+          <NumField id="rp-tol" label={t("Tolerance ±")} value={form.toleranceDays} unit={t("days")} min={0} max={30} onChange={(v) => onChange({ toleranceDays: v })} />
+          <NumField id="rp-dur" label={t("Mission")} value={form.missionDays} unit={t("days")} min={1} max={60} onChange={(v) => onChange({ missionDays: v })} />
           <div className="field">
-            <label htmlFor="rp-step">Candidate step</label>
+            <label htmlFor="rp-step">{t("Candidate step")}</label>
             <select id="rp-step" className="select mono" value={form.stepH} onChange={(e) => onChange({ stepH: Number(e.target.value) })}>
               {[1, 3, 6, 12, 24].map((h) => (
-                <option key={h} value={h}>
-                  every {h} h
+                <option key={h} value={h}> {t("every")} {h} h
                 </option>
               ))}
             </select>
@@ -82,21 +82,18 @@ export default function ReplanForm({ form, sites, onChange }: Props) {
       <WeightSliders weights={form.weights} onChange={(w) => onChange({ weights: w })} />
 
       <fieldset>
-        <legend>Hard filters</legend>
+        <legend>{t("Hard filters")}</legend>
         <div className="field-grid">
-          <NumField id="rp-minl" label="Min sunlight" value={f.minLightPct} unit="%" min={0} max={100} onChange={(v) => onChange({ filters: { ...f, minLightPct: v } })} />
-          <NumField id="rp-mine" label="Min Earth visible" value={f.minEarthPct} unit="%" min={0} max={100} onChange={(v) => onChange({ filters: { ...f, minEarthPct: v } })} />
-          <NumField id="rp-slope" label="Max slope (50 m)" value={f.maxSlopeDeg} unit="°" min={0} max={45} step={0.5} onChange={(v) => onChange({ filters: { ...f, maxSlopeDeg: v } })} />
+          <NumField id="rp-minl" label={t("Min sunlight")} value={f.minLightPct} unit="%" min={0} max={100} onChange={(v) => onChange({ filters: { ...f, minLightPct: v } })} />
+          <NumField id="rp-mine" label={t("Min Earth visible")} value={f.minEarthPct} unit="%" min={0} max={100} onChange={(v) => onChange({ filters: { ...f, minEarthPct: v } })} />
+          <NumField id="rp-slope" label={t("Max slope (50 m)")} value={f.maxSlopeDeg} unit="°" min={0} max={45} step={0.5} onChange={(v) => onChange({ filters: { ...f, maxSlopeDeg: v } })} />
         </div>
         <label className="check">
-          <input type="checkbox" checked={f.requireSunAtLanding} onChange={(e) => onChange({ filters: { ...f, requireSunAtLanding: e.target.checked } })} />
-          Require Sun above the real horizon at landing
-        </label>
+          <input type="checkbox" checked={f.requireSunAtLanding} onChange={(e) => onChange({ filters: { ...f, requireSunAtLanding: e.target.checked } })} /> {t("Require Sun above the real horizon at landing")} </label>
       </fieldset>
 
       <fieldset>
-        <legend>
-          Sites <span className="muted small">({all ? 'all' : form.siteIds.length} selected)</span>
+        <legend> {t("Sites")} <span className="muted small">({all ? t("all") : form.siteIds.length} {t("selected)")}</span>
         </legend>
         <div className="site-chips">
           {sites.map((s) => (
@@ -108,9 +105,7 @@ export default function ReplanForm({ form, sites, onChange }: Props) {
           ))}
         </div>
         {!all && (
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange({ siteIds: [] })}>
-            Select all
-          </button>
+          <button type="button" className="btn btn-ghost btn-sm" onClick={() => onChange({ siteIds: [] })}> {t("Select all")} </button>
         )}
       </fieldset>
     </form>
