@@ -428,3 +428,11 @@ FodyWeavers.xsd
 #*.lscache
 
 .venv/
+
+# Lunar navigator
+pipeline/kernels/*
+!pipeline/kernels/lln.tm
+pipeline/data/
+web/public/dev-data/
+web/node_modules/
+web/dist/
