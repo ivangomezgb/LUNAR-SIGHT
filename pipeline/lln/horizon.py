@@ -45,25 +45,28 @@ def _bilinear(z, c, r):
 
 
 @njit(cache=True)
-def horizon_mask(z, left, top, res, lat0_rad, lon0_rad, r_obs, d_start, d_max, az_step_deg,
-                 R, step_m):
-    """One scale. z: DEM window (m above R, NaN nodata); left/top: map coords of the window's
-    outer corner; r_obs: observer radius (R + z_site + h). d_start: per-azimuth start
-    distance (m). Returns (elev_deg[n_az] (-90 where no sample), reach_m[n_az])."""
+def horizon_masks(z, left, top, res, lat0_rad, lon0_rad, r_obs, d_start, d_max, az_step_deg,
+                  R, step_m):
+    """One scale, several observer heights in one pass. z: DEM window (m above R, NaN
+    nodata); left/top: map coords of the window's outer corner; r_obs: observer radii
+    (R + z_site + h), one per height. d_start: per-azimuth start distance (m).
+    Returns (elev_deg[n_h, n_az] (-90 where no sample), reach_m[n_az]). Terrain sampling
+    and reach do not depend on the observer, so every height sees the same samples."""
     n_az = int(round(360.0 / az_step_deg))
-    out = np.full(n_az, -90.0)
+    n_h = r_obs.shape[0]
+    out = np.full((n_h, n_az), -90.0)
     reach = np.zeros(n_az)
+    best = np.empty(n_h)
     sl, cl = math.sin(lat0_rad), math.cos(lat0_rad)
     so, co = math.sin(lon0_rad), math.cos(lon0_rad)
     u0x, u0y, u0z = cl * co, cl * so, sl
     ex, ey, ez = -so, co, 0.0
     nx, ny, nz = -sl * co, -sl * so, cl
-    ox, oy, oz = r_obs * u0x, r_obs * u0y, r_obs * u0z
     for i in range(n_az):
         a = math.radians(i * az_step_deg)
         ca, sa = math.cos(a), math.sin(a)
         dx, dy, dz = ca * nx + sa * ex, ca * ny + sa * ey, ca * nz + sa * ez
-        best = -1e9
+        best[:] = -1e9
         s = d_start[i]
         reached = s
         while s <= d_max:
@@ -77,28 +80,47 @@ def horizon_mask(z, left, top, res, lat0_rad, lon0_rad, r_obs, d_start, d_max, a
             if not (zt == zt):  # NaN: nodata or outside the window
                 break
             rt = R + zt
-            vx, vy, vz = rt * ux - ox, rt * uy - oy, rt * uz - oz
-            up = vx * u0x + vy * u0y + vz * u0z
-            hx, hy, hz = vx - up * u0x, vy - up * u0y, vz - up * u0z
-            el = math.atan2(up, math.sqrt(hx * hx + hy * hy + hz * hz))
-            if el > best:
-                best = el
+            for j in range(n_h):
+                ro = r_obs[j]
+                vx, vy, vz = rt * ux - ro * u0x, rt * uy - ro * u0y, rt * uz - ro * u0z
+                up = vx * u0x + vy * u0y + vz * u0z
+                hx, hy, hz = vx - up * u0x, vy - up * u0y, vz - up * u0z
+                el = math.atan2(up, math.sqrt(hx * hx + hy * hy + hz * hz))
+                if el > best[j]:
+                    best[j] = el
             reached = s
             s += step_m
-        if best > -1e8:
-            out[i] = math.degrees(best)
+        for j in range(n_h):
+            if best[j] > -1e8:
+                out[j, i] = math.degrees(best[j])
         # completed the scale -> d_max; stopped on nodata/edge -> last valid sample
         reach[i] = d_max if s > d_max else reached
     return out, reach
 
 
+def horizon_mask(z, left, top, res, lat0_rad, lon0_rad, r_obs, d_start, d_max, az_step_deg,
+                 R, step_m):
+    """Single observer: (elev_deg[n_az], reach_m[n_az]); see horizon_masks."""
+    out, reach = horizon_masks(z, left, top, res, lat0_rad, lon0_rad,
+                               np.array([float(r_obs)]), d_start, d_max, az_step_deg, R, step_m)
+    return out[0], reach
+
+
+def scale_masks(win: demmod.DemWindow, lat_deg, lon_deg, r_obs, d_start, d_max,
+                az_step=AZ_STEP_DEG, step_m=None):
+    """All observer radii `r_obs` at once: (elev_deg[len(r_obs), n_az], reach_m[n_az])."""
+    z = np.ascontiguousarray(win.z, dtype=np.float64)
+    return horizon_masks(z, float(win.left), float(win.top), float(win.res),
+                         math.radians(lat_deg), math.radians(lon_deg),
+                         np.ascontiguousarray(r_obs, dtype=np.float64),
+                         np.ascontiguousarray(d_start, dtype=np.float64), float(d_max),
+                         float(az_step), R_MOON, float(step_m or win.res))
+
+
 def scale_mask(win: demmod.DemWindow, lat_deg, lon_deg, r_obs, d_start, d_max,
                az_step=AZ_STEP_DEG, step_m=None):
-    z = np.ascontiguousarray(win.z, dtype=np.float64)
-    return horizon_mask(z, float(win.left), float(win.top), float(win.res),
-                        math.radians(lat_deg), math.radians(lon_deg), float(r_obs),
-                        np.ascontiguousarray(d_start, dtype=np.float64), float(d_max),
-                        float(az_step), R_MOON, float(step_m or win.res))
+    el, reach = scale_masks(win, lat_deg, lon_deg, [r_obs], d_start, d_max, az_step, step_m)
+    return el[0], reach
 
 
 # Scales: (source key, d_max of that scale in metres). The first scale whose file covers the
@@ -145,8 +167,9 @@ def site_horizon(lat_deg: float, lon_deg: float, heights=HEIGHTS_M, az_step=AZ_S
     plan.append((src(FAR[0]), None, FAR[1]))
 
     n_az = int(round(360.0 / az_step))
-    masks = {h: np.full(n_az, -90.0) for h in heights}
-    reach = {h: np.full(n_az, near_src.res) for h in heights}
+    masks = np.full((len(heights), n_az), -90.0)
+    # reach is where valid terrain ended, the same for every observer height
+    reach = np.full(n_az, near_src.res)
     used = []
     for s, w, dmax in plan:
         if w is None:
@@ -154,24 +177,23 @@ def site_horizon(lat_deg: float, lon_deg: float, heights=HEIGHTS_M, az_step=AZ_S
         zs = w.sample(x, y)
         log(f"    {s.key:<12} res {s.res:>5.0f} m to {dmax / 1000:5.1f} km; "
             f"z_site here {zs:9.2f} m (near {z_site:9.2f})")
-        for h in heights:
-            el, rch = scale_mask(w, lat_deg, lon_deg, R_MOON + z_site + h, reach[h], dmax,
-                                 az_step)
-            masks[h] = np.maximum(masks[h], el)
-            # a ray that got nowhere in this scale keeps its previous reach
-            reach[h] = np.maximum(reach[h], rch)
+        el, rch = scale_masks(w, lat_deg, lon_deg, [R_MOON + z_site + h for h in heights],
+                              reach, dmax, az_step)
+        masks = np.maximum(masks, el)
+        # a ray that got nowhere in this scale keeps its previous reach
+        reach = np.maximum(reach, rch)
         used.append({"source": s.key, "label": s.label, "res_m": s.res, "d_max_m": dmax})
         del w
 
-    h_ref = 2 if 2 in heights else heights[0]
-    max_dist = float(np.min(reach[h_ref]))
+    max_dist = float(np.min(reach))
     if max_dist < FAR[1]:
-        bad = int(np.sum(reach[h_ref] < FAR[1]))
+        bad = int(np.sum(reach < FAR[1]))
         log(f"    WARNING: {bad} azimuths reached only {max_dist:.0f} m (< {FAR[1]:.0f} m)")
     return {
         "az_step_deg": az_step,
         "heights_m": list(heights),
-        "elev_cdeg": {str(h): [int(v) for v in np.rint(masks[h] * 100.0)] for h in heights},
+        "elev_cdeg": {str(h): [int(v) for v in np.rint(masks[k] * 100.0)]
+                      for k, h in enumerate(heights)},
         "max_dist_m": round(max_dist, 1),
         "slope_deg_50m": round(slope, 2),
         "dem_res_m": near_src.res,
