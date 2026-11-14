@@ -52,7 +52,7 @@ VALIDATION_TIMES = [
 # IM-2 / Athena: LROC "IM-2 Athena Seen Obliquely" (https://lroc.im-ldi.com/images/1408):
 # lander on its side inside a 20 m crater at 84.7906 S, 29.1957 E.
 IM2 = {
-    "site": "mons_mouton",
+    "site": "mons-mouton",
     "t_utc": "2025-03-06T17:31:00Z",
     "lat_deg": -84.7906,
     "lon_deg": 29.1957,
