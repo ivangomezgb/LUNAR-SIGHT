@@ -7,6 +7,7 @@ import Compare from './pages/Compare';
 import Replan from './pages/Replan';
 import Validation from './pages/Validation';
 import About from './pages/About';
+import Team from './pages/Team';
 import { useApp } from './state';
 import { useShallow } from 'zustand/react/shallow';
 import { isoShort } from './components/format';
@@ -41,6 +42,7 @@ function Nav() {
         <NavLink to={to('/replan')} className={cls}> {t("Mission delayed")} </NavLink>
         <NavLink to={to('/validation')} className={cls}> {t("Validation")} </NavLink>
         <NavLink to={to('/about')} className={cls}> {t("About")} </NavLink>
+        <NavLink to={to('/team')} className={cls}>Apolo404</NavLink>
         <NavLink to={`/3d?${shared}${siteId ? `&site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : ''}`} className={cls}> {t('3D')} </NavLink>
         <span className="lang-toggle" role="group" aria-label={t('Language')}>
           <button type="button" className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
@@ -115,6 +117,7 @@ export default function App() {
           <Route path="/validation" element={<Validation />} />
           <Route path="/3d" element={<View3D />} />
           <Route path="/about" element={<About />} />
+          <Route path="/team" element={<Team />} />
           <Route path="*" element={<Explore />} />
             </Routes>
           </Suspense>

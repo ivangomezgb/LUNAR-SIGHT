@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { loadSite, loadSites } from '../lib/data';
 import { getSeries, hourIndex, timeAtIndex } from '../lib/metrics';
 import type { SiteData, SiteIndexEntry } from '../lib/types';
+import type { CameraMode, Trail } from '../lib/terrain';
 import { useApp } from '../state';
 import { useShallow } from 'zustand/react/shallow';
 import { fmtUtc, isoShort, parseUtc } from '../components/format';
@@ -12,7 +13,7 @@ import '../styles/view3d.css';
 const Scene3D = lazy(() => import('../components/Scene3D'));
 const ImmersivePano = lazy(() => import('../components/ImmersivePano'));
 
-type Mode = 'scene' | 'pano';
+const TRAIL_DAYS = [1, 14, 30] as const;
 
 export default function View3D() {
   const [params, setParams] = useSearchParams();
@@ -20,7 +21,9 @@ export default function View3D() {
   const [sites, setSites] = useState<SiteIndexEntry[]>([]);
   const [site, setSite] = useState<SiteData | null>(null);
   const [error, setError] = useState('');
-  const mode: Mode = params.get('view') === 'pano' ? 'pano' : 'scene';
+  const view = params.get('view');
+  const mode: CameraMode = view === 'pano' ? 'pano' : view === 'first' ? 'first' : 'overview';
+  const trailDays = TRAIL_DAYS.find(d => String(d) === params.get('days')) ?? 14;
   const [playing, setPlaying] = useState(false);
   const [speed, setSpeed] = useState(1);
   const viewer = useRef<HTMLDivElement>(null);
@@ -58,7 +61,7 @@ export default function View3D() {
     setParams(next, { replace: true });
   };
   const go = (i: number) => { if (site) update({ t: isoShort(timeAtIndex(site, i)) }); };
-  const switchMode = (m: Mode) => { update({ view: m }); };
+  const switchMode = (m: CameraMode) => { update({ view: m }); };
 
   useEffect(() => {
     if (!playing || !site) return;
@@ -70,7 +73,23 @@ export default function View3D() {
   });
 
   const synthetic = import.meta.env.VITE_DATA_DIR === 'dev-data' || id?.startsWith('synthetic-');
-  const View = mode === 'scene' ? Scene3D : ImmersivePano;
+  const View = mode === 'pano' ? ImmersivePano : Scene3D;
+
+  // Real Sun/Earth paths over the selected window, centred on the current hour.
+  const trails = useMemo(() => {
+    if (!site || !series) return null;
+    const n = site.ephem.n, half = trailDays * 12;
+    const start = Math.max(0, Math.min(index - half, n - 1 - 2 * half)), end = Math.min(n - 1, start + 2 * half);
+    const make = (az: Float32Array, el: Float32Array, mask: Float32Array): Trail => {
+      const out: Trail = { az: az.slice(start, end + 1), el: el.slice(start, end + 1), visible: [], dayMarks: [] };
+      const visible: boolean[] = [];
+      for (let i = start; i <= end; i++) { visible.push(el[i] >= mask[i]); if (i % 24 === 0) out.dayMarks.push(i - start); }
+      out.visible = visible; return out;
+    };
+    return { sun: make(series.sunAz, series.sunEl, series.horizonSunEl), earth: make(series.earthAz, series.earthEl, series.horizonEarthEl) };
+    // Recompute when the window moves by a day, not every hour, to keep playback smooth.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [site, series, trailDays, Math.floor(index / 24)]);
 
   const selected = sites.find(s => s.id === id);
   const dayStart = Math.floor(index / 24) * 24;
@@ -103,8 +122,9 @@ export default function View3D() {
           </div>
           <div className="expedition-actions">
             <div className="expedition-modes" role="group" aria-label={t('View')}>
-              <button aria-pressed={mode === 'scene'} onClick={() => switchMode('scene')}>{t('Terrain 3D')}</button>
-              <button aria-pressed={mode === 'pano'} onClick={() => switchMode('pano')}>{t('360° panorama')}</button>
+              <button aria-pressed={mode === 'overview'} onClick={() => switchMode('overview')}>{t('3D overview')}</button>
+              <button aria-pressed={mode === 'first'} onClick={() => switchMode('first')}>{t('First person · 2 m')}</button>
+              <button aria-pressed={mode === 'pano'} onClick={() => switchMode('pano')}>{t('Astronaut 360°')}</button>
             </div>
             <button className="expedition-fullscreen" onClick={fullscreen} aria-label={t('Toggle fullscreen')} title={t('Toggle fullscreen')}>⛶</button>
           </div>
@@ -117,12 +137,13 @@ export default function View3D() {
         </div>
         {site && series && <>
           <Suspense fallback={<div className="expedition-loading" role="status">{t('Loading 3D viewer…')}<progress /></div>}>
-            <View siteId={site.id} sunAz={series.sunAz[index]} sunEl={series.sunEl[index]} earthAz={series.earthAz[index]} earthEl={series.earthEl[index]} horizon={site.horizon.elev_cdeg[String(viewHeight)]} horizonStep={site.horizon.az_step_deg} />
+            <View mode={mode} onMode={switchMode} sunTrail={trails?.sun} earthTrail={trails?.earth} siteId={site.id} sunAz={series.sunAz[index]} sunEl={series.sunEl[index]} earthAz={series.earthAz[index]} earthEl={series.earthEl[index]} horizon={site.horizon.elev_cdeg[String(viewHeight)]} horizonStep={site.horizon.az_step_deg} />
           </Suspense>
           <div className="expedition-timeline">
             <div className="expedition-time-row">
               <button className="expedition-play" onClick={() => setPlaying(!playing)}>{playing ? t('Pause') : t('Play')}</button>
               <time>{fmtUtc(timeAtIndex(site,index))}</time>
+              <label className="expedition-speed">{t('Paths')} <select value={trailDays} onChange={e => update({ days: e.target.value })}>{TRAIL_DAYS.map(d => <option key={d} value={d}>{t('{0} d', { 0: d })}</option>)}</select></label>
               <label className="expedition-speed">{t('Speed')} <select value={speed} onChange={e => setSpeed(Number(e.target.value))}><option value={1}>{t('1 h / step')}</option><option value={6}>{t('6 h / step')}</option><option value={24}>{t('24 h / step')}</option></select></label>
             </div>
             <input aria-label={t('Ephemeris hour')} type="range" min={rangeStart} max={rangeEnd} step={1} value={index} onChange={e => {setPlaying(false);go(Number(e.target.value));}} />

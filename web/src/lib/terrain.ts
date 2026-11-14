@@ -2,7 +2,13 @@ import type { PanoMeta, TerrainMeta } from './types';
 export type { GridSpec, PanoMeta, TerrainMeta } from './types';
 export interface TerrainData { meta: TerrainMeta; near: Float32Array; far: Float32Array }
 export interface PanoData { meta: PanoMeta; distances: Float32Array; normals: Float32Array }
-export interface ViewProps { siteId: string; sunAz: number; sunEl: number; earthAz: number; earthEl: number; horizon: number[]; horizonStep: number }
+/** Sampled az/el path of a body; `visible` = above the 2 m horizon mask at that hour. */
+export interface Trail { az: ArrayLike<number>; el: ArrayLike<number>; visible: ArrayLike<boolean>; dayMarks: number[] }
+export type CameraMode = 'overview' | 'first' | 'pano';
+export interface ViewProps {
+  siteId: string; sunAz: number; sunEl: number; earthAz: number; earthEl: number; horizon: number[]; horizonStep: number;
+  sunTrail?: Trail; earthTrail?: Trail; mode?: CameraMode; onMode?: (mode: CameraMode) => void;
+}
 export const MISSING_3D = '3D data not generated yet for this site';
 export const WEBGL_UNAVAILABLE = 'WebGL is unavailable in this browser, so the 3D view cannot start';
 export const VIEWER_FAILED = 'The 3D view could not start';
