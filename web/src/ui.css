@@ -1573,3 +1573,77 @@ input[type='range'] {
 .metric { overflow: visible; }
 .lang-toggle { display: inline-flex; gap: 3px; align-items: center; }
 @media (max-width: 960px) { .replan-main { order: 1; } .replan-side { order: 2; } }
+
+/* Keep narrow layouts within their content column, without hiding page overflow. */
+@media (max-width: 1023px) {
+  body {
+    overflow-x: visible;
+  }
+
+  .topbar,
+  .main,
+  .footer,
+  .dev-banner {
+    padding-left: 16px;
+    padding-right: 16px;
+    overflow-wrap: anywhere;
+  }
+
+  .brand,
+  .brand-text,
+  .topbar nav,
+  .page > *,
+  .compare-controls > *,
+  .view3d-controls > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .brand > svg {
+    flex-shrink: 0;
+  }
+
+  .topbar nav,
+  .view3d-controls,
+  .view3d-modes,
+  .view3d-time {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .view3d-controls,
+  .view3d-modes,
+  .view3d-time {
+    gap: 8px;
+  }
+
+  .input,
+  .select,
+  .view3d select,
+  .view3d canvas,
+  .main svg,
+  .btn,
+  .chip {
+    max-width: 100%;
+  }
+
+  .btn,
+  .chip {
+    white-space: normal;
+  }
+
+  .table-scroll {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+  }
+
+  .mini-metrics {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* 3D view time slider spans the card. */
+.view3d-slider { display: block; width: 100%; }
+.view3d-controls, .view3d-time { margin-block: 8px; }
