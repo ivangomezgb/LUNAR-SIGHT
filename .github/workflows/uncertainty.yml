@@ -11,10 +11,8 @@ on:
         default: '["connecting-ridge-extension","de-gerlache-rim-1","de-gerlache-rim-2","de-gerlache-kocher-massif","amundsen-rim","faustini-rim-a","peak-near-shackleton","haworth","malapert-massif","leibnitz-beta-plateau","nobile-rim-1","nobile-rim-2"]'
   push:
     branches: [main]
-    paths: [.github/workflows/uncertainty.yml]
-
-env:
-  DEFAULT_SITES: '["connecting-ridge-extension","de-gerlache-rim-1","de-gerlache-rim-2","de-gerlache-kocher-massif","amundsen-rim","faustini-rim-a","peak-near-shackleton","haworth","malapert-massif","leibnitz-beta-plateau","nobile-rim-1","nobile-rim-2"]'
+    # Edit this file (a JSON list of site ids) and push to main to (re)run those sites.
+    paths: [pipeline/config/uncertainty-sites.json]
 
 concurrency:
   group: uncertainty
@@ -26,12 +24,14 @@ jobs:
     outputs:
       list: ${{ steps.pick.outputs.list }}
     steps:
+      - uses: actions/checkout@v4
       # Pass the JSON through an env var: inlined into the shell command its quotes would be stripped.
       - id: pick
         env:
-          LIST: ${{ github.event.inputs.sites || env.DEFAULT_SITES }}
+          LIST: ${{ github.event.inputs.sites }}
         run: |
-          echo "$LIST" | python3 -c "import json,sys; assert json.load(sys.stdin)"
+          [ -n "$LIST" ] || LIST=$(cat pipeline/config/uncertainty-sites.json)
+          LIST=$(echo "$LIST" | python3 -c "import json,sys; v=json.load(sys.stdin); assert v; print(json.dumps(v))")
           echo "list=$LIST" >> "$GITHUB_OUTPUT"
 
   site:
@@ -62,7 +62,12 @@ jobs:
           key: spice-kernels-v1
       - run: python pipeline/scripts/download_kernels.py
       - name: Horizon + 30 clones for ${{ matrix.site }}
-        run: python pipeline/scripts/cloud_uncertainty.py --site ${{ matrix.site }} --workers 3
+        run: |
+          set -o pipefail
+          python -u pipeline/scripts/cloud_uncertainty.py --site ${{ matrix.site }} --workers 3 2>&1 | tee run.log
+      # Job logs need a GitHub login; annotations are public, so surface the tail of the log there.
+      - if: failure()
+        run: tail -n 15 run.log | grep -v '^\s*$' | sed 's/^/::error::/'
       - if: always()
         uses: actions/upload-artifact@v4
         with:
