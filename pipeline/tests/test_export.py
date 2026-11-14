@@ -195,3 +195,51 @@ def test_sites_yaml_is_well_formed():
         assert -90 <= s["lat_deg"] <= -80 and -180 <= s["lon_deg"] <= 180
         assert s["source_url"].startswith("https://") and s.get("source_note")
         assert s["group"] and isinstance(s["tags"], list)
+
+
+def test_invalid_site_is_skipped_without_aborting_export(env, monkeypatch):
+    sites, out = env
+    inter = export.HORIZON_DIR.parent
+    bad = _horizon("bb", -85.0, 30.0)
+    bad["elev_cdeg"]["2"] = bad["elev_cdeg"]["2"][:100]
+    (inter / "horizon" / "bb.json").write_text(json.dumps(bad))
+    (inter / "ephem" / "bb.json").write_text(json.dumps(_ephem()))
+    warnings = []
+    monkeypatch.setattr(export, "warn", warnings.append)
+    res = export.export(sites, out, basemap=False)
+    assert res["written"] == ["aa"] and "bb" in res["skipped"]
+    assert [e["id"] for e in json.loads((out / "sites.json").read_text())] == ["aa"]
+    assert any(w.startswith("bb: invalid intermediate") for w in warnings)
+
+
+def test_has_clones_follows_uncertainty(env):
+    sites, out = env
+    export.UNCERTAINTY_DIR.mkdir()
+    (export.UNCERTAINTY_DIR / "aa.json").write_text(json.dumps(_uncertainty()))
+    export.export(sites, out, basemap=False)
+    assert json.loads((out / "sites.json").read_text())[0]["has_clones"] is True
+
+
+@pytest.fixture
+def real_site_ephem(tmp_path, monkeypatch):
+    """export.site_ephem with the SPICE computation replaced by a recorder."""
+    import importlib
+    ephem_mod = importlib.import_module("lln.ephem")
+    calls = []
+    monkeypatch.setattr(ephem_mod, "site_ephem",
+                        lambda lat, lon, elev: calls.append((lat, lon)) or {"computed": True})
+    monkeypatch.setattr(export, "EPHEM_DIR", tmp_path)
+    return calls
+
+
+def test_site_ephem_uses_intermediate_for_same_point(tmp_path, real_site_ephem):
+    (tmp_path / "aa.json").write_text(json.dumps({**_ephem(), "lat_deg": -89.5, "lon_deg": -150.0}))
+    e = export.site_ephem({"id": "aa", "lat_deg": -89.5, "lon_deg": -150.0}, 0.0)
+    assert e["n"] == export.EPHEM_N and real_site_ephem == []
+
+
+@pytest.mark.parametrize("tag", [{"lat_deg": -89.4, "lon_deg": -150.0}, {}])
+def test_site_ephem_recomputes_for_moved_or_untagged_site(tmp_path, real_site_ephem, tag):
+    (tmp_path / "aa.json").write_text(json.dumps({**_ephem(), **tag}))
+    e = export.site_ephem({"id": "aa", "lat_deg": -89.5, "lon_deg": -150.0}, 0.0)
+    assert e == {"computed": True} and real_site_ephem == [(-89.5, -150.0)]

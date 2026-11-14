@@ -1,4 +1,5 @@
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -93,3 +94,60 @@ def test_decode_float_predictor_tile():
     idx = dem.TiffIndex(tw, th, tw, th, [0], [0], 0, 0, 5, 8, 3, 32, 3, True)
     out = dem.decode_tile(zlib.compress(diff.tobytes()), idx)
     assert np.array_equal(out, a)
+
+
+def _fake_source(tmp_path, tile=4):
+    src = dem.DemSource("lola20_80s", cache_dir=tmp_path)
+    src._idx = dem.TiffIndex(tile, tile, tile, tile, [0], [0], 0.0, 0.0, 20.0,
+                             1, 1, 32, 3, True)
+    return src, tile
+
+
+def test_tmp_paths_are_unique_per_call(tmp_path):
+    p = tmp_path / "r0_c0.npy"
+    a, b = dem._tmp_path(p), dem._tmp_path(p)
+    assert a != b and a.parent == p.parent and a.suffix == ".npy" and str(os.getpid()) in a.name
+
+
+def test_corrupt_cached_block_is_refetched(tmp_path, monkeypatch):
+    src, tile = _fake_source(tmp_path)
+    src.cache_dir.mkdir(parents=True)
+    path = src._block_path(0, 0)
+    path.write_bytes(b"\x93NUMPY truncated")
+    calls = []
+
+    def fetch(br, bc0, bc1):
+        calls.append((br, bc0, bc1))
+        np.save(path, np.full((tile, tile), 7.0, dtype=np.float32))
+
+    monkeypatch.setattr(src, "_fetch_blocks", fetch)
+    blk = src._load_block(0, 0)
+    assert calls == [(0, 0, 0)] and float(blk[0, 0]) == 7.0
+
+
+def test_wrong_shape_block_raises_after_one_refetch(tmp_path, monkeypatch):
+    src, _ = _fake_source(tmp_path)
+    src.cache_dir.mkdir(parents=True)
+    path = src._block_path(0, 0)
+    bad = lambda *a: np.save(path, np.zeros((2, 2), dtype=np.float32))  # noqa: E731
+    bad()
+    monkeypatch.setattr(src, "_fetch_blocks", bad)
+    with pytest.raises(ValueError, match="corrupt after re-fetch"):
+        src._load_block(0, 0)
+
+
+@pytest.mark.parametrize("code,tries", [(404, 1), (403, 3)])
+def test_http_range_retries_only_transient_errors(monkeypatch, code, tries):
+    import urllib.error
+    import urllib.request
+    calls, sleeps = [], []
+
+    def boom(req, timeout):
+        calls.append(1)
+        raise urllib.error.HTTPError(req.full_url, code, "x", {}, None)
+
+    monkeypatch.setattr(urllib.request, "urlopen", boom)
+    monkeypatch.setattr(dem.time, "sleep", sleeps.append)
+    with pytest.raises(IOError):
+        dem.http_range("https://example.org/f.tif", 0, 4, retries=3)
+    assert len(calls) == tries and len(sleeps) == tries - 1

@@ -189,10 +189,20 @@ def _check_horizon(h: dict) -> None:
             raise ValueError(f"horizon key {k} has azimuths without any terrain sample")
 
 
+def _same_point(d: dict, site: dict) -> bool:
+    return (abs(d.get("lat_deg", 1e9) - site["lat_deg"]) <= 1e-9
+            and abs(d.get("lon_deg", 1e9) - site["lon_deg"]) <= 1e-9)
+
+
 def site_ephem(site: dict, elev_m: float) -> dict | None:
+    """The ephemeris intermediate when it was computed for this exact point, else a fresh
+    SPICE computation (e.g. after scripts/refine_sites.py moved the site)."""
     p = EPHEM_DIR / f"{site['id']}.json"
     if p.exists():
-        return json.loads(p.read_text(encoding="utf-8"))
+        e = json.loads(p.read_text(encoding="utf-8"))
+        if _same_point(e, site):
+            return e
+        warn(f"{site['id']}: ephem intermediate is for other (or untagged) coordinates; recomputing")
     try:
         from lln.ephem import site_ephem as _se  # type: ignore
     except Exception as exc:  # noqa: BLE001
@@ -234,7 +244,7 @@ def export(sites_yaml: Path = SITES_YAML, out_dir: Path = OUT_DIR, basemap: bool
             skipped.append(sid)
             continue
         hz = json.loads(hp.read_text(encoding="utf-8"))
-        if abs(hz.get("lat_deg", 1e9) - s["lat_deg"]) > 1e-9 or abs(hz.get("lon_deg", 1e9) - s["lon_deg"]) > 1e-9:
+        if not _same_point(hz, s):
             warn(f"{sid}: horizon intermediate is for other coordinates; site skipped")
             skipped.append(sid)
             continue
@@ -243,8 +253,14 @@ def export(sites_yaml: Path = SITES_YAML, out_dir: Path = OUT_DIR, basemap: bool
             warn(f"{sid}: no ephemerides; site skipped")
             skipped.append(sid)
             continue
-        _check_horizon(hz)
-        _check_ephem(eph)
+        try:
+            _check_horizon(hz)
+            _check_ephem(eph)
+        except (ValueError, KeyError, TypeError) as exc:
+            warn(f"{sid}: invalid intermediate ({exc}); site skipped")
+            skipped.append(sid)
+            continue
+        uncertainty = site_uncertainty(sid)
         site_data = {
             "id": sid,
             "generated_utc": hz["generated_utc"],
@@ -257,7 +273,7 @@ def export(sites_yaml: Path = SITES_YAML, out_dir: Path = OUT_DIR, basemap: bool
             },
             "ephem": {"t0_utc": eph["t0_utc"], "step_h": eph["step_h"], "n": eph["n"],
                       "sun": eph["sun"], "earth": eph["earth"]},
-            "uncertainty": site_uncertainty(sid),
+            "uncertainty": uncertainty,
         }
         atomic_write_json(out_dir / "sites" / f"{sid}.json", site_data)
         entry = {
@@ -278,7 +294,7 @@ def export(sites_yaml: Path = SITES_YAML, out_dir: Path = OUT_DIR, basemap: bool
         entry.update({
             "dem_res_m": hz["dem_res_m"],
             "dem_source": hz["dem_source"],
-            "has_clones": False,
+            "has_clones": uncertainty is not None,
             "slope_deg_50m": hz["slope_deg_50m"],
             "map_px": map_px(meta, s["lat_deg"], s["lon_deg"]),
         })

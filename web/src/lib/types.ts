@@ -115,6 +115,7 @@ export interface Weights {
 }
 
 export interface ReplanInput {
+  originalSiteId: string; // site of the original plan; the baseline for every reason
   siteIds: string[];
   originalUtc: string;
   delayDays: number;
@@ -130,5 +131,11 @@ export interface RankedOption {
   landingUtc: string;
   score: number; // 0..100
   metrics: Metrics;
-  reasons: string[]; // top 3, English, e.g. "+18% light vs original plan"
+  reasons: Reason[]; // light, night, earth: differences against the original plan
 }
+
+/** Why an option ranks where it does; formatted (and translated) by the UI. */
+export type Reason =
+  | { kind: 'light'; delta: number } // percentage points of sunlight vs original plan
+  | { kind: 'night'; delta: number } // hours of longest night vs original plan
+  | { kind: 'earth'; pct: number; delta: number }; // Earth visible % and its difference

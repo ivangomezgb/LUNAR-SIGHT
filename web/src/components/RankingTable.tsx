@@ -31,7 +31,7 @@ export default function RankingTable({ options, index, onView }: Props) {
             </div>
             <ul className="reasons">
               {o.reasons.slice(0, 3).map((r) => (
-                <li key={r}>{reasonText(r)}</li>
+                <li key={r.kind}>{reasonText(r)}</li>
               ))}
             </ul>
           </div>

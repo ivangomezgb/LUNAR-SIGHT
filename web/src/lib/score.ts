@@ -14,14 +14,13 @@ export function score(m: Metrics, w: Weights, maxNightH = 336): number {
 }
 export function rankAlternatives(sites: Map<string, SiteData>, index: SiteIndexEntry[], input: ReplanInput, a: Assumptions): RankedOption[] {
   if (!(input.stepH > 0) || !Number.isFinite(input.stepH) || input.toleranceDays < 0 || !(input.missionDays > 0)) return [];
-  const original = sites.get(input.siteIds[0]);
+  const original = sites.get(input.originalSiteId);
   if (!original) return [];
   const baseline = computeMetrics(original, input.originalUtc, input.missionDays * 24, a);
   const center = Date.parse(input.originalUtc) + input.delayDays * 86400000;
   const lo = center - input.toleranceDays * 86400000, hi = center + input.toleranceDays * 86400000;
   const slopes = new Map(index.map(s => [s.id, s.slope_deg_50m]));
   const options: RankedOption[] = [];
-  const signed = (n: number) => `${n >= 0 ? '+' : '-'}${Math.abs(Math.round(n))}`;
   for (const siteId of new Set(input.siteIds)) {
     const site = sites.get(siteId), slope = slopes.get(siteId);
     if (!site || slope === undefined || slope > input.filters.maxSlopeDeg) continue;
@@ -33,9 +32,9 @@ export function rankAlternatives(sites: Map<string, SiteData>, index: SiteIndexE
       if (m.lightPct < input.filters.minLightPct || m.earthPct < input.filters.minEarthPct
         || (input.filters.requireSunAtLanding && m.sunElAtLandingDeg <= 0)) continue;
       options.push({ siteId, landingUtc, metrics: m, score: score(m, input.weights), reasons: [
-        `${signed(m.lightPct - baseline.lightPct)}% sunlight vs original plan`,
-        `${signed(m.longestNightH - baseline.longestNightH)} h longest night vs original plan`,
-        `Earth visible ${Math.round(m.earthPct)}% of mission (${signed(m.earthPct - baseline.earthPct)}% vs original plan)`,
+        { kind: 'light', delta: m.lightPct - baseline.lightPct },
+        { kind: 'night', delta: m.longestNightH - baseline.longestNightH },
+        { kind: 'earth', pct: m.earthPct, delta: m.earthPct - baseline.earthPct },
       ] });
     }
   }

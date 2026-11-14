@@ -373,5 +373,6 @@
   "E": "E",
   "S": "S",
   "W": "W",
-  "Local mesh horizon is approximate; use 360° for the full horizon.": "Local mesh horizon is approximate; use 360° for the full horizon."
+  "Local mesh horizon is approximate; use 360° for the full horizon.": "Local mesh horizon is approximate; use 360° for the full horizon.",
+  "Original site": "Original site"
 }
