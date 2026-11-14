@@ -1,0 +1,101 @@
+name: LOLA-clone uncertainty (cloud)
+
+# One parallel job per site: recompute the 2 m horizon (checked against the published mask),
+# run 30 PGDA 78 clones, then copy only the `uncertainty` field into web/public/data/sites and
+# commit to main. Re-run any time from the Actions tab ("Run workflow").
+on:
+  workflow_dispatch:
+    inputs:
+      sites:
+        description: JSON list of site ids
+        default: '["connecting-ridge-extension","de-gerlache-rim-1","de-gerlache-rim-2","de-gerlache-kocher-massif","amundsen-rim","faustini-rim-a","peak-near-shackleton","haworth","malapert-massif","leibnitz-beta-plateau","nobile-rim-1","nobile-rim-2"]'
+  push:
+    branches: [main]
+    paths: [.github/workflows/uncertainty.yml]
+
+env:
+  DEFAULT_SITES: '["connecting-ridge-extension","de-gerlache-rim-1","de-gerlache-rim-2","de-gerlache-kocher-massif","amundsen-rim","faustini-rim-a","peak-near-shackleton","haworth","malapert-massif","leibnitz-beta-plateau","nobile-rim-1","nobile-rim-2"]'
+
+concurrency:
+  group: uncertainty
+  cancel-in-progress: false
+
+jobs:
+  sites:
+    runs-on: ubuntu-latest
+    outputs:
+      list: ${{ steps.pick.outputs.list }}
+    steps:
+      - id: pick
+        run: echo "list=${{ github.event.inputs.sites || env.DEFAULT_SITES }}" >> "$GITHUB_OUTPUT"
+
+  site:
+    needs: sites
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      max-parallel: 12
+      matrix:
+        site: ${{ fromJSON(needs.sites.outputs.list) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+      - run: pip install -r pipeline/requirements.txt
+      - uses: actions/cache@v4
+        with:
+          path: |
+            pipeline/kernels/*.bsp
+            pipeline/kernels/*.bpc
+            pipeline/kernels/*.tpc
+            pipeline/kernels/*.tf
+            pipeline/kernels/*.tls
+          key: spice-kernels-v1
+      - run: python pipeline/scripts/download_kernels.py
+      - name: Horizon + 30 clones for ${{ matrix.site }}
+        run: python pipeline/scripts/cloud_uncertainty.py --site ${{ matrix.site }} --workers 3
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: uncertainty-${{ matrix.site }}
+          path: pipeline/data/intermediate/uncertainty/${{ matrix.site }}*.json
+          if-no-files-found: warn
+          retention-days: 30
+
+  publish:
+    needs: site
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pyyaml numpy
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: uncertainty-*
+          path: pipeline/data/intermediate/uncertainty
+          merge-multiple: true
+      - name: Copy results into site JSON (only the uncertainty field)
+        run: python pipeline/scripts/apply_uncertainty.py
+      - name: Commit and redeploy
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if git diff --quiet -- web/public/data/sites; then echo "no changes"; exit 0; fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data/sites
+          git commit -m "data: LOLA-clone illumination uncertainty (GitHub Actions run ${{ github.run_id }})"
+          git pull --rebase origin main
+          git push origin HEAD:main
+          # Pushes made with GITHUB_TOKEN do not trigger other workflows; start the deploy explicitly.
+          gh workflow run deploy.yml --ref main
