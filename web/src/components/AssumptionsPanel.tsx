@@ -1,11 +1,12 @@
 import { t } from '../i18n';
 import ExplainTip from './ExplainTip';
 import { useApp } from '../state';
+import { useShallow } from 'zustand/react/shallow';
 import { SUN_RADIUS_DEG } from '../lib/sunFraction';
 import { DEFAULT_ASSUMPTIONS } from '../lib/metrics';
 
 export default function AssumptionsPanel({ heights, editable = true }: { heights?: number[]; editable?: boolean }) {
-  const { assumptions, setAssumptions } = useApp();
+  const { assumptions, setAssumptions } = useApp(useShallow((s) => ({ assumptions: s.assumptions, setAssumptions: s.setAssumptions })));
   const hs = heights && heights.length ? heights : [1, 2, 5, 10];
   const isDefault =
     assumptions.heightM === DEFAULT_ASSUMPTIONS.heightM &&

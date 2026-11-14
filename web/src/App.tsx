@@ -8,13 +8,14 @@ import Replan from './pages/Replan';
 import Validation from './pages/Validation';
 import About from './pages/About';
 import { useApp } from './state';
+import { useShallow } from 'zustand/react/shallow';
 import { isoShort } from './components/format';
 import { DATA_DIR } from './components/hooks';
 
 const View3D = lazy(() => import('./pages/View3D'));
 
 function Nav() {
-  const { siteId, landingUtc, lang, setLang, assumptions } = useApp();
+  const { siteId, landingUtc, lang, setLang, assumptions } = useApp(useShallow((s) => ({ siteId: s.siteId, landingUtc: s.landingUtc, lang: s.lang, setLang: s.setLang, assumptions: s.assumptions })));
   const shared = `h=${assumptions.heightM}&lang=${lang}`;
   const to = (path: string) => `${path}?${shared}`;
   const exploreTo = siteId ? `/?site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : '/';
@@ -63,7 +64,7 @@ function ScrollTop() {
 function PreferencesUrl() {
   const [params, setParams] = useSearchParams();
   const { search } = useLocation();
-  const { lang, assumptions: { heightM }, setLang, setAssumptions } = useApp();
+  const { lang, assumptions: { heightM }, setLang, setAssumptions } = useApp(useShallow((s) => ({ lang: s.lang, assumptions: s.assumptions, setLang: s.setLang, setAssumptions: s.setAssumptions })));
   const previous = useRef<string | null>(null);
   useEffect(() => {
     let nextLang = lang, nextHeight = heightM;
@@ -87,6 +88,12 @@ function PreferencesUrl() {
   return null;
 }
 
+/** A crash in one view must not follow the user to the next route. */
+function RouteBoundary({ children }: { children: React.ReactNode }) {
+  const { pathname } = useLocation();
+  return <ErrorBoundary key={pathname}>{children}</ErrorBoundary>;
+}
+
 export default function App() {
   const lang = useApp((state) => state.lang);
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
@@ -99,7 +106,7 @@ export default function App() {
         <div className="dev-banner" role="note"> {t("Development fixtures from")} <code>/{DATA_DIR}</code> {t("— synthetic data, not real results.")} </div>
       )}
       <main id="main" className="main">
-        <ErrorBoundary>
+        <RouteBoundary>
           <Suspense fallback={<div role="status">{t('Loading data…')}</div>}>
             <Routes>
           <Route path="/" element={<Explore />} />
@@ -111,7 +118,7 @@ export default function App() {
           <Route path="*" element={<Explore />} />
             </Routes>
           </Suspense>
-        </ErrorBoundary>
+        </RouteBoundary>
       </main>
       <footer className="footer">
         <span>{t("NASA Space Apps 2026 · LOLA (PGDA) · NAIF SPICE DE440 · JPL Horizons")}</span>

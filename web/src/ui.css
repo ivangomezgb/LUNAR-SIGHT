@@ -1679,7 +1679,7 @@ body { overflow-x: visible; }
 .page-head h1 { font-size: clamp(1.8rem, 3vw, 3rem); letter-spacing: -.045em; margin: 8px 0 14px; }
 .page-head .lead { font-size: 1rem; line-height: 1.8; }
 .mission-hero { grid-column: 1 / -1; display: flex; justify-content: space-between; align-items: center; gap: 32px; padding: 30px 34px; border: 1px solid #3d4650; border-radius: 20px; background: linear-gradient(115deg,#202832,#111922 65%,#192431); box-shadow: var(--shadow-card); }
-.mission-hero h1 { font-size: clamp(2rem, 3.3vw, 3.4rem); letter-spacing: -.055em; max-width: 850px; margin: 10px 0; }
+.mission-hero h1 { color: var(--text); font-size: clamp(2rem, 3.3vw, 3.4rem); letter-spacing: -.055em; max-width: 850px; margin: 10px 0; }
 .mission-hero p { color: var(--text-2); font-size: 1rem; }
 .mission-hero .eyebrow { color: var(--sun); font-size: .68rem; letter-spacing: .13em; }
 .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 22px; }

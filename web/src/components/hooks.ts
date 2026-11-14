@@ -45,8 +45,13 @@ export function useSitesData(ids: string[]): Async<Map<string, SiteData>> {
   return useAsync(
     ids.length
       ? async () => {
-          const all = await Promise.all(ids.map((id) => loadSite(id)));
-          return new Map(all.map((s) => [s.id, s] as const));
+          const results = await Promise.allSettled(ids.map((id) => loadSite(id)));
+          const loaded = results.flatMap((r) => (r.status === 'fulfilled' ? [r.value] : []));
+          if (!loaded.length) {
+            const failed = results.find((r) => r.status === 'rejected');
+            throw failed?.reason instanceof Error ? failed.reason : new Error(String(failed?.reason));
+          }
+          return new Map(loaded.map((s) => [s.id, s] as const));
         }
       : null,
     [key],

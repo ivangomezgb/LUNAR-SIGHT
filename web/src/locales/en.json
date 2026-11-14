@@ -374,5 +374,8 @@
   "S": "S",
   "W": "W",
   "Local mesh horizon is approximate; use 360° for the full horizon.": "Local mesh horizon is approximate; use 360° for the full horizon.",
-  "Original site": "Original site"
+  "Original site": "Original site",
+  "WebGL is unavailable in this browser, so the 3D view cannot start": "WebGL is unavailable in this browser, so the 3D view cannot start",
+  "The 3D view could not start": "The 3D view could not start",
+  "Reload page": "Reload page"
 }

@@ -14,6 +14,8 @@ interface Prepared extends Series {
 }
 const decoded = new WeakMap<SiteData, Pick<Series, 'sunAz' | 'sunEl' | 'earthAz' | 'earthEl'>>();
 const cache = new Map<string, { site: SiteData; series: Prepared }>();
+// ~1.2 MB per entry; 20 covers all 15 sites for one set of assumptions plus a few switches.
+const CACHE_SIZE = 20;
 export function hourIndex(site: SiteData, utc: string | Date): number {
   return Math.floor((new Date(utc).getTime() - Date.parse(site.ephem.t0_utc)) / (3600000 * site.ephem.step_h));
 }
@@ -23,7 +25,10 @@ export function timeAtIndex(site: SiteData, i: number): Date {
 export function getSeries(site: SiteData, a: Assumptions = DEFAULT_ASSUMPTIONS): Series {
   const key = JSON.stringify([site.id, a.heightM, a.dayFraction, a.earthMarginDeg]);
   const hit = cache.get(key);
-  if (hit?.site === site) return hit.series;
+  if (hit?.site === site) {
+    cache.delete(key); cache.set(key, hit); // most recently used last
+    return hit.series;
+  }
   const mask = site.horizon.elev_cdeg[String(a.heightM)];
   if (!mask) throw new Error(`No horizon at height ${a.heightM} m for ${site.id}`);
   let angles = decoded.get(site);
@@ -57,6 +62,7 @@ export function getSeries(site: SiteData, a: Assumptions = DEFAULT_ASSUMPTIONS):
     s.nextEarthVisible[i] = s.earthVis[i] ? i : s.nextEarthVisible[i + 1];
   }
   cache.set(key, { site, series: s });
+  if (cache.size > CACHE_SIZE) cache.delete(cache.keys().next().value!);
   return s;
 }
 

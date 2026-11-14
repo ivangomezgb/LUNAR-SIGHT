@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import type { RankedOption, ReplanInput } from '../lib/types';
 import { rankAlternatives } from '../lib/score';
 import { useApp } from '../state';
+import { useShallow } from 'zustand/react/shallow';
 import { useSites, useSitesData } from '../components/hooks';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import ReplanForm from '../components/ReplanForm';
@@ -13,7 +14,7 @@ import { fmtUtc, HOUR_MS, isoShort } from '../components/format';
 
 export default function Replan() {
   const sites = useSites();
-  const { replan, setReplan, assumptions, setMissionDays, siteId } = useApp();
+  const { replan, setReplan, assumptions, setMissionDays, siteId } = useApp(useShallow((s) => ({ replan: s.replan, setReplan: s.setReplan, assumptions: s.assumptions, setMissionDays: s.setMissionDays, siteId: s.siteId })));
   const navigate = useNavigate();
   const list = sites.data ?? [];
   const allIds = list.map((s) => s.id);

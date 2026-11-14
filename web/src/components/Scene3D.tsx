@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { azElToThree, loadTerrain, MISSING_3D } from '../lib/terrain';
+import { azElToThree, loadTerrain, viewerError } from '../lib/terrain';
 import type { GridSpec, ViewProps } from '../lib/terrain';
-import { attachLook, disposeScene, marker, phaseEarth } from './three/sceneTools';
+import { attachLook, disposeScene, marker, phaseEarth, releaseRenderer } from './three/sceneTools';
 import { t } from '../i18n';
 
 function gridGeometry(spec: GridSpec, heights: Float32Array, max: number, hole = 0) {
@@ -25,16 +25,18 @@ function gridGeometry(spec: GridSpec, heights: Float32Array, max: number, hole =
 }
 export default function Scene3D(props: ViewProps) {
   const host = useRef<HTMLDivElement>(null), latest = useRef(props); latest.current = props;
-  const [firstPerson, setFirstPerson] = useState(false), [status, setStatus] = useState(t('Loading terrain… {0}%', { 0: 0 })), [compass, setCompass] = useState('');
+  const [firstPerson, setFirstPerson] = useState(false), [status, setStatus] = useState(t('Loading terrain… {0}%', { 0: 0 })), [failed, setFailed] = useState(false), [compass, setCompass] = useState('');
   useEffect(() => {
     const started = performance.now();
     const node = host.current!; const abort = new AbortController(); let cleanup = () => {};
-    setStatus(t('Loading terrain… {0}%', { 0: 0 }));
+    setStatus(t('Loading terrain… {0}%', { 0: 0 })); setFailed(false);
     loadTerrain(props.siteId, n => setStatus(t('Loading terrain… {0}%', { 0: n })), abort.signal).then(data => {
       if (abort.signal.aborted) return;
+      const created: THREE.WebGLRenderer[] = [];
+      try {
       const lowEnd = matchMedia('(max-width: 699px)').matches || navigator.hardwareConcurrency <= 4;
       const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd }); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMappingExposure = 1.25; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.type = THREE.PCFSoftShadowMap; node.appendChild(renderer.domElement);
+      const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd }); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMappingExposure = 1.25; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.type = THREE.PCFSoftShadowMap; created.push(renderer); node.appendChild(renderer.domElement);
       const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(65, 1, .1, 400000);
       const extent = (data.meta.near.n - 1) * data.meta.near.res_m / 2;
       const material = new THREE.MeshStandardMaterial({ color: 0xaaa59d, roughness: 1 });
@@ -60,13 +62,14 @@ export default function Scene3D(props: ViewProps) {
       const unlook = firstPerson ? attachLook(renderer.domElement, camera, setCompass, latest.current.sunAz) : () => {};
       let resized=true; const resize = new ResizeObserver(() => { resized=true; const w = node.clientWidth, h = node.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }); resize.observe(node); renderer.setSize(node.clientWidth,node.clientHeight); camera.aspect=node.clientWidth/node.clientHeight;camera.updateProjectionMatrix();
       let lastSun = '', lastView = ''; let frame = 0, firstFrame = true, intro = !firstPerson && !reducedMotion; const cancelIntro=()=>{intro=false;}; renderer.domElement.addEventListener('pointerdown',cancelIntro); const draw = () => { const p = latest.current, s = new THREE.Vector3(...azElToThree(p.sunAz, p.sunEl)), e = new THREE.Vector3(...azElToThree(p.earthAz, p.earthEl)); if (intro) {const fraction=Math.min(1,(performance.now()-introStarted)/1800);camera.position.copy(destination).multiplyScalar(1+.35*Math.pow(1-fraction,3));if(fraction===1)intro=false;} if(!firstPerson) orbit.update(); earthDisk.material.uniforms.sunDirection.value.copy(s); sun.position.copy(s).multiplyScalar(extent * 3); earth.position.copy(e).multiplyScalar(extent * 3); sunDisk.position.copy(s).multiplyScalar(150000); earthDisk.position.copy(e).multiplyScalar(150000); sunDisk.position.add(camera.position); earthDisk.position.add(camera.position); sky.position.copy(camera.position); const sunKey=p.sunAz+','+p.sunEl; if(sunKey!==lastSun){renderer.shadowMap.needsUpdate=true;lastSun=sunKey;} const viewKey=camera.position.toArray().join(',')+camera.quaternion.toArray().join(',')+p.sunAz+','+p.sunEl+','+p.earthAz+','+p.earthEl; if(resized || viewKey!==lastView){renderer.render(scene, camera);lastView=viewKey;resized=false;} if(firstFrame){node.dataset.firstFrameMs=(performance.now()-started).toFixed(0);performance.mark('lunar-terrain-first-frame');firstFrame=false;} frame = requestAnimationFrame(draw); }; draw(); setStatus('');
-      cleanup = () => { cancelAnimationFrame(frame); renderer.domElement.removeEventListener('pointerdown',cancelIntro); resize.disconnect(); unlook(); orbit.dispose(); disposeScene(scene); renderer.dispose(); renderer.domElement.remove(); };
-    }).catch(() => { if (!abort.signal.aborted) setStatus(t(MISSING_3D)); });
+      cleanup = () => { cancelAnimationFrame(frame); renderer.domElement.removeEventListener('pointerdown',cancelIntro); resize.disconnect(); unlook(); orbit.dispose(); disposeScene(scene); releaseRenderer(renderer); };
+      } catch (error) { created.forEach(releaseRenderer); throw error; }
+    }).catch((error: unknown) => { if (!abort.signal.aborted) { setFailed(true); setStatus(t(viewerError(error))); } });
     return () => { abort.abort(); cleanup(); };
   }, [props.siteId, firstPerson, props.horizon, props.horizonStep]);
   return <section className="expedition-renderer">
     <div ref={host} className="expedition-canvas" aria-label={t('Lunar terrain 3D view')} />
     <div className="expedition-camera"><button type="button" onClick={() => setFirstPerson(v => !v)}>{firstPerson ? t('Orbit camera') : t('First person · 2 m')}</button><p>{firstPerson ? compass : t('Drag to orbit · Scroll to zoom')}<br />{firstPerson ? t('Local mesh horizon is approximate; use 360° for the full horizon.') : t('Gold pin: landing site')}</p></div>
-    {status && <div className="expedition-loading" role="status">{status}{status !== t(MISSING_3D) && <progress max={100} value={Number(status.match(/(\d+)%/)?.[1] ?? 0)} />}</div>}
+    {status && <div className="expedition-loading" role="status">{status}{!failed && <progress max={100} value={Number(status.match(/(\d+)%/)?.[1] ?? 0)} />}</div>}
   </section>;
 }

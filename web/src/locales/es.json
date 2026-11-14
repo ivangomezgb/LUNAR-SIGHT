@@ -374,5 +374,8 @@
   "S": "S",
   "W": "O",
   "Local mesh horizon is approximate; use 360° for the full horizon.": "El horizonte de la malla local es aproximado; usa 360° para ver el horizonte completo.",
-  "Original site": "Sitio original"
+  "Original site": "Sitio original",
+  "WebGL is unavailable in this browser, so the 3D view cannot start": "WebGL no está disponible en este navegador, así que la vista 3D no puede iniciar",
+  "The 3D view could not start": "No se pudo iniciar la vista 3D",
+  "Reload page": "Recargar la página"
 }
