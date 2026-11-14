@@ -1,0 +1,19 @@
+{
+  "site": {
+    "id": "synthetic-parity", "generated_utc": "2026-11-01T00:00:00Z", "frame": "MOON_ME",
+    "horizon": {"az_step_deg": 90, "heights_m": [2], "elev_cdeg": {"2": [0, 0, 0, 0]}, "max_dist_m": 100},
+    "ephem": {
+      "t0_utc": "2026-11-01T00:00:00Z", "step_h": 1, "n": 8,
+      "sun": {"az_cdeg": [0,0,0,0,0,0,0,0], "el_cdeg": [100,100,-100,-100,-100,0,100,100]},
+      "earth": {"az_cdeg": [0,0,0,0,0,0,0,0], "el_cdeg": [100,100,-100,100,100,-100,100,100]}
+    }, "uncertainty": null
+  },
+  "startUtc": "2026-11-01T00:00:00Z", "hours": 8,
+  "expected": {
+    "startUtc": "2026-11-01T00:00:00.000Z", "hours": 8,
+    "lightPct": 56.25, "earthPct": 75, "longestDayH": 3, "longestNightH": 3,
+    "hoursToSunset": 2, "hoursToEarthset": 2,
+    "nextEarthWindow": {"startUtc": "2026-11-01T00:00:00.000Z", "durationH": 2},
+    "sunElAtLandingDeg": 1
+  }
+}
