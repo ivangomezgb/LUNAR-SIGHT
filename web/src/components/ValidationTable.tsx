@@ -1,5 +1,5 @@
 import type { ValidationData } from '../lib/types';
-import { fmtUtc } from './format';
+import { fmtErr, fmtUtc } from './format';
 
 export default function ValidationTable({ data }: { data: ValidationData }) {
   const thr = data.summary.threshold_deg;
@@ -32,10 +32,10 @@ export default function ValidationTable({ data }: { data: ValidationData }) {
                 </td>
                 <td className="mono num">{r.az_ours.toFixed(3)}</td>
                 <td className="mono num">{r.az_horizons.toFixed(3)}</td>
-                <td className={`mono num${Math.abs(r.d_az) > thr ? ' txt-bad' : ''}`}>{r.d_az.toFixed(4)}</td>
+                <td className={`mono num${Math.abs(r.d_az) > thr ? ' txt-bad' : ''}`}>{fmtErr(r.d_az)}</td>
                 <td className="mono num">{r.el_ours.toFixed(3)}</td>
                 <td className="mono num">{r.el_horizons.toFixed(3)}</td>
-                <td className={`mono num${Math.abs(r.d_el) > thr ? ' txt-bad' : ''}`}>{r.d_el.toFixed(4)}</td>
+                <td className={`mono num${Math.abs(r.d_el) > thr ? ' txt-bad' : ''}`}>{fmtErr(r.d_el)}</td>
               </tr>
             );
           })}

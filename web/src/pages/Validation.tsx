@@ -2,7 +2,7 @@ import { useValidation } from '../components/hooks';
 import { Loading } from '../components/Status';
 import ValidationTable from '../components/ValidationTable';
 import CaseStudy from '../components/CaseStudy';
-import { fmtUtc } from '../components/format';
+import { fmtErr, fmtUtc } from '../components/format';
 import { SUN_RADIUS_DEG } from '../lib/sunFraction';
 import { DEFAULT_ASSUMPTIONS } from '../lib/metrics';
 
@@ -63,14 +63,14 @@ export default function Validation() {
             <div className="vs-stat">
               <div className="ss-label">Max |ΔAz|</div>
               <div className="vs-num mono">
-                {v.data.summary.max_abs_d_az_deg.toFixed(4)}
+                {fmtErr(v.data.summary.max_abs_d_az_deg)}
                 <span className="unit">°</span>
               </div>
             </div>
             <div className="vs-stat">
               <div className="ss-label">Max |ΔEl|</div>
               <div className="vs-num mono">
-                {v.data.summary.max_abs_d_el_deg.toFixed(4)}
+                {fmtErr(v.data.summary.max_abs_d_el_deg)}
                 <span className="unit">°</span>
               </div>
             </div>

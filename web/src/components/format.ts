@@ -74,3 +74,10 @@ export const GROUP_LABEL: Record<string, string> = {
 export function groupLabel(g: string): string {
   return GROUP_LABEL[g] ?? g;
 }
+
+/** Angular error in degrees: scientific notation for tiny values so they don't read as exactly 0. */
+export function fmtErr(deg: number): string {
+  const a = Math.abs(deg);
+  if (a === 0) return '0';
+  return a < 1e-3 ? deg.toExponential(1) : deg.toFixed(4);
+}

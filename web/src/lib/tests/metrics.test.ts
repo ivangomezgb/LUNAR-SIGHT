@@ -80,6 +80,8 @@ it('ranks 15 sites over 60 days in under one second with deterministic ties', ()
   expect(result.every(r => r.siteId !== 'perf-14' && r.reasons.length === 3)).toBe(true);
   expect(result).toEqual(rankAlternatives(sites, index, input, DEFAULT_ASSUMPTIONS));
   expect(result[0].siteId).toBe('perf-00');
+  const counts = result.reduce((m, r) => m.set(r.siteId, (m.get(r.siteId) ?? 0) + 1), new Map<string, number>());
+  expect(Math.max(...counts.values())).toBeLessThanOrEqual(3);
   const filtered = rankAlternatives(sites, index, { ...input, filters: { ...input.filters, minLightPct: 101 } }, DEFAULT_ASSUMPTIONS);
   expect(filtered).toEqual([]);
 });

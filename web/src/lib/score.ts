@@ -2,6 +2,7 @@ import type { Assumptions, Metrics, RankedOption, ReplanInput, SiteData, SiteInd
 import { computeMetrics } from './metrics';
 
 export const DEFAULT_WEIGHTS: Weights = { light: 40, earth: 30, night: 20, landingSun: 10 };
+export const MAX_PER_SITE = 3;
 export function score(m: Metrics, w: Weights, maxNightH = 336): number {
   const clamp = (x: number) => Math.max(0, Math.min(1, x));
   const total = w.light + w.earth + w.night + w.landingSun;
@@ -38,6 +39,13 @@ export function rankAlternatives(sites: Map<string, SiteData>, index: SiteIndexE
       ] });
     }
   }
-  return options.sort((a, b) => b.score - a.score || (a.siteId < b.siteId ? -1 : a.siteId > b.siteId ? 1 : 0)
-    || a.landingUtc.localeCompare(b.landingUtc)).slice(0, 10);
+  options.sort((a, b) => b.score - a.score || (a.siteId < b.siteId ? -1 : a.siteId > b.siteId ? 1 : 0)
+    || a.landingUtc.localeCompare(b.landingUtc));
+  // at most MAX_PER_SITE dates per site, so the top 10 offers real alternatives
+  const perSite = new Map<string, number>();
+  return options.filter(o => {
+    const k = (perSite.get(o.siteId) ?? 0) + 1;
+    perSite.set(o.siteId, k);
+    return k <= MAX_PER_SITE;
+  }).slice(0, 10);
 }
