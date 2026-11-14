@@ -17,12 +17,27 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 | 6. Línea de tiempo 30 días | ✅ | `Timeline.tsx` |
 | 7. Modo "Se retrasó" | ✅ máx. 3 fechas por sitio, ~150 ms | `lib/score.ts`, `Replan.tsx` |
 | 8. Validación Horizons + IM-2 | ✅ error máx. 2,7e-5° | `lln/validate.py`, `Validation.tsx`, `docs/validation.md` |
-| T25. Incertidumbre con clones LOLA | 🟡 2/14 sitios (30 clones) | `lln/uncertainty.py`, `docs/uncertainty.md` |
+| T25. Incertidumbre con clones LOLA | 🟡 2/14 sitios publicados; cálculo de los 12 restantes en curso (2026-11-14) | `lln/uncertainty.py`, `docs/uncertainty.md` |
 | T26. Altura del panel 1/2/5/10 m en URL | ✅ `?h=` | `state.ts`, `AssumptionsPanel.tsx` |
-| T27. Escena 3D con sombras + 360° inmersivo | ✅ ruta `#/3d` (`&view=pano`) | `lln/terrain.py`, `lln/pano.py`, `Scene3D.tsx`, `ImmersivePano.tsx` |
+| T27. Escena 3D con sombras + 360° inmersivo | ✅ ruta `#/3d`, tres modos (ver §1.1) | `lln/terrain.py`, `lln/pano.py`, `Scene3D.tsx`, `ImmersivePano.tsx`, `three/sceneTools.ts` |
+| Página del equipo Apolo404 | ✅ ruta `#/team` | `pages/Team.tsx`, `public/team-apolo404.*` |
 | T28. Bilingüe EN/ES | ✅ `?lang=es` | `i18n.ts`, `locales/*.json` |
 
 Pruebas: 110 en `pytest pipeline/tests` y 13 en `cd web && npx vitest run`, incluida la paridad Python/TS.
+Sitio publicado en GitHub Pages; el push a `main` despliega (workflow `deploy.yml`, verificado 2026-11-14).
+
+### 1.1 Vistas de `#/3d`
+
+`view=` en la URL elige el modo; `t=` (hora) y `days=` (1, 14 o 30) se comparten entre los tres.
+
+| Modo | `view=` | Qué muestra | Precisión |
+| --- | --- | --- | --- |
+| Vista general 3D | `overview` (por defecto) | Terreno con sombras reales y un domo de direcciones del cielo: anillo N/E/S/O, círculos de 0° y +5°, trayectorias reales del Sol (dorado) y la Tierra (azul, discontinua), tenues bajo la máscara, rayos y etiquetas az/el | Elevación del domo exagerada ×6 (indicado en pantalla) |
+| Primera persona · 2 m | `first` | Cámara a 2 m sobre el sitio con sombras proyectadas y las trayectorias a su ángulo real; se entra con un vuelo animado | Horizonte de la malla aproximado: hasta 0,44° (Connecting Ridge) y 0,61° (cerca de Shackleton) |
+| Astronauta 360° | `pano` | Panorama precalculado desde 2 m con la máscara real y las trayectorias | Horizonte exacto: ≤ 0,2° en todas las columnas (salvo de-gerlache-rim-2, ver §4) |
+
+`?debug=1` dibuja la máscara real en primera persona para comparar. Primer cuadro medido en Edge local:
+~0,35 s a ancho de celular y ~0,75 s en escritorio (falta medir en un teléfono real).
 `npm run build` compila sin errores.
 
 ### Resultados clave (año 2027, altura 2 m)
@@ -55,16 +70,19 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 - [ ] Pedir la clasificación FortiGuard del dominio (T32).
 - [ ] Storyboard, nombre y logo (T12); capturas y grabaciones (T24); video de 30 s con subtítulos en inglés (T29).
 - [ ] Página del proyecto en inglés con todos los campos (T30) y envío (T33).
-- [ ] Decidir si se eliminan `frontend/` y `backend/` (prototipo anterior "LUNAR SIGHT", sin uso).
+- [x] Eliminados `frontend/` y `backend/` (prototipo anterior "LUNAR SIGHT", sin uso).
 
 **Extras del plan (en este orden):**
 
-- [ ] **T25 Incertidumbre**: hecho para Connecting Ridge (69,0/78,8/81,4 %) y Shackleton Rim (52,5/54,2/55,8 %).
-      Faltan 12 sitios cubiertos: `python pipeline/run_all.py --uncertainty --skip-ephem --skip-validate`
-      (Mons Mouton no está en ningún DEM de PGDA 78).
+- [ ] **T25 Incertidumbre**: publicada para Connecting Ridge (69,0/78,8/81,4 %) y Shackleton Rim (52,5/54,2/55,8 %).
+      El 2026-11-14 se lanzó `python pipeline/run_all.py --uncertainty --skip-ephem --skip-validate` para los 12
+      restantes (~45 min por sitio; log en `%TEMP%\lln-uncertainty.out.log`). Al terminar, `export` reescribe
+      `web/public/data/sites/*.json`: revisar el diff (solo debe cambiar `uncertainty`) y commitear.
+      Ese comando recalcula también los sitios ya hechos (con descargas en caché). Mons Mouton no está en
+      ningún DEM de PGDA 78.
 - [x] **T26 Control de altura del panel** (Connecting Ridge 1/2/5/10 m: 65,5/79,2/87,3/89,3 % de luz).
 - [ ] Riesgo de luz al aterrizar (Sol bajo, sombras largas, horas de luz restantes tras el aterrizaje).
-- [x] **T27 Escena 3D con sombras** y 360° inmersivo (ver §5). Falta medir en celular la carga (< 3 s) y la línea del horizonte 3D contra la máscara.
+- [x] **T27 Escena 3D con sombras** y 360° inmersivo (ver §1.1 y §5). Falta probar en un teléfono real (carga < 3 s).
 - [x] **T28 Bilingüe EN/ES** (diccionario propio, sin i18next).
 - [ ] Asistente en lenguaje natural; reporte exportable (PDF/PNG del escenario).
 
@@ -72,7 +90,7 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 - [ ] **Coordenadas libres**: una app estática no puede calcular el horizonte de un punto cualquiera. Hay dos
       opciones. (a) Precalcular una grilla de horizontes (p. ej. cada 250 m en zonas de interés) e interpolar.
-      (b) Exponer `pipeline` como API (FastAPI; ya existe un esqueleto en `backend/main.py`) que calcule a
+      (b) Exponer `pipeline` como API (p. ej. FastAPI; el esqueleto viejo de `backend/` se eliminó) que calcule a
       demanda, en ~5–10 s por punto con caché de tiles.
 
 ## 4. Mejoras pendientes y problemas conocidos
@@ -93,9 +111,10 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 **Frontend:**
 
 - La banda de luz de la línea de tiempo solo usa color: agregar una señal que no dependa del color (accesibilidad).
-- 3 advertencias de lint (react-refresh en `Scene3D.tsx`). Bundle principal 429 KB (132 KB gzip); `three` va aparte (497 KB, solo en `#/3d`).
+- Bundle principal ~432 KB (~133 KB gzip); `three` va en un chunk aparte que solo carga `#/3d`.
 - Panorama de de-gerlache-rim-2: 97,7 % de columnas dentro de 0,2° (su horizonte pasa de +15°, el borde de la imagen).
-- El 360° usa solo sombreado Lambert: no hay sombras proyectadas por píxel.
+- El 360° usa solo sombreado Lambert: no hay sombras proyectadas por píxel (la primera persona 3D sí las tiene).
+- Codex (GPT-6-Astra) tiene límite de uso: si corta a mitad de tarea no deja cambios parciales; relanzar o hacerlo con Claude.
 - `basemap.png` pesa 2,6 MB y los JSON de sitios ~5,8 MB sin comprimir (Pages sirve gzip). Opciones: WebP o
   enviar las efemérides como delta o binario.
 
@@ -118,8 +137,10 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 ## 5. Plan para el modelado 3D y las superficies en 360°
 
-Hoy el "panorama 360°" es un gráfico 2D: azimut contra elevación, con el horizonte relleno. Para la demo se
-proponen dos piezas, que se pueden hacer en paralelo con la misma división pipeline → JSON/binarios → web.
+> Estado: implementado (ver §1.1). Este plan queda como referencia del diseño.
+
+Antes, el "panorama 360°" era un gráfico 2D: azimut contra elevación, con el horizonte relleno. Para la demo se
+propusieron dos piezas, que se pueden hacer en paralelo con la misma división pipeline → JSON/binarios → web.
 
 ### 5.1 Escena 3D local con sombras reales (T27)
 
