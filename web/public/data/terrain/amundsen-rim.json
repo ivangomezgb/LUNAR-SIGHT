@@ -1,0 +1,29 @@
+{
+  "id": "amundsen-rim",
+  "frame": "local ENU tangent plane at site, curvature included",
+  "site_elev_m": 484.37,
+  "observer_heights_m": [
+    1,
+    2,
+    5,
+    10
+  ],
+  "near": {
+    "file": "amundsen-rim.near.bin",
+    "n": 1024,
+    "res_m": 10.0,
+    "dtype": "int16",
+    "scale_m": 0.1,
+    "offset_m": 0,
+    "source": "PGDA 90 LOLA 10 m/px (83S)"
+  },
+  "far": {
+    "file": "amundsen-rim.far.bin",
+    "n": 256,
+    "res_m": 400.0,
+    "dtype": "int16",
+    "scale_m": 1.0,
+    "offset_m": 0,
+    "source": "PGDA 90 LOLA 240 m/px (60S)"
+  }
+}
