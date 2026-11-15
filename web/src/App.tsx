@@ -39,13 +39,13 @@ function Nav() {
       </NavLink>
       <nav aria-label={t("Main")}>
         <NavLink to={exploreLink} end className={({ isActive }) => cls({ isActive })}> {t("Explore")} </NavLink>
+        <NavLink to={`/3d?${shared}${siteId ? `&site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : ''}`} className={cls}> {t('3D')} </NavLink>
+        <NavLink to={`/mission?${shared}${siteId ? `&site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : ''}`} className={({ isActive }) => `${cls({ isActive })} nav-play`}> {t('Play mission')} </NavLink>
         <NavLink to={to('/compare')} className={cls}> {t("Compare")} </NavLink>
         <NavLink to={to('/replan')} className={cls}> {t("Mission delayed")} </NavLink>
         <NavLink to={to('/validation')} className={cls}> {t("Validation")} </NavLink>
         <NavLink to={to('/about')} className={cls}> {t("About")} </NavLink>
-        <NavLink to={to('/team')} className={cls}>Apolo404</NavLink>
-        <NavLink to={`/3d?${shared}${siteId ? `&site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : ''}`} className={cls}> {t('3D')} </NavLink>
-        <NavLink to={`/mission?${shared}${siteId ? `&site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : ''}`} className={cls}> {t('Mission')} </NavLink>
+        <NavLink to={to('/team')} className={cls} title="Apolo404"> {t('Team')} </NavLink>
         <span className="lang-toggle" role="group" aria-label={t('Language')}>
           <button type="button" className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
           <span aria-hidden>|</span>

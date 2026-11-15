@@ -1749,3 +1749,23 @@ tbody tr:hover { background: #ffffff07; }
 .team-quote { margin: 28px 0 8px; padding: 26px 28px; border-left: 3px solid var(--sun, #f5c451); border-radius: 0 10px 10px 0; background: linear-gradient(90deg, rgba(245,196,81,.10), transparent 70%); }
 .team-quote p { margin: 0 0 10px; font-size: clamp(1.15rem, 2.2vw, 1.5rem); line-height: 1.45; font-weight: 500; }
 .team-quote footer { font-family: var(--mono, ui-monospace, monospace); color: var(--sun, #f5c451); font-size: .9rem; letter-spacing: .04em; }
+
+/* First-visit guide on Explore */
+.start-here { grid-column: 1 / -1; display: flex; flex-direction: column; gap: 10px; }
+.start-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.start-head h2 { margin: 0; font-size: 1.15rem; color: var(--text); }
+.start-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.start-grid h3 { margin: 0 0 6px; font-size: .95rem; color: var(--sun); }
+.start-grid p, .start-grid li { color: var(--text-2); font-size: .85rem; line-height: 1.5; }
+.start-grid ol, .start-grid ul { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 4px; }
+.start-reopen { grid-column: 1 / -1; justify-self: start; }
+.nav-link.nav-play { color: var(--sun); }
+
+/* Phones: one scrolling row of tabs and a header that scrolls away (it took ~21% of the screen). */
+@media (max-width: 720px) {
+  .topbar { position: static; }
+  .topbar nav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 2px; }
+  .topbar nav::-webkit-scrollbar { display: none; }
+  .topbar nav .nav-link { flex: none; white-space: nowrap; }
+  .topbar nav .lang-toggle { flex: none; }
+}

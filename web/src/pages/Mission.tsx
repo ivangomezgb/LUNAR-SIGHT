@@ -3,7 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { useShallow } from 'zustand/react/shallow';
 import { t } from '../i18n';
 import { loadSite, loadSites } from '../lib/data';
-import { getSeries } from '../lib/metrics';
+import { computeMetrics, getSeries } from '../lib/metrics';
 import { loadTerrain, type TerrainData, viewerError } from '../lib/terrain';
 import type { SiteData, SiteIndexEntry } from '../lib/types';
 import { useApp } from '../state';
@@ -53,6 +53,13 @@ export default function Mission() {
       ephem: { t0Ms: Date.parse(site.ephem.t0_utc), stepH: site.ephem.step_h, n: site.ephem.n, sunAz: series.sunAz, sunEl: series.sunEl, earthAz: series.earthAz, earthEl: series.earthEl },
     };
   }, [site, terrain]);
+  const published = useMemo(() => {
+    if (!site) return null;
+    try {
+      const m = computeMetrics(site, new Date(startMs), 14 * 24, { heightM: 2, dayFraction: 0.5, earthMarginDeg: RULES.comms.earthMarginDeg });
+      return { lightPct: m.lightPct, earthPct: m.earthPct };
+    } catch { return null; }
+  }, [site, startMs]);
 
   return (
     <section className="mission-page" aria-labelledby="mission-title">
@@ -60,6 +67,7 @@ export default function Mission() {
         <div>
           <p className="eyebrow">{t('Playable mission · real terrain, real Sun and Earth')}</p>
           <h1 id="mission-title">{t('Drive the south pole')}</h1>
+          <p className="muted mission-intro">{t('A short game on real data: drive a solar rover around a candidate landing site, find light, avoid the cold shadows and send your science home. Change the site here, or the landing date from Explore.')}</p>
         </div>
         <label className="mission-site">
           <span className="hud-label">{t('Landing site')}</span>
@@ -72,7 +80,7 @@ export default function Mission() {
       {!error && !env && <div className="game-loading" role="status">{t('Loading terrain… {0}%', { 0: progress })}<progress max={100} value={progress} /></div>}
       {env && terrain && entry && (
         <Suspense fallback={<div className="game-loading" role="status">{t('Loading 3D viewer…')}</div>}>
-          <SurfaceGame key={entry.id} env={env} terrain={terrain} site={{ id: entry.id, name: shortName(entry.name), lat: entry.lat_deg, lon: entry.lon_deg }} startMs={startMs} />
+          <SurfaceGame key={`${entry.id}-${startMs}`} env={env} terrain={terrain} site={{ id: entry.id, name: shortName(entry.name), lat: entry.lat_deg, lon: entry.lon_deg }} startMs={startMs} published={published} />
         </Suspense>
       )}
       <details className="card game-rules">

@@ -22,6 +22,8 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 | T27. Escena 3D con sombras + 360° inmersivo | ✅ ruta `#/3d`, tres modos (ver §1.1) | `lln/terrain.py`, `lln/pano.py`, `Scene3D.tsx`, `ImmersivePano.tsx`, `three/sceneTools.ts` |
 | Página del equipo Apolo404 | ✅ ruta `#/team` | `pages/Team.tsx`, `public/team-apolo404.*` |
 | T28. Bilingüe EN/ES | ✅ `?lang=es` | `i18n.ts`, `locales/*.json` |
+| Misión jugable (rover) | ✅ fases 1–3 del plan de juego: rover, energía, enlace con la Tierra, navegación por coordenadas, 6 objetivos-lección, briefing e informe | `web/src/game/`, `pages/Mission.tsx`, `docs/assumptions.md` |
+| Guía de primera visita | ✅ "¿Primera vez?" en Explorar; menú reordenado (Explorar · 3D · Jugar misión · …); menú de una fila en celular | `pages/Explore.tsx`, `App.tsx`, `ui.css` |
 
 Pruebas: 125 en `pytest pipeline/tests` (114 pasan y 11 se saltan sin kernels SPICE ni intermedios) y 18 en `cd web && npm test`,
 incluida la paridad Python/TS. `npm run lint` y `npm run build` sin errores ni advertencias.

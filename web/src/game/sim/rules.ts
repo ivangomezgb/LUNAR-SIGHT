@@ -20,6 +20,17 @@ export const RULES = {
     driveW: 200, // extra while moving
     heaterW: 150, // extra survival heating while in shadow
   },
+  science: {
+    scanWh: 20, // energy of one science scan (spectrometer + drill sample), rover stopped
+    scanMB: 2, // data it produces
+  },
+  mission: {
+    driveM: 100, // objective: first drive
+    waypointRingM: 900, // the waypoint is the highest gentle point at this distance
+    waypointRadiusM: 25,
+    downlinkMB: 4,
+    surviveH: 48,
+  },
   comms: {
     earthMarginDeg: 0.5, // same Earth-visible margin as the rest of the app
     downlinkMBps: 0.25, // MB per simulated second while the Earth is in view

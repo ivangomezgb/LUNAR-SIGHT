@@ -169,3 +169,59 @@ describe('time warp and control', () => {
     expect(w.rover.y).toBeGreaterThan(20); // ~2 s of screen time at 60x ≈ 24 m
   });
 });
+
+import { allDone, newMission, pickWaypoint, score, updateMission } from '../mission';
+import { scan, scanBlocker } from '../world';
+describe('mission objectives', () => {
+  const flatEnv = (sunEl: number, earthEl: number, n = 200) => ({
+    field: field((x, y) => -Math.hypot(x - 300, y - 300) * 0.05 + 50, 401, 10), // gentle hill at (300, 300)
+    horizon: { at: () => 0, farOnly: new Float32Array(0), azStep: 0.5 },
+    ephem: { t0Ms: 0, stepH: 1, n, sunAz: new Array(n).fill(90), sunEl: new Array(n).fill(sunEl), earthAz: new Array(n).fill(0), earthEl: new Array(n).fill(earthEl) },
+  });
+  it('places the waypoint on the highest gentle point of the ring', () => {
+    const env = flatEnv(5, 5);
+    const wp = pickWaypoint(env.field, 900);
+    expect(Math.hypot(wp.x, wp.y)).toBeCloseTo(900, 3);
+    expect(Math.atan2(wp.x, wp.y) * 180 / Math.PI).toBeCloseTo(45, -1); // towards the hill
+  });
+  it('completes scan and downlink only with the Earth in view', () => {
+    const env = flatEnv(5, 5);
+    let w = newWorld(env, 0), m = newMission(env.field, 0);
+    expect(scanBlocker(w)).toBe('');
+    w = scan(scan(w));
+    expect(w.scans).toBe(2);
+    expect(w.power.dataMB).toBeCloseTo(4, 6);
+    for (let k = 0; k < 120; k++) w = stepWorld(env, w, { throttle: 0, steer: 0 }, 1 / 60);
+    const r = updateMission(m, w);
+    m = r.mission;
+    expect(r.completed).toEqual(expect.arrayContaining(['scan', 'downlink']));
+    expect(m.done.drive).toBeUndefined();
+    const dark = flatEnv(-5, -5);
+    const wd = stepWorld(dark, scan(newWorld(dark, 0)), { throttle: 0, steer: 0 }, 1);
+    const rd = updateMission(newMission(dark.field, 0), wd);
+    expect(rd.completed).toEqual(expect.arrayContaining(['scan', 'shadow']));
+    expect(rd.completed).not.toContain('downlink');
+  });
+  it('cannot scan while moving and scores completed missions higher', () => {
+    const env = flatEnv(5, 5);
+    const moving = stepWorld(env, newWorld(env, 0), { throttle: 1, steer: 0 }, 0.5);
+    expect(scanBlocker(moving)).toBe('moving');
+    const m = newMission(env.field, 0), w = newWorld(env, 0);
+    const full = { ...m, done: { drive: 1, shadow: 1, scan: 1, downlink: 1, waypoint: 1, survive: 1 } };
+    expect(allDone(full)).toBe(true);
+    expect(score(full, w)).toBeGreaterThan(score(m, w) + 600);
+  });
+});
+
+describe('fast warp safety', () => {
+  it('drops back to a safe warp at sunset so the player can react', () => {
+    const n = 48;
+    const env = { field: field(() => 0), horizon: { at: () => 0, farOnly: new Float32Array(0), azStep: 0.5 },
+      ephem: { t0Ms: 0, stepH: 1, n, sunAz: new Array(n).fill(0), sunEl: Array.from({ length: n }, (_, i) => (i < 3 ? 2 : -2)), earthAz: new Array(n).fill(0), earthEl: new Array(n).fill(5) } };
+    let w = { ...newWorld(env, 0), warp: 36000 };
+    for (let k = 0; k < 20 && !w.alert; k++) w = stepWorld(env, w, { throttle: 0, steer: 0 }, 1 / 60);
+    expect(w.alert).toBe('sunset');
+    expect(w.warp).toBe(60);
+    expect(w.ended).toBe('');
+  });
+});

@@ -8,6 +8,7 @@ import { RULES } from './rules';
 import type { Horizon } from './visibility';
 
 const MAX_SUBSTEP_S = 1; // simulated seconds per physics substep
+export const SAFE_WARP = 60;
 
 export interface World {
   tMs: number;
@@ -21,6 +22,9 @@ export interface World {
   sunFrac: number; // visible solar disk 0..1 at the rover's panel
   earthUp: boolean;
   ended: '' | 'battery' | 'coverage';
+  scans: number; // science scans done
+  /** Set when fast time warp was cut back to SAFE_WARP so the player can react. */
+  alert: '' | 'sunset' | 'lowBattery';
 }
 
 export interface Env {
@@ -41,7 +45,7 @@ function observe(env: Env, w: Pick<World, 'tMs' | 'rover'>) {
 }
 
 export function newWorld(env: Env, tMs: number, rover: RoverState = newRover()): World {
-  const base = { tMs, rover, warp: DEFAULT_WARP as number, paused: false, power: newPower(), ended: '' as const };
+  const base = { tMs, rover, warp: DEFAULT_WARP as number, paused: false, power: newPower(), ended: '' as const, scans: 0, alert: '' as const };
   return { ...base, ...observe(env, base) };
 }
 
@@ -65,5 +69,26 @@ export function stepWorld(env: Env, w: World, input: DriveInput, realDt: number)
     if (power.dead || tMs >= end) break;
   }
   const next = { ...w, tMs: Math.min(tMs, end), rover, power };
-  return { ...next, ...observe(env, next), ended: power.dead ? 'battery' : tMs >= end ? 'coverage' : '' };
+  const after = { ...next, ...observe(env, next), ended: (power.dead ? 'battery' : tMs >= end ? 'coverage' : '') as World['ended'] };
+  // Like a game autopilot: fast warp drops back when the Sun sets or the battery runs low.
+  if (w.warp > SAFE_WARP) {
+    const low = RULES.power.batteryWh * 0.25;
+    const alert = w.sunFrac >= 0.01 && after.sunFrac < 0.01 ? 'sunset' : w.power.chargeWh >= low && power.chargeWh < low ? 'lowBattery' : '';
+    if (alert) return { ...after, warp: SAFE_WARP, alert };
+  }
+  return after;
+}
+
+/** Why a science scan cannot run right now ('' when it can). */
+export function scanBlocker(w: World): '' | 'moving' | 'battery' {
+  if (Math.abs(w.rover.speed) > 1e-3) return 'moving';
+  if (w.power.chargeWh < RULES.science.scanWh + RULES.power.batteryWh * 0.05) return 'battery';
+  return '';
+}
+
+/** Run a science scan: costs energy, adds data that must be sent to Earth. */
+export function scan(w: World): World {
+  if (scanBlocker(w) || w.ended) return w;
+  const power = { ...w.power, chargeWh: w.power.chargeWh - RULES.science.scanWh, dataMB: w.power.dataMB + RULES.science.scanMB };
+  return { ...w, power, scans: w.scans + 1 };
 }

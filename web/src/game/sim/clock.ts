@@ -2,7 +2,7 @@
 // (hourly SPICE ephemerides of the site, interpolated in between).
 import { lerpAngle } from '../../components/series';
 
-export const WARPS = [1, 10, 60, 600, 3600] as const;
+export const WARPS = [1, 10, 60, 600, 3600, 36000] as const;
 /** Driving is only allowed up to this warp (like parking the rover before a long time skip). */
 export const MAX_DRIVE_WARP = 600;
 /** Warp the mission starts at: the real 0.2 m/s rover looks like ~12 m/s. */

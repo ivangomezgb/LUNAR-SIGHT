@@ -50,3 +50,79 @@
   .game-touch { bottom: auto; top: 40%; }
 }
 @media (prefers-reduced-motion: reduce) { .hud-arrow { transition: none; } }
+
+/* Mission structure: objectives, lessons, toasts, briefing and report. */
+.mission-intro { max-width: 720px; margin: 6px 0 0; }
+.hud-objectives { max-width: 340px; }
+.hud-objectives summary { cursor: pointer; list-style: none; }
+.hud-objectives summary::-webkit-details-marker { display: none; }
+.hud-objectives summary::after { content: ' ▾'; }
+.hud-objectives:not([open]) summary::after { content: ' ▸'; }
+.hud-objectives ol { margin: 6px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 3px; }
+.hud-objectives li { color: #9fb0c3; }
+.hud-objectives li.is-next { color: #fff; font-weight: 600; }
+.hud-objectives li.is-done { color: #7fd99a; }
+.hud-lesson { margin: 6px 0 0; color: #cfd8e3; font-size: .74rem; line-height: 1.4; border-top: 1px solid rgba(255,255,255,.1); padding-top: 6px; }
+.hud-link { background: none; border: 0; color: #4fd1ff; text-decoration: underline; cursor: pointer; font: inherit; font-size: .74rem; padding: 0 0 0 6px; }
+.hud-scan { white-space: nowrap; }
+.game-toast { position: absolute; left: 50%; top: 38%; transform: translateX(-50%); width: min(520px, calc(100% - 32px)); background: rgba(10, 30, 18, .88); border: 1px solid #3f9d63; border-radius: 12px; padding: 12px 14px; color: #e8f5ec; display: flex; flex-direction: column; gap: 4px; font-size: .84rem; pointer-events: none; }
+.game-briefing { background: rgba(2, 4, 8, .78); overflow-y: auto; }
+.brief-card { max-width: 620px; text-align: left; background: rgba(12, 16, 22, .96); border: 1px solid rgba(255,255,255,.14); border-radius: 16px; padding: 22px 24px; display: flex; flex-direction: column; gap: 10px; }
+.brief-card h2 { margin: 0; font-size: 1.35rem; color: #fff; }
+.brief-card p { margin: 0; color: #cfd8e3; line-height: 1.5; }
+.brief-facts { margin: 0; padding-left: 18px; color: #cfd8e3; display: flex; flex-direction: column; gap: 4px; font-size: .9rem; }
+.brief-controls { display: grid; gap: 6px; font-size: .82rem; color: #cfd8e3; }
+.brief-controls > div { display: flex; flex-direction: column; gap: 2px; }
+.brief-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); gap: 8px; }
+.brief-stats > div { display: flex; flex-direction: column; gap: 2px; background: rgba(255,255,255,.04); border-radius: 10px; padding: 8px 10px; }
+.brief-stats strong { font-size: 1.1rem; color: #fff; }
+.brief-card .btn-primary { align-self: flex-start; }
+@media (max-width: 699px) {
+  .game-top { flex-wrap: wrap; }
+  .hud-objectives { max-width: none; order: 3; width: 100%; }
+  .hud-right { display: none; }
+  .hud-lesson { display: none; }
+  .hud-objectives[open] .hud-lesson { display: block; }
+  .brief-card { padding: 16px; }
+  .game-toast { top: 30%; font-size: .78rem; }
+}
+
+.hud-how { margin: 6px 0 0; color: #ffe2a0; font-size: .76rem; line-height: 1.4; }
+.game-alert { position: absolute; left: 50%; top: 22%; transform: translateX(-50%); width: min(520px, calc(100% - 32px)); background: rgba(60, 18, 10, .9); border: 1px solid #e0703f; border-radius: 12px; padding: 10px 14px; color: #ffe9df; font-size: .86rem; font-weight: 600; pointer-events: none; text-align: center; }
+
+/* HUD layout: left column (clock + objectives), alert top-centre, toasts on the right. */
+.hud-col { display: flex; flex-direction: column; gap: 8px; max-width: 360px; pointer-events: none; }
+.hud-col > * { pointer-events: auto; }
+.hud-help { align-self: flex-start; padding: 0; }
+.game-alert { top: 12px; width: min(440px, calc(100% - 760px)); min-width: 260px; }
+.game-toast { left: auto; right: 12px; top: 96px; transform: none; width: min(360px, calc(100% - 24px)); }
+@media (max-width: 1100px) { .game-alert { top: auto; bottom: 170px; width: min(520px, calc(100% - 32px)); } }
+@media (max-width: 699px) {
+  .hud-col { max-width: none; width: 100%; }
+  .game-toast { top: auto; bottom: 230px; left: 8px; right: 8px; width: auto; }
+  .game-alert { bottom: 300px; }
+}
+
+/* Briefing never clips: scroll from the top when taller than the view; show the controls of this device. */
+.game-briefing { justify-content: flex-start; }
+.game-briefing .brief-card { margin: auto 0; }
+@media (pointer: coarse) { .ctl-keys { display: none !important; } }
+@media (pointer: fine) { .ctl-touch { display: none !important; } }
+@media (max-width: 699px) { .brief-card { gap: 8px; } .brief-card h2 { font-size: 1.1rem; } .brief-card p, .brief-facts { font-size: .82rem; } }
+
+/* Phones: compact HUD so the terrain stays visible. */
+.gauge-actions { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 6px; }
+.hud-navtoggle { display: none; }
+.hud-nav[hidden] { display: none; }
+@media (max-width: 699px) {
+  .gauge-sub { display: none; }
+  .hud-gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; padding: 8px 10px; width: 100%; }
+  .gauge { min-width: 0; gap: 1px; }
+  .gauge meter { width: 100%; }
+  .gauge-actions { grid-column: 1 / -1; }
+  .hud-navtoggle { display: inline-flex; }
+  .game-bottom { gap: 6px; }
+  .game-touch { top: auto; bottom: 182px; right: 10px; }
+  .game-touch button { width: 48px; height: 48px; }
+  .hud-objectives summary { font-size: .7rem; }
+}

@@ -1,5 +1,5 @@
 import { t, sourceText } from '../i18n';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { SiteData, SiteIndexEntry } from '../lib/types';
 import { computeMetrics } from '../lib/metrics';
@@ -67,12 +67,14 @@ export default function Explore() {
           <h1 id="mission-heading">{t('Find your place on the Moon.')}</h1>
           <p>{t('{0} candidate sites. Real terrain. Every hour matters.', { 0: list.length })}</p>
           <div className="hero-actions">
-            <Link className="btn btn-primary" to={`/3d?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Stand on the site in 3D')} <span aria-hidden>↗</span></Link>
+            <Link className="btn btn-primary" to={`/mission?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Play the mission')} <span aria-hidden>▶</span></Link>
+            <Link className="btn btn-ghost" to={`/3d?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Stand on the site in 3D')} <span aria-hidden>↗</span></Link>
             <Link className="btn btn-ghost" to={`/3d?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&view=pano&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Look around in 360°')} <span aria-hidden>→</span></Link>
           </div>
         </div>
         <div className="hero-proof"><span className="eyebrow">{t('Built on public science')}</span><strong>{t('LOLA / SPICE')}</strong><span>{t('Terrain from NASA. Positions from JPL.')}</span><Link className="link" to={`/validation?lang=${store.lang}`}>{t('Inspect the validation')} →</Link></div>
       </section>
+      <StartHere />
       <aside className="explore-side">
         <section className="card">
           <div className="card-head">
@@ -111,6 +113,45 @@ export default function Explore() {
   );
 }
 
+/** First-visit guide: why the south pole, how to read the page, what each tab does. */
+function StartHere() {
+  const [open, setOpen] = useState(() => { try { return localStorage.getItem('lln.intro') !== 'done'; } catch { return true; } });
+  const close = () => { setOpen(false); try { localStorage.setItem('lln.intro', 'done'); } catch { /* storage may be blocked */ } };
+  if (!open) return <button type="button" className="btn btn-ghost btn-sm start-reopen" onClick={() => setOpen(true)}>{t('First time here? How it works')}</button>;
+  return (
+    <section className="start-here" aria-labelledby="start-title">
+      <div className="start-head">
+        <h2 id="start-title">{t('First time here?')}</h2>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={close}>{t('Got it')}</button>
+      </div>
+      <div className="start-grid">
+        <article className="card">
+          <h3>{t('Why the south pole?')}</h3>
+          <p>{t('The Sun stays within a few degrees of the horizon there. Crater rims can be lit for weeks while crater floors stay dark and cold enough to keep water ice. A landing site needs sunlight for power and the Earth in view for radio, and a few metres of terrain decide both.')}</p>
+        </article>
+        <article className="card">
+          <h3>{t('How to read this page')}</h3>
+          <ol>
+            <li>{t('Pick a site on the map or in the list.')}</li>
+            <li>{t('Set the landing time and how many days the mission lasts.')}</li>
+            <li>{t('The panorama shows the real horizon with the paths of the Sun (gold) and the Earth (blue). The cards and the 30-day timeline sum up power and contact. Press ? for details.')}</li>
+          </ol>
+        </article>
+        <article className="card">
+          <h3>{t('The other tabs')}</h3>
+          <ul>
+            <li><strong>{t('3D')}</strong> — {t('stand on the real terrain, in 3D or 360°.')}</li>
+            <li><strong>{t('Play mission')}</strong> — {t('drive a solar rover and learn by playing.')}</li>
+            <li><strong>{t('Compare')}</strong> — {t('up to 3 sites side by side.')}</li>
+            <li><strong>{t('Mission delayed')}</strong> — {t('the best new site and date if the launch slips.')}</li>
+            <li><strong>{t('Validation')}</strong> — {t('our numbers checked against JPL Horizons.')}</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  );
+}
+
 function SiteList({ list, selectedId, onSelect }: { list: SiteIndexEntry[]; selectedId: string | null; onSelect: (id: string) => void }) {
   const { compareIds, toggleCompare } = useApp(useShallow((s) => ({ compareIds: s.compareIds, toggleCompare: s.toggleCompare })));
   return (
@@ -133,7 +174,7 @@ function SiteList({ list, selectedId, onSelect }: { list: SiteIndexEntry[]; sele
               </button>
               <label className="cmp-toggle" title={t("Add to comparison")}>
                 <input type="checkbox" checked={cmp} onChange={() => toggleCompare(s.id)} aria-label={t("Compare {0}", { 0: shortName(s.name) })} />
-                <span aria-hidden>{t("Cmp")}</span>
+                <span aria-hidden>{t("Compare")}</span>
               </label>
             </li>
           );
