@@ -1,6 +1,6 @@
 # Traspaso: estado del proyecto y trabajo pendiente
 
-Actualizado: 2026-11-14. Documento para retomar el trabajo en otra sesión (persona o agente).
+Actualizado: 2026-11-15. Documento para retomar el trabajo en otra sesión (persona o agente).
 Plan original: [`development-plan.md`](development-plan.md) · plan de ejecución de Codex:
 [`execution-plan-codex.md`](execution-plan-codex.md) · contratos: [`contracts.md`](contracts.md).
 
@@ -22,11 +22,13 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 | T27. Escena 3D con sombras + 360° inmersivo | ✅ ruta `#/3d`, tres modos (ver §1.1) | `lln/terrain.py`, `lln/pano.py`, `Scene3D.tsx`, `ImmersivePano.tsx`, `three/sceneTools.ts` |
 | Página del equipo Apolo404 | ✅ ruta `#/team` | `pages/Team.tsx`, `public/team-apolo404.*` |
 | T28. Bilingüe EN/ES | ✅ `?lang=es` | `i18n.ts`, `locales/*.json` |
-| Misión jugable (rover) | ✅ fases 1–6 del plan de juego: mapa de luz y Tierra del año por celda de 80 m (`lln/illum_map.py`, `--illum`, coincide con las métricas oficiales en ≤ 0,54 puntos en los 17 sitios), órbita con el casquete LOLA real y salto entre los 17 sitios con pronóstico (luz, Tierra, riesgo de luz), descenso pilotado sobre el terreno real, rover, energía, enlace con la Tierra, navegación por coordenadas, minimapa, 6 objetivos-lección, briefing, informe y progreso guardado | `web/src/game/`, `pages/Mission.tsx`, `docs/assumptions.md` |
-| Guía de primera visita | ✅ "¿Primera vez?" en Explorar; menú reordenado (Explorar · 3D · Jugar misión · …); menú de una fila en celular | `pages/Explore.tsx`, `App.tsx`, `ui.css` |
+| Misión jugable (rover) | ✅ fases 1–6 del plan de juego: mapa de luz y Tierra del año por celda de 80 m (`lln/illum_map.py`, `--illum`, coincide con las métricas oficiales en ≤ 0,54 puntos en los 17 sitios), órbita con el casquete LOLA real y salto entre los 17 sitios con pronóstico (luz, Tierra, riesgo de luz), descenso pilotado sobre el terreno real, rover, energía, enlace con la Tierra, navegación por coordenadas, minimapa, 6 objetivos-lección, briefing, informe y progreso guardado. Física: rover por fuerzas con gravedad lunar (tracción μ, rodadura, potencia; sube hasta ~16,7° y se desliza sobre ~24,2°), modelo térmico con calefactor (se pierde bajo −40 °C), panel con el ángulo real del Sol y pérdida por temperatura, polvo balístico de ruedas y motor (`game/sim/{rover,thermal,power}.ts`, `game/render/dust.ts`) | `web/src/game/`, `pages/Mission.tsx`, `docs/assumptions.md` |
+| Guía del explorador | ✅ bienvenida + recorrido por las 9 pestañas (qué hacer en cada una, progreso guardado, siguiente parada resaltada en el menú); pistas de teclas en el juego | `guide/`, `game/ui/KeyHints.tsx` |
+| Luna completa en 3D | ✅ la etapa de órbita es un globo con textura de color LROC y relieve LOLA (NASA SVS, `public/media/moon/CREDITS.md`), zoom al polo sur y a cada sitio | `game/render/OrbitScene.ts`, `game/ui/OrbitPicker.tsx` |
+| Diseño | ✅ preloader, transiciones, héroe 3D, iconos de línea propios sin emojis ni dependencias | `fx/`, `styles/fx.css`, `components/Icon.tsx` |
 
-Pruebas: 125 en `pytest pipeline/tests` (114 pasan y 11 se saltan sin kernels SPICE ni intermedios) y 18 en `cd web && npm test`,
-incluida la paridad Python/TS. `npm run lint` y `npm run build` sin errores ni advertencias.
+Pruebas: 142 en `pytest pipeline/tests` (131 pasan y 11 se saltan sin kernels SPICE ni intermedios) y 107 en `cd web && npx vitest run`,
+incluida la paridad Python/TS y la física del juego (rover, térmico, panel, polvo, aterrizaje, visibilidad en el rover). `npm run lint` y `npm run build` sin errores ni advertencias.
 
 **CI** (`.github/workflows/ci.yml`, en cada PR y antes de cada despliegue): lint + pruebas + build de la web (Node 22),
 pytest del pipeline (Python 3.12) y `pipeline/scripts/check_data.py`, que valida `web/public/data` contra los contratos.
@@ -137,7 +139,9 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 **Frontend:**
 
-- Bundle principal 441 KB (135 KB gzip); `three` va aparte (478 KB, solo en `#/3d`).
+- Bundle principal ~630 KB (~199 KB gzip; Vite avisa > 500 KB); el juego (`SurfaceGame`) y `three` van en chunks aparte. Mejora posible: separar más rutas.
+- El juego no tiene sonido (idea: WebAudio sintetizado, sin archivos con licencia).
+- Falta probar la misión jugable en un teléfono real (controles táctiles y fps).
 - Pendiente menor: los textos de estado del 3D se traducen al cargarse, no al cambiar de idioma con la vista abierta.
 - Pendiente menor: `refine_sites.py` vuelve a leer las ventanas de 20/240 m en cada uno de los 74 candidatos por sitio (cachearlas).
 - `uncertainty.update_report` reescribe `docs/uncertainty.md` en cada corrida (revisar el diff antes de hacer commit).
