@@ -37,13 +37,13 @@ export default function Scene3D(props: ViewProps) {
   const sunLabel = useRef<HTMLSpanElement>(null), earthLabel = useRef<HTMLSpanElement>(null);
   const setModeRef = useRef<((first: boolean) => void) | null>(null);
   const firstPerson = props.mode === 'first';
-  const [status, setStatus] = useState(t('Loading terrain… {0}%', { 0: 0 })), [failed, setFailed] = useState(false), [compass, setCompass] = useState('');
+  const [status, setStatus] = useState<{ key: string; n?: number } | null>({ key: 'Loading terrain… {0}%', n: 0 }), [failed, setFailed] = useState(false), [compass, setCompass] = useState('');
 
   useEffect(() => {
     const started = performance.now();
     const node = host.current!; const abort = new AbortController(); let cleanup = () => {};
-    setStatus(t('Loading terrain… {0}%', { 0: 0 })); setFailed(false);
-    loadTerrain(props.siteId, n => setStatus(t('Loading terrain… {0}%', { 0: n })), abort.signal).then(data => {
+    setStatus({ key: 'Loading terrain… {0}%', n: 0 }); setFailed(false);
+    loadTerrain(props.siteId, n => setStatus({ key: 'Loading terrain… {0}%', n }), abort.signal).then(data => {
       if (abort.signal.aborted) return;
       const created: THREE.WebGLRenderer[] = [];
       try {
@@ -161,10 +161,10 @@ export default function Scene3D(props: ViewProps) {
         if (firstFrame) { node.dataset.firstFrameMs = (performance.now() - started).toFixed(0); performance.mark('lunar-terrain-first-frame'); firstFrame = false; }
         frame = requestAnimationFrame(draw);
       };
-      draw(); setStatus('');
+      draw(); setStatus(null);
       cleanup = () => { setModeRef.current = null; cancelAnimationFrame(frame); renderer.domElement.removeEventListener('pointerdown', stopIntro); resize.disconnect(); unlook(); orbit.dispose(); disposeScene(scene); releaseRenderer(renderer); };
       } catch (error) { created.forEach(releaseRenderer); throw error; }
-    }).catch((error: unknown) => { if (!abort.signal.aborted) { setFailed(true); setStatus(t(viewerError(error))); } });
+    }).catch((error: unknown) => { if (!abort.signal.aborted) { setFailed(true); setStatus({ key: viewerError(error) }); } });
     return () => { abort.abort(); cleanup(); };
   }, [props.siteId, props.horizon, props.horizonStep]);
 
@@ -185,6 +185,7 @@ export default function Scene3D(props: ViewProps) {
         ? <>{compass}<br />{t('Mesh horizon approx. (up to ~0.6°); exact horizon in 360°.')}</>
         : <>{t('Drag to orbit · Scroll to zoom')}<br />{t('Sky dome: real Sun (gold) and Earth (blue, dashed) paths; elevation ×{0}; dim = below the horizon.', { 0: DOME_EL_SCALE })}</>}</p>
     </div>
-    {status && <div className="expedition-loading" role="status">{status}{!failed && <progress max={100} value={Number(status.match(/(\d+)%/)?.[1] ?? 0)} />}</div>}
+    {/* Translated at render time so switching EN/ES updates an open viewer. */}
+    {status && <div className="expedition-loading" role="status">{t(status.key, { 0: status.n ?? 0 })}{!failed && <progress max={100} value={status.n ?? 0} />}</div>}
   </section>;
 }

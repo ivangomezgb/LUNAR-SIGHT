@@ -7,13 +7,13 @@ import { t } from '../i18n';
 import { lunarPhotometry, LUNAR_EXPOSURE, SUN_INTENSITY, EARTH_INTENSITY } from './three/lunarMaterial';
 export default function ImmersivePano(props: ViewProps) {
   const host = useRef<HTMLDivElement>(null), latest = useRef(props); latest.current = props;
-  const [status, setStatus] = useState(t('Loading panorama… {0}%', { 0: 0 })), [failed, setFailed] = useState(false), [compass, setCompass] = useState('');
+  const [status, setStatus] = useState<{ key: string; n?: number } | null>({ key: 'Loading panorama… {0}%', n: 0 }), [failed, setFailed] = useState(false), [compass, setCompass] = useState('');
   useEffect(() => {
     const started = performance.now();
     if (host.current) delete host.current.dataset.firstFrameMs;
     const node = host.current!, abort = new AbortController(); let cleanup = () => {};
-    setStatus(t('Loading panorama… {0}%', { 0: 0 })); setFailed(false);
-    loadPano(props.siteId, n => setStatus(t('Loading panorama… {0}%', { 0: n })), abort.signal).then(data => {
+    setStatus({ key: 'Loading panorama… {0}%', n: 0 }); setFailed(false);
+    loadPano(props.siteId, n => setStatus({ key: 'Loading panorama… {0}%', n }), abort.signal).then(data => {
       if (abort.signal.aborted) return;
       const created: THREE.WebGLRenderer[] = [];
       try {
@@ -69,15 +69,16 @@ export default function ImmersivePano(props: ViewProps) {
  const viewKey = camera.quaternion.toArray().join(',') + camera.aspect + ',' + node.clientWidth + ',' + node.clientHeight + dir.join(',') + earthDir.join(',') + p.sunTrail?.az.length;
  if (viewKey !== lastView) { renderer.render(scene,camera); lastView = viewKey; }
  if (!node.dataset.firstFrameMs) node.dataset.firstFrameMs = (performance.now() - started).toFixed(0);
- frame=requestAnimationFrame(draw); }; draw(); setStatus('');
+ frame=requestAnimationFrame(draw); }; draw(); setStatus(null);
       cleanup = () => { cancelAnimationFrame(frame); unlook(); resize.disconnect(); texture.dispose(); disposeScene(scene); releaseRenderer(renderer); };
       } catch (error) { created.forEach(releaseRenderer); throw error; }
-    }).catch((error: unknown) => { if (!abort.signal.aborted) { setFailed(true); setStatus(t(viewerError(error))); } });
+    }).catch((error: unknown) => { if (!abort.signal.aborted) { setFailed(true); setStatus({ key: viewerError(error) }); } });
     return () => {abort.abort(); cleanup();};
   }, [props.siteId, props.horizon, props.horizonStep]);
   return <section className="expedition-renderer">
     <div ref={host} className="expedition-canvas" aria-label={t('Immersive lunar panorama')} />
     <div className="expedition-camera"><div className="expedition-cta"><span className="expedition-mode-title">{t('Astronaut view · exact horizon (±0.2°)')}</span><button type="button" onClick={() => props.onMode?.('overview')}>↑ {t('Back to 3D overview')}</button></div><p>{compass}<br />{t('Drag or use arrow keys to look')}<br />{t('Orange: real 2 m horizon · gold/blue: Sun and Earth paths, dim when hidden · approximate shading, no cast shadows')}</p></div>
-    {status && <div className="expedition-loading" role="status">{status}{!failed && <progress max={100} value={Number(status.match(/(\d+)%/)?.[1] ?? 0)} />}</div>}
+    {/* Translated at render time so switching EN/ES updates an open viewer. */}
+    {status && <div className="expedition-loading" role="status">{t(status.key, { 0: status.n ?? 0 })}{!failed && <progress max={100} value={status.n ?? 0} />}</div>}
   </section>;
 }
