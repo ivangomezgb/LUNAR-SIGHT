@@ -2,6 +2,7 @@ import { t } from './i18n';
 import { HashRouter, NavLink, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useRef } from 'react';
 import Preloader from './fx/Preloader';
+import Guide from './guide/Guide';
 import { installFx } from './fx/interactions';
 import ErrorBoundary from './components/ErrorBoundary';
 import Explore from './pages/Explore';
@@ -134,6 +135,7 @@ export default function App() {
           </Suspense>
         </RouteBoundary>
       </main>
+      <Guide />
       <footer className="footer">
         <span>{t("NASA Space Apps 2026 · LOLA (PGDA) · NAIF SPICE DE440 · JPL Horizons")}</span>
         <span className="mono">{t("All times UTC")}</span>

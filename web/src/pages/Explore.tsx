@@ -1,5 +1,5 @@
 import { t, sourceText } from '../i18n';
-import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { SiteData, SiteIndexEntry } from '../lib/types';
 import { computeMetrics, getSeries, hourIndex } from '../lib/metrics';
@@ -103,7 +103,6 @@ export default function Explore() {
         </div>
         <div className="hero-proof"><span className="eyebrow">{t('Built on public science')}</span><strong>{t('LOLA / SPICE')}</strong><span>{t('Terrain from NASA. Positions from JPL.')}</span><Link className="link" to={`/validation?lang=${store.lang}`}>{t('Inspect the validation')} →</Link></div>
       </section>
-      <StartHere />
       <aside className="explore-side">
         <section className="card">
           <div className="card-head">
@@ -150,45 +149,6 @@ export default function Explore() {
         )}
       </div>
     </div>
-  );
-}
-
-/** First-visit guide: why the south pole, how to read the page, what each tab does. */
-function StartHere() {
-  const [open, setOpen] = useState(() => { try { return localStorage.getItem('lln.intro') !== 'done'; } catch { return true; } });
-  const close = () => { setOpen(false); try { localStorage.setItem('lln.intro', 'done'); } catch { /* storage may be blocked */ } };
-  if (!open) return <button type="button" className="btn btn-ghost btn-sm start-reopen" onClick={() => setOpen(true)}>{t('First time here? How it works')}</button>;
-  return (
-    <section className="start-here" aria-labelledby="start-title">
-      <div className="start-head">
-        <h2 id="start-title">{t('First time here?')}</h2>
-        <button type="button" className="btn btn-ghost btn-sm" onClick={close}>{t('Got it')}</button>
-      </div>
-      <div className="start-grid">
-        <article className="card">
-          <h3>{t('Why the south pole?')}</h3>
-          <p>{t('The Sun stays within a few degrees of the horizon there. Crater rims can be lit for weeks while crater floors stay dark and cold enough to keep water ice. A landing site needs sunlight for power and the Earth in view for radio, and a few metres of terrain decide both.')}</p>
-        </article>
-        <article className="card">
-          <h3>{t('How to read this page')}</h3>
-          <ol>
-            <li>{t('Pick a site on the map or in the list.')}</li>
-            <li>{t('Set the landing time and how many days the mission lasts.')}</li>
-            <li>{t('The panorama shows the real horizon with the paths of the Sun (gold) and the Earth (blue). The cards and the 30-day timeline sum up power and contact. Press ? for details.')}</li>
-          </ol>
-        </article>
-        <article className="card">
-          <h3>{t('The other tabs')}</h3>
-          <ul>
-            <li><strong>{t('3D')}</strong> — {t('stand on the real terrain, in 3D or 360°.')}</li>
-            <li><strong>{t('Play mission')}</strong> — {t('drive a solar rover and learn by playing.')}</li>
-            <li><strong>{t('Compare')}</strong> — {t('up to 3 sites side by side.')}</li>
-            <li><strong>{t('Mission delayed')}</strong> — {t('the best new site and date if the launch slips.')}</li>
-            <li><strong>{t('Validation')}</strong> — {t('our numbers checked against JPL Horizons.')}</li>
-          </ul>
-        </article>
-      </div>
-    </section>
   );
 }
 

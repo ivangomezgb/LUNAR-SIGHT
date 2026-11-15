@@ -36,6 +36,7 @@ export default function OrbitPicker({ sites, basemap, siteId, startMs, onSite, o
   const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null);
   const [diving, setDiving] = useState(false);
   const [label, setLabel] = useState<{ x: number; y: number } | null>(null);
+  const [far, setFar] = useState(true);
   const entry = sites.find((s) => s.id === siteId);
   const pick = useRef(onSite);
   pick.current = onSite;
@@ -59,7 +60,9 @@ export default function OrbitPicker({ sites, basemap, siteId, startMs, onSite, o
         setHover(id ? { id, x: x - r.left, y: y - r.top } : null);
       };
       sceneRef.current = scene;
+      scene.onFar = setFar;
       scene.select(siteRef.current);
+      scene.playIntro();
       if (skyRef.current) scene.setSky(skyRef.current);
     };
     img.onerror = () => setError(t('Basemap unavailable'));
@@ -117,7 +120,22 @@ export default function OrbitPicker({ sites, basemap, siteId, startMs, onSite, o
     <div className={`orbit${diving ? ' is-diving' : ''}`}>
       <div ref={host} className="orbit-canvas" aria-label={t('The lunar south pole seen from orbit, with the candidate landing sites')} />
       {error && <div className="game-overlay" role="alert">{error}</div>}
-      {label && entry && !diving && (
+      <div className="globe-nav" role="group" aria-label={t('Globe navigation')}>
+        <button type="button" onClick={() => sceneRef.current?.zoomOut()}>🌕 {t('Whole Moon')}</button>
+        <button type="button" onClick={() => sceneRef.current?.zoomToPole()}>⬇ {t('South pole')}</button>
+        <button type="button" onClick={() => sceneRef.current?.select(siteId, true)}>◎ {entry ? shortName(entry.name) : ''}</button>
+      </div>
+      <p className="globe-hint" aria-hidden>
+        <span className="ctl-keys">{t('Drag to spin the Moon · scroll to zoom · click a pin to choose')}</span>
+        <span className="ctl-touch">{t('Drag to spin · pinch to zoom · tap a pin')}</span>
+      </p>
+      {far && !diving && (
+        <button type="button" className="globe-callout" onClick={() => sceneRef.current?.zoomToPole()}>
+          <strong>{t('The candidate sites are at the south pole')}</strong>
+          <span>{t('Zoom in, or tap here to fly there')} ↓</span>
+        </button>
+      )}
+      {label && entry && !diving && !far && (
         <div className="orbit-label" style={{ transform: `translate(${label.x}px, ${label.y}px)` }} aria-hidden>{shortName(entry.name)}</div>
       )}
       {hover && hover.id !== siteId && !diving && (
@@ -138,7 +156,7 @@ export default function OrbitPicker({ sites, basemap, siteId, startMs, onSite, o
         <ul className="orbit-sites" role="listbox" aria-label={t('Landing site')}>
           {sites.map((s) => (
             <li key={s.id}>
-              <button type="button" role="option" aria-selected={s.id === siteId} className={s.id === siteId ? 'is-on' : ''} onClick={() => onSite(s.id)}>
+              <button type="button" role="option" aria-selected={s.id === siteId} className={s.id === siteId ? 'is-on' : ''} onClick={() => { onSite(s.id); sceneRef.current?.select(s.id, true); }}>
                 <i className="dot" style={{ background: groupColor(s.group) }} aria-hidden /> {shortName(s.name)}
               </button>
             </li>

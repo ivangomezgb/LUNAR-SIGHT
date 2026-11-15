@@ -291,3 +291,50 @@ html:not(.pre-done) .mission-hero .hero-in, html.pre-done .mission-hero .hero-in
 .mission-hero > picture, .mission-hero > .terrain-credit { transition: opacity 1200ms var(--ease-out); }
 .mission-hero:has(.hero-canvas.is-on) > picture,
 .mission-hero:has(.hero-canvas.is-on) > .terrain-credit { opacity: 0; }
+
+/* ── Explorer guide ─────────────────────────────────────────────────────────── */
+.guide-dock, .guide-welcome, .guide-pill { position: fixed; z-index: 55; right: 18px; bottom: 18px; color: var(--text); font-size: .86rem; }
+.guide-dock, .guide-welcome {
+  width: min(360px, calc(100vw - 24px)); display: flex; flex-direction: column; gap: 10px; padding: 16px;
+  background: oklch(0.17 0.016 255 / 0.92); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--line-2); border-radius: 16px; box-shadow: 0 24px 60px -24px oklch(0 0 0 / 0.8);
+  animation: guide-in 520ms var(--ease-out) both;
+}
+@keyframes guide-in { from { opacity: 0; transform: translateY(16px) scale(.98); } }
+.guide-welcome { width: min(440px, calc(100vw - 24px)); padding: 20px; }
+.guide-welcome h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.7rem; line-height: 1.08; }
+.guide-welcome p { margin: 0; color: var(--text-2); line-height: 1.5; }
+.guide-route { list-style: none; margin: 4px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.guide-route li { display: inline-flex; align-items: center; gap: 5px; padding: 4px 8px; border-radius: 999px; background: oklch(1 0 0 / 0.05); border: 1px solid var(--line); font-size: .74rem; }
+.guide-route em { font-style: normal; color: var(--text-2); }
+.guide-head { display: grid; grid-template-columns: 1fr auto; gap: 6px; align-items: center; }
+.guide-progress { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; }
+.guide-progress i { height: 4px; border-radius: 2px; background: var(--line); transition: background-color .4s; }
+.guide-progress i.is-on { background: var(--sun); }
+.guide-x { grid-row: 1; grid-column: 2; background: none; border: 0; color: var(--muted); font-size: 1.2rem; cursor: pointer; line-height: 1; }
+.guide-here strong { font-size: 1rem; }
+.guide-here p { margin: 4px 0 0; color: var(--text-2); line-height: 1.45; }
+.guide-try { color: var(--sun-hot) !important; }
+.guide-next { justify-content: space-between; width: 100%; min-height: 44px; }
+.guide-next span:first-child { font-size: .7rem; text-transform: uppercase; letter-spacing: .12em; opacity: .7; }
+.guide-hide { align-self: flex-start; background: none; border: 0; padding: 0; color: var(--muted); font: inherit; font-size: .72rem; text-decoration: underline; cursor: pointer; }
+.guide-done p { margin: 0 0 8px; }
+.guide-pill {
+  display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 999px; cursor: pointer;
+  background: oklch(0.17 0.016 255 / 0.92); backdrop-filter: blur(12px); border: 1px solid var(--sun); color: var(--text); font: inherit; font-size: .82rem;
+  box-shadow: 0 10px 30px -12px var(--sun-glow); transition: transform .2s var(--ease-out);
+}
+.guide-pill:hover { transform: translateY(-2px); }
+.guide-pill b { color: var(--sun); }
+.guide-pill-next { color: var(--text-2); }
+.guide-pill-min { padding: 10px 12px; border-color: var(--line-2); }
+/* menu: suggested next tab and tabs not seen yet */
+.nav-link.nav-next { box-shadow: inset 0 0 0 1px var(--sun), 0 0 18px -4px var(--sun-glow); border-radius: 9px; color: var(--sun); animation: next-glow 2.2s var(--ease-in-out) infinite; }
+@keyframes next-glow { 50% { box-shadow: inset 0 0 0 1px var(--sun), 0 0 26px -2px var(--sun-glow); } }
+.nav-link.nav-new:not(.is-active)::before { content: ''; position: absolute; top: 6px; right: 5px; width: 6px; height: 6px; border-radius: 50%; background: var(--sun); }
+@media (max-width: 720px) {
+  .guide-dock, .guide-welcome { right: 8px; left: 8px; bottom: 8px; width: auto; }
+  .guide-pill { right: 8px; bottom: 8px; max-width: calc(100vw - 16px); }
+  .guide-pill-next { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .guide-dock, .guide-welcome { animation: none; } .nav-link.nav-next { animation: none; } }

@@ -20,6 +20,7 @@ import { sunFraction } from '../../lib/sunFraction';
 import { skyAt } from '../sim/clock';
 import Minimap from './Minimap';
 import DescentPanel from './DescentPanel';
+import KeyHints from './KeyHints';
 import { clearSave, loadSave, writeSave } from './save';
 
 interface Props {
@@ -74,6 +75,8 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
   const landingRef = useRef<{ x: number; y: number } | null>(null);
   const [landing, setLanding] = useState<{ ok: boolean; reason: string; vz: number; vh: number; slope: number; dist: number; fuelPct: number; lit: boolean } | null>(null);
   const [bakeVersion, setBakeVersion] = useState(0);
+  const [keysOpen, setKeysOpen] = useState(true);
+  const idleSince = useRef(performance.now());
   const sunlitAt = useCallback((x: number, y: number) => sceneRef.current?.sunlitAt(x, y) ?? 1, []);
   const sunBelow = useCallback((l: LanderState) => {
     const sky = skyAt(env.ephem, world.current.tMs);
@@ -144,7 +147,11 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
         window.setTimeout(() => setAlert(''), 8000);
       }
       scene.render(world.current, dt, landerRef.current, false);
-      if (now - lastHud > 120) { setHud(world.current); setBakeVersion(scene.bakeVersion); lastHud = now; }
+      if (input.throttle || input.steer) idleSince.current = now;
+      if (now - lastHud > 120) {
+        setHud(world.current); setBakeVersion(scene.bakeVersion); lastHud = now;
+        if (now - idleSince.current > 8000 && !world.current.paused) { setKeysOpen(true); idleSince.current = now; }
+      }
       frame = requestAnimationFrame(loop);
     };
     frame = requestAnimationFrame(loop);
@@ -413,6 +420,12 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
       </div>
 
       </>)}
+
+      {(phase === 'descent' || phase === 'surface') && !briefing && !debrief && !landing && (
+        keysOpen
+          ? <KeyHints phase={phase} onClose={() => setKeysOpen(false)} />
+          : <button type="button" className="key-hints-toggle ctl-keys" onClick={() => setKeysOpen(true)} aria-label={t('Show the keyboard controls')}>⌨</button>
+      )}
 
       {phase === 'descent' && landerHud && (
         <DescentPanel field={env.field} lander={landerHud} target={TARGET} sunBelow={sunBelow(landerHud)} />
