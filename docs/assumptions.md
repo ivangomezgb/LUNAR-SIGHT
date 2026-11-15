@@ -68,3 +68,56 @@ clearance (report default 0.5 degrees) against the same 2 m mask.
   PDF export uses the browser print dialog, A4 portrait, two explicitly separated
   sheets; browser headers/footers should be disabled. Generation UTC is the report
   view creation time and the URL preserves the scenario, not a frozen data snapshot.
+
+## Energy and night survival
+
+`web/src/lib/energy.ts` is an illustrative electrical balance, not a thermal model or
+NASA flight/safety requirement. The card uses real `getSeries` solar-disk visibility
+and azimuth/elevation at the selected `Assumptions.heightM` (default 2 m); missing
+masks or incomplete mission coverage produce an unavailable result, never invented data.
+
+- `SOLAR_CONSTANT_W_M2 = 1361` W/m² is the adopted constant irradiance assumption.
+  Sun–Moon distance variation is ignored. Rated power = constant × active area × efficiency.
+- `DEFAULT_ENERGY_PARAMETERS`: azimuth-tracking vertical panel; `areaM2 = 4`,
+  `efficiency = 0.3`, `panelAzDeg = 0` (north, for fixed mode), `dayLoadW = 300`,
+  `nightLoadW = 120`, `batteryKWh = 15`, `roundTripEfficiency = 0.9`.
+  These are explicitly labelled editable example-lander assumptions, not measured hardware.
+  Rated default power is 1633.2 W. Controls store values only in component state;
+  separate cards and report views do not inherit edits and URL reloads reset them.
+- Tracking vertical panel power = rated power × sunFrac × cos(sunEl).
+  Fixed vertical power = rated power × sunFrac × max(0, cos(sunEl) × cos(sunAz − panelAz)).
+  Angles are degrees, azimuth clockwise from north. Both formulas use astronomical
+  elevation and the real horizon's visible disk fraction, not terrain clearance as incidence.
+- `NO_SUN_FRACTION = 0`: fully hidden disk uses survival load; any positive fraction
+  uses day load, even with an unilluminated fixed panel. The dashboard day threshold
+  is deliberately not used. Loads are total electrical demand, heaters included.
+- `INITIAL_SOC_FRACTION = 1`: battery starts fully charged. Capacity is usable stored
+  energy, with no further depth-of-discharge reserve. Charge and discharge efficiencies
+  each equal sqrt(roundTripEfficiency); direct solar supply to loads incurs neither loss.
+  Surplus charges up to capacity and the rest is curtailed; deficits withdraw energy
+  divided by discharge efficiency. Battery charge is clamped at zero after failure;
+  subsequent recharge does not erase earlier unmet load.
+- `ENERGY_STEP_H = 1`: hourly samples are held constant on their following intervals.
+  Exact overlap with [landing, landing + missionDays × 24 h) handles partial boundaries.
+  Depletion UTC is interpolated within the constant-power interval, not a prediction
+  of sub-hour solar events. Non-hourly data is rejected. Mission days are Earth days.
+- Survival means stored energy would never fall below zero; exactly zero at mission
+  end still supplies the requested load. First depletion is the first zero crossing
+  that leads to unmet load. No arbitrary reserve or empirical safety threshold is added.
+- Minimum required capacity is maximum cumulative drawdown of efficiency-adjusted
+  storage flows (drawdown resets to zero on complete recharge). This includes partial
+  illumination deficits, incomplete recharges and mission-edge nights, starting full.
+  Margin hours = (capacity − minimum required capacity) × discharge efficiency × 1000 /
+  survival watts: signed spare-capacity equivalent, not a forecast after mission end.
+  It is undefined when survival load is zero. The failure verdict rounds required
+  capacity UP to 0.01 kWh so the displayed lower bound is not rounded downward.
+- Generation counts all panel output before storage losses/curtailment. Daily generation
+  is the mission average per 24 h; mean power includes darkness. Net-deficit hours count
+  power below the applicable load. Longest no-sun duration is clipped to the mission;
+  energy to cross it is duration × survival watts / 1000 / discharge efficiency.
+- Parameters must be finite; area, loads and capacity may be zero; panel efficiency
+  is in [0, 1], round-trip efficiency in (0, 1]. Negative or missing inputs are invalid.
+  No temperature, dust, degradation, self-discharge, charge/discharge power limit,
+  tracker power, local lander shadows or heater thermal sizing is modelled. Those
+  omissions are shown in the card's assumptions. Hatching identifies no-sun periods
+  independently of colour; the solid chart line is physical charge, clamped at empty.
