@@ -1,0 +1,11 @@
+.slope-card { padding: 1rem; margin-block: 1rem; border: 1px solid var(--line); border-radius: 12px; background: var(--panel); color: var(--text); min-width: 0; overflow-wrap: anywhere; }
+.slope-card h2 { font-size: 1.15rem; margin-top: 0; }
+.slope-card p, .slope-card li { font-size: .875rem; line-height: 1.5; }
+.slope-card canvas { width: 100%; max-width: 600px; height: auto; display: block; margin-inline: auto; }
+.slope-card canvas:focus-visible, .slope-card summary:focus-visible { outline: 3px solid var(--text); outline-offset: 3px; }
+.slope-legend { display: flex; flex-wrap: wrap; gap: .5rem 1rem; padding: 0; list-style: none; }
+.slope-legend li { display: flex; align-items: center; gap: .4rem; }
+.slope-legend span { display: inline-flex; width: 1.5rem; height: 1.5rem; align-items: center; justify-content: center; color: #10141a; border: 1px solid currentColor; font-weight: bold; }
+.slope-stats { padding-left: 1.1rem; }
+.slope-card summary { cursor: pointer; }
+@media print { .slope-card { background: white; color: black; break-inside: avoid; } .slope-card canvas { max-width: 95mm; } .slope-card details { display: block; } }
