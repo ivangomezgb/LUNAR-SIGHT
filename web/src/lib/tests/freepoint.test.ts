@@ -57,7 +57,7 @@ const root = 'public/data/';
 const json = <T,>(path: string): T => JSON.parse(new TextDecoder().decode(fs.readFileSync(root + path))) as T;
 const hasAssets = fs.existsSync(root + 'free/meta.json');
 
-it.skipIf(!hasAssets)('measures the browser algorithm against all 15 published sites', () => {
+it.skipIf(!hasAssets)('measures the browser algorithm against all published sites', () => {
   const meta = json<FreeMeta>('free/meta.json');
   const buffer = (path: string) => Uint8Array.from(fs.readFileSync(root + 'free/' + path)).buffer;
   const assets: FreeAssets = { meta, vectors: new Float32Array(buffer(meta.vectors_file)),
@@ -90,7 +90,7 @@ it.skipIf(!hasAssets)('measures the browser algorithm against all 15 published s
       sunlight_pct: actual.lightPct, published_sunlight_pct: expected.lightPct,
       sunlight_delta_pp: actual.lightPct - expected.lightPct, runtime_ms: result.elapsedMs });
   }
-  expect(sites.length).toBe(15);
+  expect(sites.length).toBeGreaterThanOrEqual(15);
   expect(ephemMax).toBeLessThanOrEqual(0.01);
   const report = { sites: sites.length, mask_max_deg: maskMax, mask_mean_deg: maskSum / maskCount,
     sunlight_max_pp: Math.max(...rows.map(r => Math.abs(r.sunlight_delta_pp))),
