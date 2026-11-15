@@ -94,7 +94,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (1485 m away; 35.28% -> 43.55% sunlight in 2027 at 2 m)",
   "dem_res_m": 5.0,
   "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 6.26,
   "map_px": [
    871.7,
@@ -120,7 +120,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (474 m away; 52.15% -> 81.16% sunlight in 2027 at 2 m)",
   "dem_res_m": 5.0,
   "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 4.34,
   "map_px": [
    832.3,
@@ -169,7 +169,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (0 m away; 80.06% -> 80.06% sunlight in 2027 at 2 m)",
   "dem_res_m": 10.0,
   "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 3.45,
   "map_px": [
    443.4,
@@ -195,7 +195,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (1042 m away; 24.99% -> 53.09% sunlight in 2027 at 2 m)",
   "dem_res_m": 10.0,
   "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 5.84,
   "map_px": [
    1859.1,
@@ -221,7 +221,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (456 m away; 26.65% -> 41.2% sunlight in 2027 at 2 m)",
   "dem_res_m": 5.0,
   "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 1.07,
   "map_px": [
    1354.0,
@@ -248,7 +248,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (106 m away; 69.34% -> 83.43% sunlight in 2027 at 2 m)",
   "dem_res_m": 5.0,
   "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 1.31,
   "map_px": [
    1178.0,
@@ -274,7 +274,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (1335 m away; 10.46% -> 37.11% sunlight in 2027 at 2 m)",
   "dem_res_m": 5.0,
   "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 4.07,
   "map_px": [
    834.8,
@@ -301,7 +301,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (978 m away; 20.84% -> 65.67% sunlight in 2027 at 2 m)",
   "dem_res_m": 10.0,
   "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 1.96,
   "map_px": [
    1026.4,
@@ -327,7 +327,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (1145 m away; 21.62% -> 73.98% sunlight in 2027 at 2 m)",
   "dem_res_m": 10.0,
   "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 3.93,
   "map_px": [
    1400.8,
@@ -354,7 +354,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (949 m away; 30.39% -> 47.19% sunlight in 2027 at 2 m)",
   "dem_res_m": 10.0,
   "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 1.17,
   "map_px": [
    1452.6,
@@ -381,7 +381,7 @@
   "selection": "best-lit point with slope <= 8 deg within 1 km of the reference (546 m away; 39.92% -> 44.28% sunlight in 2027 at 2 m)",
   "dem_res_m": 10.0,
   "dem_source": "PGDA 90 LOLA 10 m/px (83S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 2.1,
   "map_px": [
    1830.5,
