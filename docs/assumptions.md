@@ -131,9 +131,11 @@ mission data; they are shown in the "Game rules" panel and live in `web/src/game
 | Assumption | Value | Why |
 | --- | --- | --- |
 | Rover top speed | 0.2 m/s (time warp makes it feel faster) | VIPER-class order of magnitude. |
-| Climb limit / tip-over | 15° grade / 25° cross slope | Typical planetary-rover limits, rounded. |
+| Rover dynamics | 430 kg; wheel–regolith grip μ = 0.45, rolling resistance Crr = 0.15; drives ≤ 150 W at 60 % efficiency; tips over above a 25° cross slope | Forces under lunar gravity (1.62 m/s²): the climb limit tan θ = μ − Crr ≈ 16.7° and the slide limit tan θ = μ ≈ 24.2° emerge from them (tested). Grip and sinkage values are rounded orders of magnitude for loose regolith. |
 | Panel / antenna height | 2 m | Same height as the published 2 m horizon masks. |
-| Battery, panel, loads | 2000 Wh; 450 W Sun-tracking vertical panel; 90 W avionics, +200 W driving, +150 W heater in shadow | Round numbers that make polar nights a real threat. |
+| Battery, panel, loads | 2000 Wh; 1.15 m² vertical panel at 29 % (≈ 454 W facing the Sun at 1361 W/m²) turning to the Sun's azimuth; output × visible disk × cos(incidence on the tilted rover) × (1 − 0.3 %/°C above 28 °C); 90 W avionics + drive power from the forces + 150 W heater | Round numbers that make polar nights a real threat. The battery goes dormant at 0 % and wakes at 5 %. |
+| Thermal | One lumped node: 60 kJ/K, 1.2 m² radiator (ε 0.85), solar absorptance 0.25 on 1 m²; radiative sink 220 K in sunlight, 100 K in shadow; heater on below −10 °C, off above 0 °C; lost below −40 °C, drives stop above 60 °C | Equilibria (tested): ≈ 41 °C in sunlight, ≈ −18 °C in shadow with the heater, ≈ −173 °C dormant. A game-level model, not a rover thermal design. |
+| Dust | Grains fly vacuum parabolas under 1.62 m/s² with no drag and stop on the terrain; wheel spray 0.4–1.3 m/s at 25–65°, engine ejecta 3–38 m/s at 1.5–10.5° below 30 m altitude | No air on the Moon: dust never hangs in a cloud. Speeds are visual choices; the flight is shown in real time at any time warp. |
 | Earth link | Earth centre ≥ 0.5° above the real horizon at the rover; 0.25 MB/s | Same margin as the rest of the app. |
 | Horizon at the rover | Ray march over the published 10 m and 400 m grids (≲ 51 km) plus the part of the site mask beyond them, tilt-corrected | Agrees with the published 2 m mask at the site within 0.1° (tests). |
 | Sun/Earth direction | The site's ephemeris everywhere in the ±5 km play area | Direction changes < 0.2° over 5 km. |

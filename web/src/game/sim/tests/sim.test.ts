@@ -3,8 +3,9 @@ import { getSeries } from '../../../lib/metrics';
 import { sunFraction } from '../../../lib/sunFraction';
 import { type Ephemeris, skyAt } from '../clock';
 import { type Field, heightAt, makeField, makeGrid } from '../field';
-import { netPowerW, newPower, stepPower } from '../power';
-import { crossSlope, newRover, stepRover } from '../rover';
+import { newPower, panelW, stepPower, sunVector } from '../power';
+import { equilibriumC, heatFlowW, stepThermal } from '../thermal';
+import { climbLimitDeg, crossSlope, holdLimitDeg, newRover, stepRover } from '../rover';
 import { RULES } from '../rules';
 import { makeHorizon } from '../visibility';
 import { newWorld, stepWorld } from '../world';
@@ -16,64 +17,115 @@ function field(fn: (x: number, y: number) => number, n = 201, res = 10): Field {
   const g = makeGrid({ n, res_m: res }, z);
   return { near: g, far: g };
 }
-const drive = (f: Field, throttle: number, steer: number, seconds: number, start = newRover()) => {
+
+const DEG = Math.PI / 180;
+const slope = (deg: number) => field((_x, y) => Math.tan(deg * DEG) * y); // rising to the north
+const driveFor = (f: Field, throttle: number, seconds: number, start = newRover()) => {
   let r = start;
-  for (let t = 0; t < seconds; t++) r = stepRover(f, r, { throttle, steer }, 1);
+  for (let t = 0; t < seconds * 10; t++) r = stepRover(f, r, { throttle, steer: 0 }, 0.1);
   return r;
 };
 
-describe('rover', () => {
-  it('accelerates to top speed and drives north on flat ground', () => {
-    const r = drive(field(() => 0), 1, 0, 100);
-    expect(r.speed).toBeCloseTo(RULES.rover.maxSpeed, 6);
-    expect(r.x).toBeCloseTo(0, 6);
-    expect(r.y).toBeGreaterThan(15);
-    expect(r.odometer).toBeCloseTo(r.y, 6);
+describe('rover dynamics under lunar gravity', () => {
+  it('reaches top speed on flat ground, stops when released and keeps a straight line', () => {
+    const go = driveFor(field(() => 0), 1, 30);
+    expect(go.speed).toBeCloseTo(RULES.rover.maxSpeed, 2);
+    expect(go.x).toBeCloseTo(0, 6);
+    expect(go.odometer).toBeCloseTo(go.y, 6);
+    const stop = driveFor(field(() => 0), 0, 5, go);
+    expect(Math.abs(stop.speed)).toBeLessThan(1e-3);
   });
   it('turns clockwise with positive steer', () => {
-    const r = drive(field(() => 0), 0, 1, 5);
+    let r = newRover();
+    for (let k = 0; k < 50; k++) r = stepRover(field(() => 0), r, { throttle: 0, steer: 1 }, 0.1);
     expect(r.heading).toBeCloseTo(5 * RULES.rover.turnRate, 6);
   });
-  it('cannot climb steeper than the limit but can go down it', () => {
-    const steep = field((_x, y) => Math.tan(20 * Math.PI / 180) * y); // 20 deg rising to the north
-    const up = drive(steep, 1, 0, 50);
-    expect(up.blocked).toBe('slope');
-    expect(up.y).toBeCloseTo(0, 6);
-    const down = drive(steep, 1, 0, 50, newRover(0, 0, 180));
-    expect(down.y).toBeLessThan(-5);
-    expect(down.blocked).toBe('');
+  it('the climb and hold limits come from traction, rolling resistance and gravity', () => {
+    const { mu, crr } = RULES.rover;
+    expect(climbLimitDeg()).toBeCloseTo(Math.atan(mu - crr) / DEG, 9);
+    expect(holdLimitDeg()).toBeCloseTo(Math.atan(mu) / DEG, 9);
+    const easy = driveFor(slope(climbLimitDeg() - 3), 1, 60);
+    expect(easy.y).toBeGreaterThan(5);
+    const hard = driveFor(slope(climbLimitDeg() + 2), 1, 60);
+    expect(hard.y).toBeLessThan(0.5);
+    expect(hard.blocked).toBe('slope');
+    expect(hard.slip).toBe(true);
+  });
+  it('holds on a slope it cannot climb but slides down one steeper than atan(μ)', () => {
+    const held = driveFor(slope(holdLimitDeg() - 2), 0, 30);
+    expect(Math.abs(held.y)).toBeLessThan(0.05);
+    const slid = driveFor(slope(holdLimitDeg() + 4), 0, 10);
+    expect(slid.y).toBeLessThan(-1);
+    expect(slid.blocked).toBe('sliding');
+  });
+  it('climbing costs more electrical power than driving on the flat', () => {
+    const flat = driveFor(field(() => 0), 1, 30), up = driveFor(slope(10), 1, 30);
+    expect(up.driveW).toBeGreaterThan(flat.driveW + 10);
+    // power check: rolling + gravity force × speed / efficiency
+    const { massKg, crr, motorEff, driveBaseW } = RULES.rover, g = RULES.gravity;
+    expect(flat.driveW).toBeCloseTo(driveBaseW + (crr * massKg * g * flat.speed) / motorEff, 0);
   });
   it('stops at the edge of the detailed terrain', () => {
     const f = field(() => 0, 21, 10); // ±100 m
-    const r = drive(f, 1, 0, 2000);
+    const r = driveFor(f, 1, 400);
     expect(r.blocked).toBe('edge');
     expect(r.y).toBeLessThanOrEqual(f.near.half - RULES.rover.edgeMarginM + 1e-9);
   });
-  it('tips over on a cross slope beyond the limit', () => {
-    const f = field((x) => Math.tan(30 * Math.PI / 180) * x); // 30 deg rising to the east
+  it('rolls over on a cross slope beyond the limit', () => {
+    const f = field((x) => Math.tan(30 * DEG) * x); // 30 deg rising to the east
     expect(Math.abs(crossSlope(f, 0, 0, 0))).toBeCloseTo(30, 3);
-    expect(stepRover(f, newRover(), { throttle: 0, steer: 0 }, 1).blocked).toBe('tipped');
+    expect(stepRover(f, newRover(), { throttle: 0, steer: 0 }, 0.1).blocked).toBe('tipped');
   });
 });
 
-describe('power and data', () => {
-  it('charges in sunlight and drains in shadow', () => {
-    expect(netPowerW(1, false)).toBeGreaterThan(0);
-    expect(netPowerW(0, false)).toBeLessThan(netPowerW(0.005, false) + 1); // heater only in shadow
-    let p = { ...newPower(), chargeWh: 1000 };
-    p = stepPower(p, 1, false, false, 3600);
-    expect(p.chargeWh).toBeCloseTo(1000 + RULES.power.panelW - RULES.power.hotelW, 6);
-    const hoursLeft = RULES.power.batteryWh / -netPowerW(0, false);
-    let dark = newPower();
-    for (let h = 0; h < Math.ceil(hoursLeft) + 1; h++) dark = stepPower(dark, 0, false, false, 3600);
-    expect(dark.dead).toBe(true);
+describe('solar array, battery and data', () => {
+  const up: [number, number, number] = [0, 0, 1];
+  it('array output follows the visible disk, the incidence and the cell temperature', () => {
+    const p = RULES.power, full = p.solarWm2 * p.panelAreaM2 * p.panelEff;
+    expect(panelW(1, sunVector(90, 0), up, 28)).toBeCloseTo(full, 6);
+    expect(panelW(0.5, sunVector(90, 0), up, 28)).toBeCloseTo(full / 2, 6);
+    // rover tilted 20 deg towards a Sun on the horizon: incidence 20 deg
+    const tilted = [Math.sin(20 * DEG), 0, Math.cos(20 * DEG)];
+    expect(panelW(1, sunVector(90, 0), tilted, 28)).toBeCloseTo(full * Math.cos(20 * DEG), 6);
+    expect(panelW(1, sunVector(90, 0), up, 68)).toBeCloseTo(full * (1 + p.panelTempCoef * 40), 6);
+  });
+  it('drains to dormant, then the Sun revives it', () => {
+    let s = { ...newPower(), chargeWh: 10 };
+    s = stepPower(s, 0, 240, false, 3600);
+    expect(s.dead).toBe(true);
+    s = stepPower(s, 400, 240, false, 60);
+    expect(s.dead).toBe(true); // loads are off while dormant; it must recharge first
+    s = stepPower(s, 400, 240, false, 3600);
+    expect(s.dead).toBe(false);
   });
   it('sends data only while the Earth is in view', () => {
     const p = { ...newPower(), dataMB: 10 };
-    expect(stepPower(p, 1, false, false, 10).sentMB).toBe(0);
-    const sent = stepPower(p, 1, true, false, 10);
+    expect(stepPower(p, 0, 90, false, 10).sentMB).toBe(0);
+    const sent = stepPower(p, 0, 90, true, 10);
     expect(sent.sentMB).toBeCloseTo(RULES.comms.downlinkMBps * 10, 6);
     expect(sent.dataMB + sent.sentMB).toBeCloseTo(10, 6);
+  });
+});
+
+describe('thermal model', () => {
+  it('warm in sunlight, survives the shadow with the heater, freezes without power', () => {
+    const { hotelW, heaterW } = RULES.power;
+    const sun = equilibriumC(1, hotelW), shadowHeater = equilibriumC(0, hotelW + heaterW), dormant = equilibriumC(0, 0);
+    console.info(`equilibrium: sunlit ${sun.toFixed(0)} °C, shadow+heater ${shadowHeater.toFixed(0)} °C, dormant ${dormant.toFixed(0)} °C`);
+    expect(sun).toBeGreaterThan(0);
+    expect(sun).toBeLessThan(RULES.thermal.hotC);
+    expect(shadowHeater).toBeGreaterThan(RULES.thermal.freezeC);
+    expect(dormant).toBeLessThan(RULES.thermal.freezeC);
+    expect(heatFlowW(equilibriumC(0.4, 120), 0.4, 120)).toBeCloseTo(0, 3);
+  });
+  it('the thermostat switches the heater with hysteresis', () => {
+    let s = { tempC: -9, heaterOn: false };
+    s = stepThermal(s, 0, 0, 600);
+    expect(s.tempC).toBeLessThan(-10);
+    expect(s.heaterOn).toBe(true);
+    let warm = { tempC: 1, heaterOn: true };
+    warm = stepThermal(warm, 1, 400, 1);
+    expect(warm.heaterOn).toBe(false);
   });
 });
 
@@ -117,6 +169,7 @@ describe.skipIf(!real)('surface world on real data (connecting-ridge)', () => {
     for (let k = 0; k < 600; k++) w = stepWorld(env, w, { throttle: 1, steer: 0 }, 1 / 60);
     expect(w.tMs - Date.parse('2027-01-12T06:00:00Z')).toBeCloseTo(600 / 60 * 60 * 1000, -1);
     expect(w.rover.odometer + (w.rover.blocked ? 1 : 0)).toBeGreaterThan(0);
+    expect(w.thermal.tempC).toBeGreaterThan(RULES.thermal.freezeC);
     expect(w.sunFrac).toBeCloseTo(sunFraction(w.sky.sunEl, w.sunHorizon), 9);
   });
 });

@@ -13,6 +13,7 @@ import { makeField } from '../game/sim/field';
 import { makeHorizon } from '../game/sim/visibility';
 import type { Env } from '../game/sim/world';
 import { RULES } from '../game/sim/rules';
+import { climbLimitDeg, holdLimitDeg } from '../game/sim/rover';
 import { peekSave } from '../game/ui/save';
 import '../styles/game.css';
 
@@ -125,9 +126,11 @@ export default function Mission() {
         <summary>{t('Game rules (assumptions)')}</summary>
         <p className="small muted">{t('Terrain, Sun and Earth positions and gravity are real. These rover numbers are declared game assumptions, not mission data:')}</p>
         <ul className="small mono">
-          <li>{t('Top speed')} {RULES.rover.maxSpeed} m/s · {t('max climb')} {RULES.rover.maxClimbDeg}° · {t('tips over above')} {RULES.rover.tipDeg}°</li>
-          <li>{t('Battery')} {RULES.power.batteryWh} Wh · {t('panel')} {RULES.power.panelW} W · {t('avionics')} {RULES.power.hotelW} W · {t('driving')} {RULES.power.driveW} W · {t('night heater')} {RULES.power.heaterW} W</li>
+          <li>{t('Rover')} {RULES.rover.massKg} kg · {t('top speed')} {RULES.rover.maxSpeed} m/s · {t('wheel grip')} μ {RULES.rover.mu}, {t('rolling resistance')} {RULES.rover.crr} → {t('climbs up to')} {climbLimitDeg().toFixed(1)}°, {t('slides above')} {holdLimitDeg().toFixed(1)}° · {t('tips over above')} {RULES.rover.tipDeg}°</li>
+          <li>{t('Battery')} {RULES.power.batteryWh} Wh · {t('panel')} {RULES.power.panelAreaM2} m² × {(RULES.power.panelEff * 100).toFixed(0)}% ({(RULES.power.solarWm2 * RULES.power.panelAreaM2 * RULES.power.panelEff).toFixed(0)} W {t('facing the Sun')}, {(RULES.power.panelTempCoef * 100).toFixed(1)}%/°C) · {t('avionics')} {RULES.power.hotelW} W · {t('drives')} {RULES.rover.motorW} W {t('max')} · {t('heater')} {RULES.power.heaterW} W</li>
+          <li>{t('Thermal')}: {t('radiator')} {RULES.thermal.radiatorM2} m², ε {RULES.thermal.emissivity}, α {RULES.thermal.absorptivity} · {t('heater on below')} {RULES.thermal.heaterOnC} °C · {t('lost below')} {RULES.thermal.freezeC} °C · {t('drives stop above')} {RULES.thermal.hotC} °C</li>
           <li>{t('Lander')} {RULES.lander.dryKg + RULES.lander.fuelKg} kg · {RULES.lander.maxThrustN} N · {t('touchdown')} &lt; {RULES.lander.maxTouchVz} m/s, {t('drift')} &lt; {RULES.lander.maxTouchVh} m/s, {t('slope')} &lt; {RULES.lander.maxSlopeDeg}°</li>
+          <li>{t('Kicked-up dust flies on ballistic arcs: with no air it falls back at 1.62 m/s² instead of hanging in a cloud.')}</li>
           <li>{t('Sunlight and Earth link are computed at the rover from LOLA terrain within ±51 km plus the site horizon beyond (≤ 0.1° from the published mask at the site).')}</li>
         </ul>
       </details>

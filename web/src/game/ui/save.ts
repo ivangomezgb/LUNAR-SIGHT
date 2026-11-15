@@ -10,7 +10,7 @@ export interface SavedMission {
   startMs: number;
   savedAt: number;
   landing: { x: number; y: number } | null;
-  world: Pick<World, 'tMs' | 'warp' | 'rover' | 'power' | 'scans'>;
+  world: Pick<World, 'tMs' | 'warp' | 'rover' | 'power' | 'scans'> & Partial<Pick<World, 'thermal'>>;
   mission: MissionState;
 }
 

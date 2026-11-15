@@ -9,7 +9,6 @@ import { MAX_DRIVE_WARP, WARPS } from '../sim/clock';
 import { heightAt } from '../sim/field';
 import { fmtLatLon, type LatLon, latLonToLocal, localToLatLon, parseLatLon, route } from '../sim/geo';
 import { allDone, type MissionState, newMission, type ObjectiveId, OBJECTIVES, score, updateMission } from '../sim/mission';
-import { netPowerW } from '../sim/power';
 import { RULES } from '../sim/rules';
 import { type Env, newWorld, scan, scanBlocker, stepWorld, type World } from '../sim/world';
 import { type CameraMode, SurfaceScene } from '../render/SurfaceScene';
@@ -193,7 +192,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
     const save = () => {
       const w = world.current;
       if (w.ended) return;
-      writeSave({ site: site.id, startMs, savedAt: Date.now(), landing: landingRef.current, world: { tMs: w.tMs, warp: w.warp, rover: w.rover, power: w.power, scans: w.scans }, mission: mission.current });
+      writeSave({ site: site.id, startMs, savedAt: Date.now(), landing: landingRef.current, world: { tMs: w.tMs, warp: w.warp, rover: w.rover, power: w.power, thermal: w.thermal, scans: w.scans }, mission: mission.current });
     };
     const id = window.setInterval(save, 5000);
     window.addEventListener('pagehide', save);
@@ -227,7 +226,9 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
   const continueSaved = () => {
     if (!saved) return;
     setBriefing(false);
-    world.current = { ...newWorld(env, saved.world.tMs), ...saved.world, paused: false };
+    const base = newWorld(env, saved.world.tMs);
+    // saves from before the thermal model lack some fields: fill them from a fresh world
+    world.current = { ...base, ...saved.world, rover: { ...newRover(), ...saved.world.rover }, thermal: saved.world.thermal ?? base.thermal, paused: false };
     mission.current = saved.mission;
     setM(saved.mission);
     if (saved.landing) landerRef.current = { ...newLander(env.field, TARGET), x: saved.landing.x, y: saved.landing.y, z: heightAtSite(saved.landing.x, saved.landing.y), landed: 'ok' };
@@ -259,7 +260,8 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
   const heightAtSite = (x: number, y: number) => heightAt(env.field, x, y);
   const here = localToLatLon(site, hud.rover.x, hud.rover.y);
   const battery = hud.power.chargeWh / RULES.power.batteryWh;
-  const net = netPowerW(hud.sunFrac, Math.abs(hud.rover.speed) > 1e-3);
+  const net = hud.power.dead ? hud.panelW : hud.panelW - hud.loadW;
+  const temp = hud.thermal.tempC;
   const sunMargin = hud.sky.sunEl - hud.sunHorizon;
   const nr = nav ? route(hud.rover.x, hud.rover.y, nav.x, nav.y) : null;
   const turn = nr ? ((nr.bearing - hud.rover.heading + 540) % 360) - 180 : 0;
@@ -354,7 +356,8 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
         <div className="game-alert" role="alert">
           {t(alert === 'sunset'
             ? 'Sunset at the rover! Time slowed to 60×. Drive back into the light before the battery runs out.'
-            : 'Battery below 25%! Time slowed to 60×. Find sunlight to recharge.')}
+            : alert === 'cold' ? 'The electronics are getting cold! Time slowed to 60×. Below −40 °C the rover is lost: find sunlight.'
+              : 'Battery below 25%! Time slowed to 60×. Find sunlight to recharge.')}
         </div>
       )}
       {toast && (
@@ -370,6 +373,15 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
             <span className="hud-label">{t('Battery')}</span>
             <meter min={0} max={1} low={0.25} optimum={1} value={battery} aria-label={t('Battery')} />
             <span className="mono small">{(battery * 100).toFixed(0)}% · {net >= 0 ? '+' : ''}{net.toFixed(0)} W</span>
+            <span className="mono small gauge-sub">{t('panel {0} W · load {1} W', { 0: hud.panelW.toFixed(0), 1: (hud.power.dead ? 0 : hud.loadW).toFixed(0) })}</span>
+            {hud.power.dead && <span className="hud-warn small">{t('Dormant: recharging to 5% before waking')}</span>}
+          </div>
+          <div className={`gauge ${temp < RULES.thermal.heaterOnC || temp > RULES.thermal.hotC - 10 ? 'is-off' : 'is-on'}`}>
+            <span className="hud-label">🌡 {t('Electronics')}</span>
+            <span className="mono small">{temp.toFixed(0)} °C</span>
+            <span className="mono small gauge-sub">{hud.thermal.heaterOn && !hud.power.dead ? t('Heater on ({0} W)', { 0: RULES.power.heaterW }) : t('Heater off')}</span>
+            {hud.overheated && <span className="hud-warn small">{t('Too hot: drives stopped to cool down')}</span>}
+            {temp < RULES.thermal.freezeC + 15 && <span className="hud-warn small">{t('Freezes below {0} °C', { 0: RULES.thermal.freezeC })}</span>}
           </div>
           <div className={`gauge ${hud.sunFrac > 0.5 ? 'is-on' : 'is-off'}`}>
             <span className="hud-label">☀ {t('Sun')}</span>
@@ -386,7 +398,11 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
             <span className="hud-label">{t('Rover')}</span>
             <span className="mono small gauge-sub">{hud.rover.speed.toFixed(2)} m/s {t('real')}</span>
             <span className="mono small">≈ {(Math.abs(hud.rover.speed) * hud.warp * 3.6).toFixed(0)} km/h <span className="gauge-sub">{t('on screen')}</span></span>
-            {hud.rover.blocked && <span className="hud-warn small">{t(hud.rover.blocked === 'slope' ? 'Too steep to climb' : hud.rover.blocked === 'edge' ? 'Edge of the mapped area' : 'Rover tipped over')}</span>}
+            {hud.rover.blocked
+              ? <span className="hud-warn small">{t(hud.rover.blocked === 'slope' ? 'Wheels spinning: too steep to climb'
+                : hud.rover.blocked === 'sliding' ? 'Sliding: the slope is steeper than the wheels can hold'
+                  : hud.rover.blocked === 'edge' ? 'Edge of the mapped area' : 'Rover tipped over')}</span>
+              : hud.rover.slip && <span className="hud-note small">{t('Wheels at the traction limit')}</span>}
           </div>
           <div className="gauge gauge-actions">
             <button type="button" className="btn btn-sm hud-scan" onClick={doScan}>🔬 {t('Scan')} <span className="ctl-keys">(E)</span></button>
@@ -507,9 +523,9 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
           <div className="brief-card">
             <p className="eyebrow">{t('Mission report')}</p>
             <h2 id="debrief-title">
-              {allDone(m) ? t('Mission complete!') : hud.ended === 'battery' ? t('Battery depleted') : t('End of ephemeris coverage')}
+              {allDone(m) ? t('Mission complete!') : hud.ended === 'frozen' ? t('Rover frozen') : t('End of ephemeris coverage')}
             </h2>
-            {hud.ended === 'battery' && <p>{t('The rover froze in the lunar night. Stay where the real horizon lets the Sun through.')}</p>}
+            {hud.ended === 'frozen' && <p>{t('With the battery empty the heater stopped and the electronics fell below −40 °C. Stay where the real horizon lets the Sun through.')}</p>}
             <div className="brief-stats mono">
               <div><span className="hud-label">{t('Score')}</span><strong>{score(m, hud)}</strong></div>
               <div><span className="hud-label">{t('Objectives')}</span><strong>{doneCount}/{OBJECTIVES.length}</strong></div>

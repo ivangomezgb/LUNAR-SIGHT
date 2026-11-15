@@ -5,7 +5,7 @@ export const LESSONS: Record<ObjectiveId, { title: string; how: string; lesson: 
   drive: {
     title: 'Take the wheel: drive {0} m',
     how: 'Hold W or ↑ (or the ▲ button). Steer with A/D or ←/→.',
-    lesson: 'The real rover top speed is 0.2 m/s; time warp makes it look fast. Slopes over 15° stop it: the south pole is rough, cratered terrain.',
+    lesson: 'The real rover top speed is 0.2 m/s; time warp makes it look fast. Under lunar gravity the wheels lose grip above about 17°, and above 24° the rover slides: the south pole is rough, cratered terrain.',
   },
   shadow: {
     title: 'Find a shadow',

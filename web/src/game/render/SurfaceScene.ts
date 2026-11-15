@@ -11,10 +11,12 @@ import { landerModel } from './landerModel';
 import type { LanderState } from '../sim/lander';
 import { overlayUniform, SunlitBake, sunlitMaterial } from './sunlitTerrain';
 import type { Horizon } from '../sim/visibility';
+import { Dust } from './dust';
 
 export type CameraMode = 'chase' | 'mast' | 'top';
 const SKY_R = 150000;
 const MAX_TRACK = 20000;
+const EJECTA_ALT_M = 30; // engine plume reaches the ground below this altitude
 
 /** ENU (east, north, up) to three.js (x = east, y = up, z = south). */
 const v3 = (x: number, y: number, z: number) => new THREE.Vector3(x, z, -y);
@@ -31,7 +33,8 @@ export class SurfaceScene {
   private sky = new THREE.Mesh(new THREE.SphereGeometry(SKY_R * 1.2, 32, 16), new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide }));
   private rover = roverModel();
   private lander = landerModel();
-  private dust: THREE.Points;
+  private wheelDust: Dust;
+  private ejecta: Dust;
   private track: THREE.Line;
   private trackN = 0;
   private lastTrack = new THREE.Vector3(Infinity, 0, 0);
@@ -108,13 +111,10 @@ export class SurfaceScene {
     this.scene.add(this.rover.group);
     this.lander.group.visible = false;
     this.scene.add(this.lander.group);
-    // Dust kicked up by the engine near the ground (a disc of points pushed outward).
-    const n = 240, pos = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, r = 2 + Math.random() * 14; pos.set([Math.cos(a) * r, Math.random() * 1.5, Math.sin(a) * r], i * 3); }
-    const dg = new THREE.BufferGeometry();
-    dg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    this.dust = new THREE.Points(dg, new THREE.PointsMaterial({ color: 0xcfc6b6, size: 0.35, transparent: true, opacity: 0, depthWrite: false }));
-    this.scene.add(this.dust);
+    // Ballistic regolith: spray from the wheels and ejecta blown by the descent engine (dust.ts).
+    this.wheelDust = new Dust(lowEnd ? 500 : 1200, 0.07);
+    this.ejecta = new Dust(lowEnd ? 1500 : 4000, 0.3);
+    this.scene.add(this.wheelDust.points, this.ejecta.points);
     const trackGeo = new THREE.BufferGeometry();
     trackGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(MAX_TRACK * 3), 3));
     trackGeo.setDrawRange(0, 0);
@@ -210,12 +210,7 @@ export class SurfaceScene {
       this.lander.plume.position.y = 0.75 - (1 + thr * 9) / 2;
       this.lander.glow.intensity = thr * 60;
       const alt = lander.z - heightAt(this.field, lander.x, lander.y);
-      const dustOn = flying && thr > 0.05 && alt < 40;
-      const dm = this.dust.material as THREE.PointsMaterial;
-      dm.opacity += ((dustOn ? Math.min(0.7, thr * (1 - alt / 40)) : 0) - dm.opacity) * Math.min(1, dt * 4);
-      this.dust.position.copy(v3(lander.x, lander.y, heightAt(this.field, lander.x, lander.y)));
-      this.dust.rotation.y += dt * (0.6 + thr * 2);
-      this.dust.scale.setScalar(1 + thr * 0.6);
+      if (flying && thr > 0.05 && alt < EJECTA_ALT_M) this.emitEjecta(lander.x, lander.y, thr, alt, dt);
     } else {
       this.lander.group.visible = false;
     }
@@ -236,6 +231,11 @@ export class SurfaceScene {
     this.rover.panel.rotation.y = -(sky.sunAz - rover.heading) * Math.PI / 180 + Math.PI; // face the Sun
     this.rover.dish.rotation.y = -(sky.earthAz - rover.heading) * Math.PI / 180 + Math.PI;
     this.rover.headlight.intensity = w.sunFrac > 0.5 ? 0 : 6;
+    if (!flying && Math.abs(rover.speed) > 0.01) this.emitWheelDust(w, dt);
+    // Grains fly in wall-clock time (1×) so they stay visible at any time warp.
+    const fx = Math.min(dt, 0.05), groundAt = (x: number, y: number) => heightAt(this.field, x, y);
+    this.wheelDust.update(fx, groundAt);
+    this.ejecta.update(fx, groundAt);
 
     if (!flying && pos.distanceTo(this.lastTrack) > 1.5 && this.trackN < MAX_TRACK) {
       const arr = this.track.geometry.getAttribute('position') as THREE.BufferAttribute;
@@ -293,6 +293,34 @@ export class SurfaceScene {
     this.sunGlow.position.copy(this.sunDisk.position);
     this.earthDisk.position.copy(this.camera.position).addScaledVector(earthDir, SKY_R);
     this.renderer.render(this.scene, this.camera);
+  }
+
+  /** Exhaust hitting the ground blows regolith out radially at a few degrees above the surface. */
+  private emitEjecta(lx: number, ly: number, thr: number, alt: number, dt: number) {
+    const n = this.ejecta.quota(1400 * thr * (1 - alt / EJECTA_ALT_M), dt);
+    for (let k = 0; k < n; k++) {
+      const a = Math.random() * Math.PI * 2, r = 0.5 + Math.random() * (2 + alt * 0.15);
+      const x = lx + Math.cos(a) * r, y = ly + Math.sin(a) * r;
+      const speed = (8 + Math.random() * 30) * (0.4 + 0.6 * thr), el = (1.5 + Math.random() * 9) * Math.PI / 180;
+      const h = Math.cos(el) * speed;
+      this.ejecta.emit(x, y, heightAt(this.field, x, y) + 0.05, Math.cos(a) * h, Math.sin(a) * h, Math.sin(el) * speed, this.bake.sample(x, y));
+    }
+  }
+
+  /** Grousers flick regolith up and back from the wheels; spinning wheels dig and throw more. */
+  private emitWheelDust(w: World, dt: number) {
+    const { rover } = w, slip = rover.slip || rover.blocked === 'slope';
+    const rate = 260 * Math.min(1, (Math.abs(rover.speed) * w.warp) / 2 + (slip ? 1 : 0)) * (slip ? 2.5 : 1);
+    const n = this.wheelDust.quota(rate, dt);
+    const h = rover.heading * Math.PI / 180, fx = Math.sin(h), fy = Math.cos(h), back = -Math.sign(rover.speed);
+    for (let k = 0; k < n; k++) {
+      const side = Math.random() < 0.5 ? -0.85 : 0.85, along = Math.random() < 0.5 ? -0.9 : 0.9;
+      const x = rover.x + fx * along + fy * side, y = rover.y + fy * along - fx * side;
+      const speed = (0.4 + Math.random() * 0.8) * (slip ? 1.6 : 1), el = (25 + Math.random() * 40) * Math.PI / 180;
+      const spread = (Math.random() - 0.5) * 0.6, hz = Math.cos(el) * speed;
+      const vx = back * fx * hz + fy * spread, vy = back * fy * hz - fx * spread;
+      this.wheelDust.emit(x, y, heightAt(this.field, x, y) + 0.03, vx, vy, Math.sin(el) * speed, this.bake.sample(x, y));
+    }
   }
 
   dispose() {

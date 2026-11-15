@@ -5,20 +5,43 @@
 export const RULES = {
   gravity: 1.62, // m/s^2, real lunar surface gravity
   rover: {
+    massKg: 430, // VIPER-class rover
     maxSpeed: 0.2, // m/s, VIPER-class top speed (time warp makes it feel faster)
-    accel: 0.05, // m/s^2
+    mu: 0.45, // wheel–regolith traction coefficient (loose lunar soil, order of magnitude)
+    crr: 0.15, // rolling resistance in loose regolith
+    responseS: 0.5, // speed controller time constant
+    motorW: 150, // max mechanical power of the wheel motors
+    motorEff: 0.6, // electrical → mechanical efficiency
+    driveBaseW: 40, // motor drives and steering electronics while moving
+    maxSlideSpeed: 1.5, // m/s cap while sliding down a slope it cannot hold
     turnRate: 12, // deg/s at full steer
-    maxClimbDeg: 15, // steepest grade it can drive up
-    tipDeg: 25, // cross slope that tips it over
+    tipDeg: 25, // cross slope that rolls it over (side-slip starts near atan(mu) ≈ 24°)
     eyeH: 2, // m, panel/antenna height used for Sun and Earth visibility
     edgeMarginM: 60, // keep this far inside the 10 m terrain grid
   },
   power: {
     batteryWh: 2000,
-    panelW: 450, // vertical panel that tracks the Sun azimuth; output ∝ visible solar disk
-    hotelW: 90, // avionics, always on
-    driveW: 200, // extra while moving
-    heaterW: 150, // extra survival heating while in shadow
+    solarWm2: 1361, // solar constant at 1 AU (no atmosphere on the Moon)
+    panelAreaM2: 1.15, // vertical array that turns to face the Sun's azimuth
+    panelEff: 0.29, // triple-junction cells at 28 °C
+    panelTempCoef: -0.003, // relative efficiency change per °C
+    hotelW: 90, // avionics, always on (off when the rover is dormant)
+    heaterW: 150, // survival heater, thermostat controlled
+    reviveFrac: 0.05, // a dormant rover reboots when the battery is back at 5 %
+  },
+  thermal: {
+    capacityJK: 6.0e4, // lumped heat capacity of the warm electronics box
+    radiatorM2: 1.2,
+    emissivity: 0.85,
+    absorptivity: 0.25, // white-paint / foil average for sunlight
+    sunAreaM2: 1.0, // area facing the grazing Sun
+    sinkSunK: 220, // effective radiative environment in sunlight (lit polar ground + sky)
+    sinkShadowK: 100, // in shadow (cold ground + 3 K sky)
+    heaterOnC: -10,
+    heaterOffC: 0,
+    freezeC: -40, // electronics survival limit
+    hotC: 60, // above this the drives stop to cool down
+    startC: 20,
   },
   science: {
     scanWh: 20, // energy of one science scan (spectrometer + drill sample), rover stopped
