@@ -9,7 +9,7 @@ Lunar Landing Site Navigator
 
 ## High-Level Project Summary
 
-Lunar Landing Site Navigator is a web app that shows what a lander would actually see at 15 candidate
+Lunar Landing Site Navigator is a web app that shows what a lander would actually see at 17 candidate
 sites near the lunar south pole: the real horizon, computed from NASA LOLA elevation models out to
 200 km, with the paths of the Sun and Earth across it. From that it computes the two things a south-pole
 mission lives or dies by, sunlight for power and Earth visibility for communications, hour by hour
@@ -31,7 +31,7 @@ above a 0.8° horizon).
 
 **What it does**
 
-- **Explore**: a polar map of 15 sites: the NASA Artemis III candidate regions, Shackleton's rim and Mons
+- **Explore**: a polar map of 17 sites: all nine NASA Artemis III candidate regions of 2024 plus four from 2022, Shackleton's rim and Mons
   Mouton, where IM-2 *Athena* landed. For each site, a 360° panorama shows the real terrain horizon with the
   Sun's path (gold) and Earth's path (blue, dashed) over the mission, animated through time. The panorama
   comes with eight metrics (sunlight %, longest day and night, Earth visibility %, hours to sunset and

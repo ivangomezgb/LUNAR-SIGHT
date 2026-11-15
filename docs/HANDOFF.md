@@ -8,8 +8,8 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 
 | Plan | Estado | Dónde |
 | --- | --- | --- |
-| 1. 10–15 sitios curados con fuente, mapa polar, comparar hasta 3 | ✅ 15 sitios | `pipeline/config/sites.yaml`, `SiteMap.tsx`, `Compare.tsx` |
-| 1b. Coordenadas libres | ❌ diferido (ver §3) | — |
+| 1. 10–15 sitios curados con fuente, mapa polar, comparar hasta 3 | ✅ 17 sitios (las 9 regiones Artemis III de 2024) | `pipeline/config/sites.yaml`, `SiteMap.tsx`, `Compare.tsx` |
+| 1b. Coordenadas libres | ✅ aproximado, `#/free` | `lib/freepoint.ts`, `docs/freepoint.md` |
 | 2. Máscara de horizonte real | ✅ 5/10 m → 20 m → 240 m, hasta 200 km, alturas 1/2/5/10 m | `lln/horizon.py`, `lln/dem.py` |
 | 3. Sol y Tierra cada hora nov 2026 – dic 2028 | ✅ SPICE DE440, n = 19008 | `lln/ephem.py` |
 | 4. Panorama 360° | ✅ SVG 2D (azimut × elevación) | `PanoramaChart.tsx`, `Panorama.tsx` |
@@ -113,10 +113,13 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
   - usar varios años en lugar de solo 2027.
 - Falta comparar la iluminación con valores publicados en más sitios (hoy solo Mazarico 2011 en Connecting Ridge:
   80,9 % nuestro contra ~86–89 % publicado). También falta la prueba visual de siluetas con Quickmap/Moon Trek (`docs/validation.md`).
-- Faltan como sitios curados "Peak near Cabeus B" y "Slater Plain" (lista 2024). La fuente oficial son las
-  cuadrículas de navegación del USGS (McClernan 2024, doi:10.5066/P1MEQ6UK; ScienceBase bloquea descargas
-  automáticas, hay que bajarlas desde el navegador). Centros calculados por terceros (github.com/yutuf/lmNasa):
-  −83,6514°, −68,7263° E y −87,1697°, 125,4596° E; ya se pueden consultar en `#/free` (aproximado).
+- "Peak near Cabeus B" y "Slater Plain" (lista 2024) ya son sitios curados: centro de la cuadrícula LGRS de 1 km del
+  USGS (McClernan 2024, doi:10.5066/P1MEQ6UK), calculado con `pipeline/scripts/usgs_region_center.py`
+  (los shapefiles van en `pipeline/data/raw/usgs_artemis/`, gitignored; ScienceBase bloquea descargas
+  automáticas). Cabeus B está al norte del mosaico de 5 m: su campo cercano usa LOLA 10 m (83° S). Ninguno de
+  los dos está cubierto por los clones de PGDA 78, así que no tienen incertidumbre.
+- `export.py` conserva la incertidumbre ya publicada si no hay intermedio local y la máscara de 2 m no cambió
+  (los clones se calculan en GitHub Actions); un export local ya no la borra.
 - Chandrayaan-3 (69,4° S) quedó fuera, porque no lo cubre ningún DEM de 80° S ni el mapa base.
 - Las filas de `validation.json` guardan `d_az`/`d_el` redondeados (se ven como 0). El resumen sí tiene el valor exacto.
 
