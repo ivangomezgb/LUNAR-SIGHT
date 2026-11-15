@@ -1852,3 +1852,7 @@ body .risk-tip-content { background: var(--panel-2, #1b222b); border: 1px solid 
 
 /* Compare: landing-risk level and uncertainty under each site card. */
 .compare-extra { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 12px; }
+
+/* Visible label for the panorama playback speed. */
+.speed { display: inline-flex; align-items: center; gap: 6px; }
+.speed-label { font-size: .75rem; color: var(--text-2, #bac5d3); }

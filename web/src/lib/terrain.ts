@@ -8,6 +8,8 @@ export type CameraMode = 'overview' | 'first' | 'pano';
 export interface ViewProps {
   siteId: string; sunAz: number; sunEl: number; earthAz: number; earthEl: number; horizon: number[]; horizonStep: number;
   sunTrail?: Trail; earthTrail?: Trail; mode?: CameraMode; onMode?: (mode: CameraMode) => void;
+  /** Sun above the site's real 2 m horizon mask at the current hour (drives the night hint). */
+  sunVisible?: boolean;
 }
 export const MISSING_3D = '3D data not generated yet for this site';
 export const WEBGL_UNAVAILABLE = 'WebGL is unavailable in this browser, so the 3D view cannot start';

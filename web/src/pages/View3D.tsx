@@ -123,7 +123,7 @@ export default function View3D() {
           <div className="expedition-actions">
             <div className="expedition-modes" role="group" aria-label={t('View')}>
               <button aria-pressed={mode === 'overview'} onClick={() => switchMode('overview')}>{t('3D overview')}</button>
-              <button aria-pressed={mode === 'first'} onClick={() => switchMode('first')}>{t('First person · 2 m')}</button>
+              <button aria-pressed={mode === 'first'} onClick={() => switchMode('first')}>{t('First person')}</button>
               <button aria-pressed={mode === 'pano'} onClick={() => switchMode('pano')}>{t('Astronaut 360°')}</button>
             </div>
             <button className="expedition-fullscreen" onClick={fullscreen} aria-label={t('Toggle fullscreen')} title={t('Toggle fullscreen')}>⛶</button>
@@ -137,7 +137,7 @@ export default function View3D() {
         </div>
         {site && series && <>
           <Suspense fallback={<div className="expedition-loading" role="status">{t('Loading 3D viewer…')}<progress /></div>}>
-            <View mode={mode} onMode={switchMode} sunTrail={trails?.sun} earthTrail={trails?.earth} siteId={site.id} sunAz={series.sunAz[index]} sunEl={series.sunEl[index]} earthAz={series.earthAz[index]} earthEl={series.earthEl[index]} horizon={site.horizon.elev_cdeg[String(viewHeight)]} horizonStep={site.horizon.az_step_deg} />
+            <View mode={mode} onMode={switchMode} sunVisible={series.sunEl[index] >= series.horizonSunEl[index]} sunTrail={trails?.sun} earthTrail={trails?.earth} siteId={site.id} sunAz={series.sunAz[index]} sunEl={series.sunEl[index]} earthAz={series.earthAz[index]} earthEl={series.earthEl[index]} horizon={site.horizon.elev_cdeg[String(viewHeight)]} horizonStep={site.horizon.az_step_deg} />
           </Suspense>
           <div className="expedition-timeline">
             <div className="expedition-time-row">

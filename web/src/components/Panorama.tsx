@@ -210,9 +210,10 @@ export default function Panorama({ site }: { site: SiteData }) {
           <div className="tr-main">T+{Math.floor(cursorH)} h</div>
           <div className="tr-sub">{fmtUtc(cursorTime)}</div>
         </div>
-        <label className="speed">
-          <span className="sr-only">{t("Playback speed")}</span>
-          <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))} className="select">
+        <label className="speed" title={t("Animation speed: simulated hours per real second")}>
+          <span className="speed-label">{t("Speed")}</span>
+          {/* Speed only matters while playing, so choosing one also starts the animation. */}
+          <select value={speed} onChange={(e) => { setSpeed(Number(e.target.value)); if (!playing) { if (cursorH >= totalH) setCursorH(0); setPlaying(true); } }} className="select" aria-label={t("Playback speed")}>
             {SPEEDS.map((s) => (
               <option key={s} value={s}>
                 {s} h/s
