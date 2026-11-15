@@ -1844,3 +1844,8 @@ body { background: var(--bg); }
 .explore-main .risk-high { color: #ff9a9a; background: rgba(220, 60, 60, .14); }
 .explore-main .risk-shadow svg { color: var(--sun); }
 .explore-main .risk-tip-content { background: var(--panel-2, #1b222b); border: 1px solid var(--line-2); }
+
+/* Apolo404 team logo in the top bar (transparent PNG/WebP, white + blue strokes). */
+.brand-logo { display: block; flex-shrink: 0; line-height: 0; }
+.brand-logo img { display: block; height: 52px; width: auto; }
+@media (max-width: 699px) { .brand-logo img { height: 38px; } }

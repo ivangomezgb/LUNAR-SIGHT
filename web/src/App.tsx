@@ -28,11 +28,10 @@ function Nav() {
     <header className="topbar">
       <a href="#main" className="skip-link"> {t("Skip to content")} </a>
       <NavLink to={exploreLink} className="brand" aria-label={t("Lunar Landing Site Navigator, home")}>
-        <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden>
-          <path d="M2 24 L9 17 L13 20 L19 12 L30 22 L30 30 L2 30 Z" fill="var(--terrain-hi)" />
-          <circle cx="23" cy="8" r="4" fill="var(--sun)" />
-          <circle cx="8" cy="8" r="2.6" fill="var(--earth)" />
-        </svg>
+        <picture className="brand-logo">
+          <source srcSet={`${import.meta.env.BASE_URL}media/apolo404-logo.webp`} type="image/webp" />
+          <img src={`${import.meta.env.BASE_URL}media/apolo404-logo.png`} width={255} height={112} alt="Apolo404" decoding="async" />
+        </picture>
         <span className="brand-text">
           <span className="brand-name">{t("Lunar Landing Site Navigator")}</span>
           <span className="brand-sub">{t("South pole · Sun & Earth visibility")}</span>
