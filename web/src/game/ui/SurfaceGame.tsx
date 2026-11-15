@@ -20,6 +20,7 @@ import { skyAt } from '../sim/clock';
 import Minimap from './Minimap';
 import DescentPanel from './DescentPanel';
 import KeyHints from './KeyHints';
+import { type Action, actionOf, isTyping, letterOf, warpStepOf } from './controls';
 import { clearSave, loadSave, writeSave } from './save';
 import Icon from '../../components/Icon';
 
@@ -36,7 +37,6 @@ interface Props {
   illum?: IllumMap | null;
 }
 
-const KEYS = { up: ['w', 'arrowup'], down: ['s', 'arrowdown'], left: ['a', 'arrowleft'], right: ['d', 'arrowright'], thrust: [' '] };
 type Phase = 'brief' | 'descent' | 'surface';
 const TARGET = { x: 0, y: 0 };
 const objectiveTitle = (id: ObjectiveId) =>
@@ -50,7 +50,10 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
   const world = useRef<World>({ ...newWorld(env, startMs), paused: true });
   const mission = useRef<MissionState>(newMission(env.field, startMs, illum ? (x, y) => illumAt(illum, 'light', x, y) : undefined));
   const sceneRef = useRef<SurfaceScene | null>(null);
-  const keys = useRef(new Set<string>());
+  const keys = useRef(new Set<Action>());
+  // The descent waits for the player's first control, so nobody starts it already falling.
+  const waitingRef = useRef(false);
+  const [waiting, setWaiting] = useState(false);
   const touch = useRef({ throttle: 0, steer: 0, thrust: 0 });
   const [hud, setHud] = useState<World>(world.current);
   const [m, setM] = useState<MissionState>(mission.current);
@@ -108,13 +111,17 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
     const loop = (now: number) => {
       const dt = Math.min(0.25, (now - last) / 1000);
       last = now;
-      const k = keys.current, any = (names: string[]) => names.some((n) => k.has(n));
+      const k = keys.current;
       const input = {
-        throttle: (any(KEYS.up) ? 1 : 0) - (any(KEYS.down) ? 1 : 0) + touch.current.throttle,
-        steer: (any(KEYS.right) ? 1 : 0) - (any(KEYS.left) ? 1 : 0) + touch.current.steer,
+        throttle: (k.has('up') ? 1 : 0) - (k.has('down') ? 1 : 0) + touch.current.throttle,
+        steer: (k.has('right') ? 1 : 0) - (k.has('left') ? 1 : 0) + touch.current.steer,
       };
       if (phaseRef.current === 'descent' && landerRef.current) {
-        const lin = { throttle: any(KEYS.thrust) || touch.current.thrust ? 1 : 0, east: input.steer, north: (any(KEYS.up) ? 1 : 0) - (any(KEYS.down) ? 1 : 0) + touch.current.throttle };
+        const lin = { throttle: k.has('thrust') || touch.current.thrust ? 1 : 0, east: input.steer, north: (k.has('up') ? 1 : 0) - (k.has('down') ? 1 : 0) + touch.current.throttle };
+        if (waitingRef.current) {
+          if (k.size || touch.current.thrust || touch.current.throttle || touch.current.steer) { waitingRef.current = false; setWaiting(false); }
+          else { scene.render(world.current, dt, landerRef.current, true); frame = requestAnimationFrame(loop); return; }
+        }
         let l = landerRef.current;
         for (let t2 = 0; t2 < dt && !l.landed; t2 += 0.02) l = stepLander(env.field, l, lin, Math.min(0.02, dt - t2));
         if (l.landed && !landerRef.current.landed) {
@@ -156,22 +163,30 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
     };
     frame = requestAnimationFrame(loop);
 
-    const typing = (e: KeyboardEvent) => e.target instanceof Element && !!e.target.closest('input, textarea, select');
     const down = (e: KeyboardEvent) => {
-      if (typing(e)) return;
-      const key = e.key.toLowerCase();
-      if (Object.values(KEYS).flat().includes(key)) { e.preventDefault(); keys.current.add(key); }
-      if (phaseRef.current !== 'surface') return;
-      if (key === 'p') world.current = { ...world.current, paused: !world.current.paused };
-      if (key === 'e') scanRef.current();
-      if (key === '[' || key === ']') {
+      if (isTyping(e.target)) return;
+      const action = actionOf(e);
+      if (action && phaseRef.current !== 'brief') {
+        e.preventDefault(); // no page scroll, and Space never presses a focused button
+        keys.current.add(action);
+      }
+      if (phaseRef.current !== 'surface' || e.ctrlKey || e.metaKey || e.altKey) return;
+      const letter = letterOf(e), step = warpStepOf(e);
+      if (letter === 'p') world.current = { ...world.current, paused: !world.current.paused };
+      if (letter === 'e') scanRef.current();
+      if (step) {
         const i = WARPS.indexOf(world.current.warp as (typeof WARPS)[number]);
-        const next = WARPS[Math.max(0, Math.min(WARPS.length - 1, i + (key === ']' ? 1 : -1)))];
+        const next = WARPS[Math.max(0, Math.min(WARPS.length - 1, i + step))];
         world.current = { ...world.current, warp: next };
       }
-      if (key === 'c') setCamera((c) => (c === 'chase' ? 'mast' : c === 'mast' ? 'top' : 'chase'));
+      if (letter === 'c') setCamera((c) => (c === 'chase' ? 'mast' : c === 'mast' ? 'top' : 'chase'));
     };
-    const up = (e: KeyboardEvent) => keys.current.delete(e.key.toLowerCase());
+    const up = (e: KeyboardEvent) => {
+      // release by both mappings: a key pressed with Ctrl down may come back without it
+      const a = actionOf({ code: e.code, key: e.key }), b = actionOf({ key: e.key });
+      if (a) keys.current.delete(a);
+      if (b) keys.current.delete(b);
+    };
     const blur = () => keys.current.clear();
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
@@ -208,7 +223,11 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
   }, [scanMsg]);
 
   const set = (patch: Partial<World>) => { world.current = { ...world.current, ...patch }; setHud(world.current); };
-  const focusView = () => sceneRef.current?.renderer.domElement.focus();
+  const focusView = () => {
+    // a button that keeps focus would also react to Space: hand the keyboard to the 3D view
+    if (document.activeElement instanceof HTMLElement) document.activeElement.blur();
+    sceneRef.current?.renderer.domElement.focus({ preventScroll: true });
+  };
   const beginSurface = (at: { x: number; y: number } | null) => {
     landingRef.current = at;
     const spot = at ? { x: at.x + 5, y: at.y - 3 } : { x: 0, y: 0 };
@@ -220,6 +239,8 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
     setBriefing(false); setLanding(null);
     landerRef.current = newLander(env.field, TARGET);
     setLanderHud(landerRef.current);
+    keys.current.clear();
+    waitingRef.current = true; setWaiting(true);
     setPhase('descent');
     focusView();
   };
@@ -393,7 +414,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
             <span className="hud-label"><Icon name="earth" size={13} /> {t('Earth link')}</span>
             <span className="mono small">{hud.earthUp ? t('Connected') : t('No line of sight')}</span>
             <span className="mono small gauge-sub">{t('{0} MB waiting · {1} MB sent', { 0: hud.power.dataMB.toFixed(1), 1: hud.power.sentMB.toFixed(1) })}</span>
-            {!hud.earthUp && hud.power.dataMB > 0 && <span className="hud-note small gauge-sub">{t('Data waits until the Earth rises: try ] to speed up time')}</span>}
+            {!hud.earthUp && hud.power.dataMB > 0 && <span className="hud-note small gauge-sub">{t('Data waits until the Earth rises: press + to speed up time')}</span>}
           </div>
           <div className="gauge">
             <span className="hud-label">{t('Rover')}</span>
@@ -441,7 +462,24 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
       {(phase === 'descent' || phase === 'surface') && !briefing && !debrief && !landing && (
         keysOpen
           ? <KeyHints phase={phase} onClose={() => setKeysOpen(false)} />
-          : <button type="button" className="key-hints-toggle ctl-keys" onClick={() => setKeysOpen(true)} aria-label={t('Show the keyboard controls')}>⌨</button>
+          : <button type="button" className="key-hints-toggle ctl-keys" onClick={() => setKeysOpen(true)} aria-label={t('Show the keyboard controls')}><Icon name="keyboard" size={18} /></button>
+      )}
+
+      {phase === 'descent' && waiting && !landing && (
+        <div className="descent-ready" role="dialog" aria-labelledby="ready-title">
+          <p className="eyebrow">{t('Stage 2 · Descent')}</p>
+          <h2 id="ready-title">{t('Ready to land at {0}', { 0: site.name })}</h2>
+          <p>{t('You are {0} m above the landing spot and falling. Brake with the main engine and touch down gently.', { 0: Math.round(landerHud ? landerHud.z - heightAtSite(landerHud.x, landerHud.y) : 900) })}</p>
+          <div className="ready-keys ctl-keys">
+            <kbd className="keycap is-wide">{t('SPACE')}</kbd><span>{t('hold to brake')}</span>
+            <kbd className="keycap">W</kbd><kbd className="keycap">A</kbd><kbd className="keycap">S</kbd><kbd className="keycap">D</kbd><span>{t('slide sideways')}</span>
+          </div>
+          <p className="ctl-touch small">{t('Hold THRUST to brake; the arrows slide sideways.')}</p>
+          <button type="button" className="btn btn-primary btn-lg" onClick={() => { waitingRef.current = false; setWaiting(false); focusView(); }}>
+            <Icon name="play" size={14} /> {t('Start the descent')}
+          </button>
+          <p className="small muted ctl-keys">{t('or just press SPACE')}</p>
+        </div>
       )}
 
       {phase === 'descent' && landerHud && (
@@ -503,7 +541,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
             </ul>
             <div className="brief-controls">
               {phase === 'brief' && <div className="ctl-keys"><span className="hud-label">{t('Landing')}</span><span>{t('SPACE engine · arrows / WASD slide sideways')}</span></div>}
-              <div className="ctl-keys"><span className="hud-label">{t('Keyboard')}</span><span>{t('W/S or ↑/↓ drive · A/D or ←/→ steer · E scan · [ ] time warp · C camera · P pause · drag to look')}</span></div>
+              <div className="ctl-keys"><span className="hud-label">{t('Keyboard')}</span><span>{t('W/S or ↑/↓ drive · A/D or ←/→ steer · E scan · − + time warp · C camera · P pause · drag to look')}</span></div>
               <div className="ctl-touch"><span className="hud-label">{t('Touch')}</span><span>{t('Arrow pad to drive · Scan button · drag to look around')}</span></div>
             </div>
             {phase === 'surface' ? (

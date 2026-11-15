@@ -6,8 +6,14 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import type { Basemap, SiteIndexEntry } from '../../lib/types';
 import { disposeScene, phaseEarth, releaseRenderer } from '../../components/three/sceneTools';
 import { latLonToMap, mapToSphere, R_KM, upAt } from '../sim/polar';
+import { landerModel, type LanderModel } from './landerModel';
 
 const CAP_SEGMENTS = 128;
+const SHIP_ALT_KM = 22; // cruise altitude between stations
+const SHIP_SCALE = 0.38; // metres → km × 380: the ship is drawn far larger than real so it reads from orbit
+const PIN_ALT_KM = 0.2;
+const smooth = (a: number, b: number, x: number) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+const ease = (k: number) => (k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2);
 
 export interface OrbitSky { sun: [number, number, number]; earth: [number, number, number] }
 
@@ -24,7 +30,21 @@ export class OrbitScene {
   private node: HTMLElement;
   private resizeObs: ResizeObserver;
   private frame = 0;
-  private fly: { t0: number; ms: number; from: THREE.Vector3; to: THREE.Vector3; fromT: THREE.Vector3; toT: THREE.Vector3; done: () => void } | null = null;
+  private fly: { t0: number; ms: number; from: THREE.Vector3; to: THREE.Vector3; fromT: THREE.Vector3; toT: THREE.Vector3; done: () => void; ship?: [THREE.Vector3, THREE.Vector3] } | null = null;
+  // The player's ship hops between stations (the candidate sites) at cruise altitude.
+  private ship: LanderModel;
+  private shipPos = new THREE.Vector3();
+  private shipUp = new THREE.Vector3(0, 1, 0);
+  private shipFwd = new THREE.Vector3(0, 0, -1);
+  private shipAt: string | null = null;
+  private travel: { t0: number; ms: number; id: string; a: THREE.Vector3; b: THREE.Vector3; aFwd: THREE.Vector3; hump: number; bank: number; side: number } | null = null;
+  private selected: string | null = null;
+  private sunGlow: THREE.Sprite;
+  private earthDir = new THREE.Vector3(0, 0.05, -1).normalize();
+  /** The ship reached a station. */
+  onArrive: (id: string) => void = () => {};
+  /** True while the ship is flying between stations. */
+  get traveling() { return !!this.travel; }
   private reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   private disposeInput: () => void;
   private moonCenter: THREE.Vector3;
@@ -104,9 +124,27 @@ export class OrbitScene {
       this.scene.add(group);
       this.pins.set(s.id, { group, head, hit, base });
     }
-    this.ring = new THREE.Mesh(new THREE.RingGeometry(2.4, 3.1, 48), new THREE.MeshBasicMaterial({ color: 0xf4ce72, side: THREE.DoubleSide, transparent: true, opacity: 0.9 }));
+    this.ring = new THREE.Mesh(new THREE.RingGeometry(2.4, 3.1, 48), new THREE.MeshBasicMaterial({ color: 0x4a9bff, side: THREE.DoubleSide, transparent: true, opacity: 0.95 }));
     this.ring.visible = false;
     this.scene.add(this.ring, this.earth);
+
+    this.ship = landerModel();
+    this.ship.glow.intensity = 0;
+    this.ship.plume.visible = false;
+    this.ship.group.scale.setScalar(SHIP_SCALE);
+    this.ship.group.visible = false;
+    this.scene.add(this.ship.group);
+
+    // The Sun as seen from orbit: a glow at its real direction (the Earth mesh shows its real phase).
+    const glowCanvas = document.createElement('canvas');
+    glowCanvas.width = glowCanvas.height = 128;
+    const g = glowCanvas.getContext('2d')!, grad = g.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, 'rgba(255,248,230,1)'); grad.addColorStop(0.1, 'rgba(255,232,180,.65)'); grad.addColorStop(1, 'rgba(255,200,120,0)');
+    g.fillStyle = grad; g.fillRect(0, 0, 128, 128);
+    this.sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(glowCanvas), blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
+    const glow = Math.tan(4 * Math.PI / 180) * 50000 * 2;
+    this.sunGlow.scale.set(glow, glow, 1);
+    this.scene.add(this.sunGlow);
 
     // Globe navigation (Google-Earth-like): orbit the Moon's centre, zoom from the whole Moon to
     // ~20 km above the ground; the south pole starts facing the viewer.
@@ -170,10 +208,126 @@ export class OrbitScene {
     this.sunLight.position.set(...sky.sun).multiplyScalar(5000);
     this.earth.material.uniforms.sunDirection.value.set(...sky.sun);
     this.earth.position.set(...sky.earth).multiplyScalar(60000);
+    this.earthDir.set(...sky.earth).normalize();
+    this.sunGlow.position.set(...sky.sun).multiplyScalar(50000);
+  }
+
+  /** Where the ship parks over a station: position, local up and a heading that faces the Earth. */
+  private station(id: string) {
+    const pin = this.pins.get(id);
+    if (!pin) return null;
+    const up = pin.base.clone().sub(this.moonCenter).normalize();
+    const pos = this.moonCenter.clone().addScaledVector(up, R_KM + PIN_ALT_KM + SHIP_ALT_KM);
+    return { pos, up, fwd: this.facingEarth(up) };
+  }
+
+  private facingEarth(up: THREE.Vector3) {
+    const f = this.earthDir.clone().addScaledVector(up, -this.earthDir.dot(up));
+    return f.lengthSq() > 1e-8 ? f.normalize() : new THREE.Vector3(0, 0, -1).addScaledVector(up, -up.z).normalize();
+  }
+
+  /**
+   * Chase camera looking at the ship (horizon and Earth ahead). `swing` turns the camera around
+   * the ship (rad) and `pull` moves it out, for the cinematic part of a flight.
+   */
+  private chase(pos: THREE.Vector3, up: THREE.Vector3, fwd: THREE.Vector3, swing = 0, pull = 0) {
+    const side = up.clone().cross(fwd).normalize();
+    const back = fwd.clone().multiplyScalar(-Math.cos(swing)).addScaledVector(side, Math.sin(swing));
+    const dist = 7 + pull * 30;
+    return { cam: pos.clone().addScaledVector(back, dist).addScaledVector(up, 1.5 + pull * 9), look: pos.clone().addScaledVector(up, 0.3) };
+  }
+
+  /** Place the ship; `tilt` leans it forward (+) or back (−) and `roll` banks it (rad). */
+  private placeShip(pos: THREE.Vector3, up: THREE.Vector3, fwd: THREE.Vector3, tilt = 0, roll = 0) {
+    this.shipPos.copy(pos); this.shipUp.copy(up); this.shipFwd.copy(fwd);
+    const back = fwd.clone().negate(), right = up.clone().cross(back).normalize();
+    this.ship.group.position.copy(pos);
+    this.ship.group.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, back));
+    if (tilt || roll) this.ship.group.quaternion.multiply(new THREE.Quaternion().setFromEuler(new THREE.Euler(-tilt, 0, roll, 'XZY')));
+  }
+
+  private orbitAround(target: THREE.Vector3, min: number, max: number) {
+    this.controls.target.copy(target);
+    this.controls.minDistance = min;
+    this.controls.maxDistance = max;
+  }
+
+  /**
+   * Take the ship to station `id`: from far away the camera dives to it; from another station
+   * the ship flies over the real Moon (rising mid-way) with the camera behind it.
+   */
+  goToStation(id: string) {
+    const st = this.station(id);
+    if (!st) return;
+    this.select(id);
+    this.cancelIntro();
+    this.controls.autoRotate = false;
+    if (this.travel) return;
+    this.fly = null; // a new destination interrupts any camera glide
+    if (!this.shipAt || this.far) {
+      this.placeShip(st.pos, st.up, st.fwd);
+      this.shipAt = id;
+      const c = this.chase(st.pos, st.up, st.fwd);
+      const arrive = () => { this.orbitAround(c.look, 2.5, 900); this.controls.enabled = true; this.onArrive(id); };
+      if (this.reduced) { this.camera.position.copy(c.cam); this.camera.lookAt(c.look); arrive(); return; }
+      this.controls.enabled = false;
+      this.fly = { t0: performance.now(), ms: 2600, from: this.camera.position.clone(), to: c.cam, fromT: this.controls.target.clone(), toT: c.look, done: arrive };
+      return;
+    }
+    if (id === this.shipAt) {
+      const c = this.chase(this.shipPos, this.shipUp, this.shipFwd);
+      this.controls.enabled = false;
+      this.fly = { t0: performance.now(), ms: 900, from: this.camera.position.clone(), to: c.cam, fromT: this.controls.target.clone(), toT: c.look, done: () => { this.orbitAround(c.look, 2.5, 900); this.controls.enabled = true; } };
+      return;
+    }
+    const a = this.shipPos.clone().sub(this.moonCenter).normalize(), b = st.up;
+    const distKm = a.angleTo(b) * R_KM;
+    // bank into the turn: which side the destination lies on, seen from the current heading
+    const toward = b.clone().addScaledVector(a, -b.dot(a)).normalize();
+    const turn = Math.sign(this.shipFwd.clone().cross(toward).dot(a)) || 1;
+    this.controls.enabled = false;
+    this.ship.plume.visible = !this.reduced;
+    this.travel = {
+      t0: performance.now(), ms: this.reduced ? 1 : Math.min(8000, 3600 + distKm * 14), id, a, b, aFwd: this.shipFwd.clone(),
+      // climb high enough to see the curve of the Moon on longer hops
+      hump: Math.min(240, 40 + distKm * 0.9), bank: turn, side: turn,
+    };
+  }
+
+  private stepTravel() {
+    const tr = this.travel!, k = Math.min(1, (performance.now() - tr.t0) / tr.ms), e = ease(k);
+    const th = tr.a.angleTo(tr.b), sin = Math.sin(th) || 1;
+    const up = th < 1e-6 ? tr.b.clone() : tr.a.clone().multiplyScalar(Math.sin((1 - e) * th) / sin).addScaledVector(tr.b, Math.sin(e * th) / sin).normalize();
+    const pos = this.moonCenter.clone().addScaledVector(up, R_KM + PIN_ALT_KM + SHIP_ALT_KM + tr.hump * Math.sin(Math.PI * e));
+    const toward = tr.b.clone().addScaledVector(up, -tr.b.dot(up));
+    const travelFwd = toward.lengthSq() > 1e-10 ? toward.normalize() : tr.aFwd.clone();
+    // turn from the start heading into the flight, then towards the Earth on arrival
+    const fwd = tr.aFwd.clone().lerp(travelFwd, smooth(0, 0.25, k)).lerp(this.facingEarth(up), smooth(0.7, 1, k)).normalize();
+    const arc = Math.sin(Math.PI * k);
+    // lean forward to accelerate, back to brake; bank through the turns
+    const tilt = 0.38 * Math.cos(Math.PI * k) * smooth(0, 0.08, k) * (1 - smooth(0.92, 1, k));
+    const roll = tr.bank * 0.45 * (smooth(0, 0.2, k) - smooth(0.15, 0.4, k) + 0.6 * (smooth(0.65, 0.8, k) - smooth(0.8, 1, k)));
+    this.placeShip(pos, up, fwd, tilt, roll);
+    const thr = 0.35 + 0.65 * Math.abs(Math.cos(Math.PI * k));
+    this.ship.plume.scale.set(0.6 + thr * 0.5, 1 + thr * 6, 0.6 + thr * 0.5);
+    this.ship.plume.position.y = 0.75 - (1 + thr * 6) / 2;
+    // cinematic camera: swings to the side and pulls out mid-flight, then back behind the ship
+    const c = this.chase(pos, up, fwd, tr.side * 1.25 * arc * arc, arc);
+    this.camera.position.copy(c.cam);
+    this.camera.lookAt(c.look);
+    if (k >= 1) {
+      this.travel = null;
+      this.ship.plume.visible = false;
+      this.shipAt = tr.id;
+      this.orbitAround(c.look, 2.5, 900);
+      this.controls.enabled = true;
+      this.onArrive(tr.id);
+    }
   }
 
   /** Highlight a site; with `fly`, glide the camera to look down on it from ~250 km. */
   select(id: string | null, fly = false) {
+    this.selected = id;
     for (const [k, p] of this.pins) p.head.scale.setScalar(k === id ? 1.9 : 1);
     const pin = id ? this.pins.get(id) : null;
     this.ring.visible = !!pin;
@@ -190,13 +344,16 @@ export class OrbitScene {
     const tilt = new THREE.Vector3(0, 1, 0).cross(up).lengthSq() < 1e-6 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0);
     const to = this.moonCenter.clone().addScaledVector(up, R_KM + altKm).addScaledVector(tilt, altKm * 0.35);
     this.controls.autoRotate = false;
-    if (this.reduced) { this.camera.position.copy(to); return; }
-    this.fly = { t0: performance.now(), ms, from: this.camera.position.clone(), to, fromT: this.moonCenter.clone(), toT: this.moonCenter.clone(), done: () => { this.controls.enabled = true; } };
+    this.travel = null;
+    const done = () => { this.orbitAround(this.moonCenter, R_KM + 20, R_KM * 6); this.controls.enabled = true; };
+    if (this.reduced) { this.camera.position.copy(to); done(); return; }
+    this.controls.enabled = false;
+    this.fly = { t0: performance.now(), ms, from: this.camera.position.clone(), to, fromT: this.controls.target.clone(), toT: this.moonCenter.clone(), done };
   }
 
   private introTimer = 0;
-  /** Cinematic intro: the whole Moon first, then down to the south pole unless the user takes over. */
-  playIntro(delayMs = 2200) { this.introTimer = window.setTimeout(() => this.zoomToPole(), delayMs); }
+  /** Cinematic intro: the whole Moon first, then down to the selected station unless the user takes over. */
+  playIntro(delayMs = 2200) { this.introTimer = window.setTimeout(() => { if (this.selected) this.goToStation(this.selected); else this.zoomToPole(); }, delayMs); }
   private cancelIntro() { clearTimeout(this.introTimer); }
 
   /** Back to the whole Moon. */
@@ -223,28 +380,37 @@ export class OrbitScene {
     const up = pin.base.clone().add(new THREE.Vector3(0, R_KM, 0)).normalize();
     const side = new THREE.Vector3().crossVectors(up, new THREE.Vector3(1, 0, 0)).normalize();
     const to = pin.base.clone().addScaledVector(up, 3).addScaledVector(side, 4);
+    this.travel = null;
     if (this.reduced) { this.camera.position.copy(to); this.camera.lookAt(pin.base); done(); return; }
-    this.fly = { t0: performance.now(), ms: 2600, from: this.camera.position.clone(), to, fromT: this.controls.target.clone(), toT: pin.base.clone(), done };
+    // the ship goes down ahead of the camera
+    const shipTo = pin.base.clone().addScaledVector(up, 0.4);
+    if (this.ship.group.visible) { this.ship.plume.visible = true; this.ship.plume.scale.set(1, 6, 1); this.ship.plume.position.y = 0.75 - 3; }
+    this.fly = { t0: performance.now(), ms: 2600, from: this.camera.position.clone(), to, fromT: this.controls.target.clone(), toT: pin.base.clone(), done, ship: [this.shipPos.clone(), shipTo] };
   }
 
   private draw() {
-    if (this.fly) {
+    if (this.travel) {
+      this.stepTravel();
+    } else if (this.fly) {
       const f = this.fly, k = Math.min(1, (performance.now() - f.t0) / f.ms);
-      const e = k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+      const e = ease(k);
       this.camera.position.lerpVectors(f.from, f.to, e);
       const target = f.fromT.clone().lerp(f.toT, e);
       this.camera.lookAt(target);
+      if (f.ship) this.ship.group.position.lerpVectors(f.ship[0], f.ship[1], e);
       if (k >= 1) { this.fly = null; f.done(); }
     } else {
       // slower spin close to the ground, like a map
       const alt = this.camera.position.distanceTo(this.moonCenter) - R_KM;
-      this.controls.rotateSpeed = Math.min(1, Math.max(0.015, alt / R_KM));
+      const aroundShip = this.controls.target.distanceTo(this.moonCenter) > 1;
+      this.controls.rotateSpeed = aroundShip ? 0.6 : Math.min(1, Math.max(0.015, alt / R_KM));
       this.controls.update();
     }
     const nowFar = this.camera.position.distanceTo(new THREE.Vector3(0, 0, 0)) > 1600;
     if (nowFar !== this.far) { this.far = nowFar; this.onFar(nowFar); }
     for (const p of this.pins.values()) p.group.visible = !this.far;
     this.cap.visible = !this.far; // from afar the global mosaic covers the pole; up close the 80 m LOLA map takes over
+    this.ship.group.visible = !!this.shipAt && !this.far;
     if (this.far) this.ring.visible = false;
     // pins keep a constant on-screen size whatever the zoom
     for (const p of this.pins.values()) p.group.scale.setScalar(Math.max(0.25, this.camera.position.distanceTo(p.base) / 110));

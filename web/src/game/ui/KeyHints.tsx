@@ -23,7 +23,7 @@ export default function KeyHints({ phase, onClose }: { phase: 'descent' | 'surfa
             <span>{t('Drive (or the arrow keys)')}</span>
           </div>
           <div className="kh-group"><Key k="E" /><span>{t('Science scan (stopped)')}</span></div>
-          <div className="kh-group"><Key k="[" /><Key k="]" /><span>{t('Slower / faster time')}</span></div>
+          <div className="kh-group"><Key k="−" /><Key k="+" /><span>{t('Slower / faster time')}</span></div>
           <div className="kh-group"><Key k="C" /><span>{t('Camera')}</span></div>
           <div className="kh-group"><Key k="P" /><span>{t('Pause')}</span></div>
           <div className="kh-group"><span className="kh-mouse"><Icon name="mouse" size={18} /></span><span>{t('Drag to look · wheel to zoom')}</span></div>

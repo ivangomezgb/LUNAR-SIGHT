@@ -19,7 +19,7 @@ export const LESSONS: Record<ObjectiveId, { title: string; how: string; lesson: 
   },
   downlink: {
     title: 'Send {0} MB to Earth',
-    how: 'Data leaves only while the Earth link says Connected. If not, speed up time with ] until the Earth rises, or climb to higher ground.',
+    how: 'Data leaves only while the Earth link says Connected. If not, speed up time with + until the Earth rises, or climb to higher ground.',
     lesson: 'Without a relay satellite, data goes straight to Earth only while the Earth is above the real horizon. From the south pole the Earth stays low and often hides behind ridges.',
   },
   waypoint: {

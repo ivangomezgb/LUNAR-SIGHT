@@ -98,7 +98,10 @@ export default function Preloader() {
   return (
     <div className={`preloader${leaving ? ' is-leaving' : ''}`} role="status" aria-live="polite" aria-label={t('Loading real lunar data, {0}%', { 0: pct })}>
       <div className="pre-top">
-        <span>{t('Lunar Landing Site Navigator')}</span>
+        <span className="pre-brand">
+          <img src={`${import.meta.env.BASE_URL}media/apolo404-logo.webp`} width={128} height={56} alt="Apolo404" decoding="async" />
+          <span>{t('Lunar Landing Site Navigator')}</span>
+        </span>
         <span>NASA Space Apps · 2026</span>
       </div>
       <div className="pre-mid">
