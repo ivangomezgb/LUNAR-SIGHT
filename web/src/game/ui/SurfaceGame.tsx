@@ -28,6 +28,8 @@ interface Props {
   startMs: number;
   /** Published metrics of this site for 14 days from startMs (shown in the mission report). */
   published: { lightPct: number; earthPct: number } | null;
+  /** Coming from the orbit stage: start the descent (or the saved mission) without the briefing. */
+  autostart?: 'descent' | 'continue';
 }
 
 const KEYS = { up: ['w', 'arrowup'], down: ['s', 'arrowdown'], left: ['a', 'arrowleft'], right: ['d', 'arrowright'], thrust: [' '] };
@@ -36,7 +38,7 @@ const TARGET = { x: 0, y: 0 };
 const objectiveTitle = (id: ObjectiveId) =>
   t(LESSONS[id].title, { 0: id === 'drive' ? RULES.mission.driveM : id === 'downlink' ? RULES.mission.downlinkMB : RULES.mission.surviveH });
 
-export default function SurfaceGame({ env, terrain, site, startMs, published }: Props) {
+export default function SurfaceGame({ env, terrain, site, startMs, published, autostart }: Props) {
   const host = useRef<HTMLDivElement>(null);
   const world = useRef<World>({ ...newWorld(env, startMs), paused: true });
   const mission = useRef<MissionState>(newMission(env.field, startMs));
@@ -45,7 +47,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
   const touch = useRef({ throttle: 0, steer: 0, thrust: 0 });
   const [hud, setHud] = useState<World>(world.current);
   const [m, setM] = useState<MissionState>(mission.current);
-  const [briefing, setBriefing] = useState(true);
+  const [briefing, setBriefing] = useState(!autostart);
   const [debrief, setDebrief] = useState(false);
   const [toast, setToast] = useState<ObjectiveId | null>(null);
   const [error, setError] = useState('');
@@ -221,6 +223,16 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
     focusView();
   };
   const start = () => { setBriefing(false); set({ paused: false }); focusView(); };
+  const auto = useRef({ startDescent, continueSaved });
+  auto.current = { startDescent, continueSaved };
+  useEffect(() => {
+    if (!autostart) return;
+    const id = window.setTimeout(() => {
+      if (autostart === 'continue' && loadSave(site.id, startMs)) auto.current.continueSaved();
+      else auto.current.startDescent();
+    }, 60);
+    return () => clearTimeout(id);
+  }, [autostart, site.id, startMs]);
   const resume = () => { setDebrief(false); set({ paused: false }); };
   const restart = () => {
     clearSave(); setSaved(null);

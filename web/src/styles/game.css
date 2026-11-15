@@ -152,3 +152,36 @@
 .descent-brake { margin: 0 auto; padding: 8px 14px; border-radius: 10px; background: rgba(60, 18, 10, .9); border: 1px solid #e0703f; color: #ffe9df; font-weight: 700; font-size: .86rem; animation: brake 0.8s ease-in-out infinite alternate; }
 @keyframes brake { to { border-color: #ffb08a; } }
 @media (prefers-reduced-motion: reduce) { .descent-brake { animation: none; } }
+
+/* Orbit stage */
+.orbit { position: relative; height: min(80vh, 840px); min-height: 520px; border-radius: 18px; overflow: hidden; background: #020306; border: 1px solid #2c333c; }
+.orbit-canvas { position: absolute; inset: 0; }
+.orbit-canvas canvas { display: block; width: 100%; height: 100%; cursor: grab; }
+.orbit-canvas canvas:active { cursor: grabbing; }
+.orbit-label { position: absolute; left: 0; top: 0; pointer-events: none; font-family: var(--mono); font-size: .72rem; letter-spacing: .06em; color: var(--sun); white-space: nowrap; transform-origin: 0 0; margin: -26px 0 0 -40px; text-shadow: 0 1px 6px #000; }
+.orbit-label.is-hover { color: #e8eef5; margin: 0; }
+.orbit-panel { position: absolute; top: 14px; left: 14px; bottom: 14px; width: min(380px, calc(100% - 28px)); overflow-y: auto; background: rgba(8, 11, 16, .78); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.12); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; color: #e8eef5; transition: opacity 600ms var(--ease-out, ease), transform 600ms var(--ease-out, ease); }
+.orbit.is-diving .orbit-panel { opacity: 0; transform: translateX(-24px); pointer-events: none; }
+.orbit.is-diving::after { content: ''; position: absolute; inset: 0; background: #000; animation: dive-fade 2600ms ease-in forwards; pointer-events: none; }
+@keyframes dive-fade { 0%, 70% { opacity: 0; } 100% { opacity: 1; } }
+.orbit-panel h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.9rem; line-height: 1.05; }
+.orbit-sites { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 4px; max-height: 210px; overflow-y: auto; }
+.orbit-sites button { width: 100%; text-align: left; background: rgba(255,255,255,.04); border: 1px solid transparent; color: #cfd8e3; border-radius: 8px; padding: 6px 8px; font: inherit; font-size: .76rem; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background-color .15s, border-color .15s; }
+.orbit-sites button:hover { background: rgba(255,255,255,.08); }
+.orbit-sites button.is-on { border-color: var(--sun); color: #fff; background: rgba(244, 206, 114, .1); }
+.orbit-forecast { display: flex; flex-direction: column; gap: 8px; border-top: 1px solid rgba(255,255,255,.1); padding-top: 10px; }
+.orbit-time .input { flex: 1; min-width: 0; padding: 4px 8px; font-size: .8rem; }
+.orbit-forecast .brief-stats { grid-template-columns: 1fr 1fr; }
+.orbit-forecast .brief-stats em { font-style: normal; font-size: .64rem; color: #9fb0c3; }
+.orbit-forecast .risk-high strong { color: #ff9d7a; }
+.orbit-forecast .risk-medium strong { color: #ffd36b; }
+.orbit-forecast .risk-low strong { color: #7fd99a; }
+.orbit-go { width: 100%; min-height: 48px; font-size: .95rem; }
+.orbit-continue { align-self: flex-start; }
+@media (max-width: 699px) {
+  .orbit { height: 88vh; }
+  .orbit-panel { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 58%; }
+  .orbit-panel h2 { font-size: 1.4rem; }
+  .orbit-sites { max-height: 120px; }
+}
+@media (prefers-reduced-motion: reduce) { .orbit.is-diving::after { animation-duration: 1ms; } }

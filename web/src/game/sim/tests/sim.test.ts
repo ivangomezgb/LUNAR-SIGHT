@@ -310,3 +310,35 @@ describe.skipIf(!hasRealData('connecting-ridge'))('descent on the real terrain',
     expect(s.landed).toBe('ok');
   });
 });
+
+import { latLonToMap, localToPolarDir, mapToLatLon, mapToSphere, R_KM } from '../polar';
+describe('polar geometry for the orbit view', () => {
+  it('matches the published basemap pixels of a site', async () => {
+    const fsName = 'node:fs';
+    const fs = (await import(/* @vite-ignore */ fsName)) as { readFileSync: (p: string, e: string) => string };
+    const sites = JSON.parse(fs.readFileSync('public/data/sites.json', 'utf8')) as Array<{ lat_deg: number; lon_deg: number; map_px: [number, number] }>;
+    const meta = JSON.parse(fs.readFileSync('public/data/basemap.json', 'utf8')) as { affine: number[] };
+    const [a, , c, , e, f] = meta.affine;
+    for (const s of sites) {
+      const m = latLonToMap(s.lat_deg, s.lon_deg);
+      expect((m.x - c) / a).toBeCloseTo(s.map_px[0], 0);
+      expect((m.y - f) / e).toBeCloseTo(s.map_px[1], 0);
+    }
+  });
+  it('round-trips and lies on the sphere', () => {
+    const m = latLonToMap(-86.5, 123);
+    const ll = mapToLatLon(m.x, m.y);
+    expect(ll.lat).toBeCloseTo(-86.5, 9);
+    expect(ll.lon).toBeCloseTo(123, 9);
+    const p = mapToSphere(m.x, m.y);
+    expect(Math.hypot(p[0], p[1] + R_KM, p[2])).toBeCloseTo(R_KM, 6);
+    expect(mapToSphere(0, 0)).toEqual([0, 0, -0]);
+  });
+  it('turns a local direction into the polar frame', () => {
+    // from a site on lon 0 (map +y), local north is away from the pole: map +y → 3D −Z
+    const n = localToPolarDir(0, 0, 0);
+    expect(n[0]).toBeCloseTo(0, 9); expect(n[2]).toBeCloseTo(-1, 9);
+    const up = localToPolarDir(123, 90, 40);
+    expect(up[1]).toBeCloseTo(1, 9);
+  });
+});

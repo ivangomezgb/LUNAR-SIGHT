@@ -33,3 +33,14 @@ export function writeSave(s: SavedMission): void {
 export function clearSave(): void {
   try { localStorage.removeItem(KEY); } catch { /* ignore */ }
 }
+
+/** The saved mission, whatever its site and start (for "continue" from orbit). */
+export function peekSave(): SavedMission | null {
+  try {
+    const raw = localStorage.getItem(KEY);
+    const s = raw ? (JSON.parse(raw) as SavedMission) : null;
+    return s && s.world?.rover && s.mission?.done ? s : null;
+  } catch {
+    return null;
+  }
+}
