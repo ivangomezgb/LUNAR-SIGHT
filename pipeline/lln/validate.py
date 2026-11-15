@@ -174,10 +174,12 @@ def compare(sites=VALIDATION_SITES, times=VALIDATION_TIMES, offline=False) -> li
                 h = hz[t]
                 rows.append({
                     "site": s["id"], "t_utc": t, "body": body,
-                    "az_ours": round(float(a), 6), "el_ours": round(float(e), 6),
+                    # 9 decimals, like the Horizons table: our differences are 1e-6..1e-4 deg and
+                    # rounding to 6 decimals stored most of them as 0.
+                    "az_ours": round(float(a), 9), "el_ours": round(float(e), 9),
                     "az_horizons": h["az"], "el_horizons": h["el"],
-                    "d_az": round(circ_diff_deg(float(a), h["az"]), 6) + 0.0,
-                    "d_el": round(float(e) - h["el"], 6) + 0.0,
+                    "d_az": round(circ_diff_deg(float(a), h["az"]), 9) + 0.0,
+                    "d_el": round(float(e) - h["el"], 9) + 0.0,
                 })
     return rows
 
