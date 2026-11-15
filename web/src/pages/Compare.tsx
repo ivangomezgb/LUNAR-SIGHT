@@ -23,6 +23,7 @@ const uncertaintyText = (s: SiteData) =>
   s.uncertainty ? `${fmtNum(s.uncertainty.illum_pct_p5, 1)}–${fmtNum(s.uncertainty.illum_pct_p95, 1)} %` : t('No clone ensemble');
 import { fmtNum, fmtUtc, HOUR_MS, isoShort } from '../components/format';
 import { isSynthetic } from '../components/format';
+import { StopBadge } from '../guide/TourBits';
 
 interface Row {
   label: string;
@@ -87,6 +88,7 @@ export default function Compare() {
   return (
     <div className="page">
       <header className="page-head">
+        <StopBadge />
         <div>
           <h1>{t("Compare sites")}</h1>
           <p className="muted">{t("Up to")} {MAX_COMPARE} {t("sites, same landing time and mission duration. Best value in each row is highlighted.")}</p>

@@ -7,6 +7,7 @@ import LiteratureTable from '../components/LiteratureTable';
 import { fmtErr, fmtUtc } from '../components/format';
 import { SUN_RADIUS_DEG } from '../lib/sunFraction';
 import { DEFAULT_ASSUMPTIONS } from '../lib/metrics';
+import { StopBadge } from '../guide/TourBits';
 
 function Assumptions() {
   return (
@@ -30,6 +31,7 @@ export default function Validation() {
   return (
     <div className="page">
       <header className="page-head">
+        <StopBadge />
         <div>
           <h1>{t("Validation")}</h1>
           <p className="muted">{t("Sun and Earth positions from our SPICE pipeline, checked against independent JPL Horizons queries.")}</p>

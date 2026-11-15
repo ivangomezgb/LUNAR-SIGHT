@@ -9,12 +9,14 @@ import Explore from './pages/Explore';
 import Compare from './pages/Compare';
 import Replan from './pages/Replan';
 import Validation from './pages/Validation';
-import About from './pages/About';
-import Team from './pages/Team';
+const About = lazy(() => import('./pages/About'));
+const Team = lazy(() => import('./pages/Team'));
 import { useApp } from './state';
 import { useShallow } from 'zustand/react/shallow';
 import { isoShort } from './components/format';
 import { DATA_DIR } from './components/hooks';
+import { NextStop } from './guide/TourBits';
+import './styles/story.css';
 
 const View3D = lazy(() => import('./pages/View3D'));
 const Mission = lazy(() => import('./pages/Mission'));
@@ -110,6 +112,7 @@ export default function App() {
   return (
     <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <Preloader />
+      <div className="scroll-progress" aria-hidden />
       <PreferencesUrl />
       <ScrollTop />
       <Nav />
@@ -134,6 +137,7 @@ export default function App() {
             </Routes>
           </Suspense>
         </RouteBoundary>
+        <NextStop />
       </main>
       <Guide />
       <footer className="footer">

@@ -11,6 +11,7 @@ import { ErrorBox, Loading, Empty } from '../components/Status';
 import ReplanForm from '../components/ReplanForm';
 import RankingTable from '../components/RankingTable';
 import { fmtUtc, fmtInt, HOUR_MS, isoShort } from '../components/format';
+import { StopBadge } from '../guide/TourBits';
 
 export default function Replan() {
   const sites = useSites();
@@ -62,6 +63,7 @@ export default function Replan() {
   return (
     <div className="page">
       <header className="page-head">
+        <StopBadge />
         <div>
           <div className="eyebrow eyebrow-warn">{t("Mission delayed")}</div>
           <h1>{t("Find the best new landing")}</h1>

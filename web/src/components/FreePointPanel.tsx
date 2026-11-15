@@ -17,6 +17,7 @@ import { coverage } from './series';
 import { HOUR_MS, isoHour, parseUtc } from './format';
 import FreePointMap, { freeDataBase, withinMap, type FreePoint } from './FreePointMap';
 import '../styles/freepoint.css';
+import { StopBadge } from '../guide/TourBits';
 
 const FreePoint3D = lazy(() => import('./FreePoint3D'));
 
@@ -214,7 +215,7 @@ export function FreePointExplorer() {
     catch { setCopyStatus('Copy unavailable. Copy the URL from your address bar.'); }
   };
   return <div className="page free-page" lang={lang}>
-    <header className="card free-hero"><div><div className="eyebrow">{t('Lunar south pole · Mission planning')}</div><h1>{t('Any point. A real lunar horizon.')}</h1><p>{t('Explore beyond the curated sites. Select real terrain, inspect the sky and compare your mission window.')}</p><span className="badge badge-warn">{t('Approximate - coarse DEM')}</span></div>
+    <header className="card free-hero"><div><StopBadge /><div className="eyebrow">{t('Lunar south pole · Mission planning')}</div><h1>{t('Any point. A real lunar horizon.')}</h1><p>{t('Explore beyond the curated sites. Select real terrain, inspect the sky and compare your mission window.')}</p><span className="badge badge-warn">{t('Approximate - coarse DEM')}</span></div>
       <div><button className="btn btn-ghost" disabled={!point} onClick={copy}>{t('Copy link')}</button><p role="status" className="small">{t(copyStatus)}</p></div></header>
     <section className="card"><div className="card-head"><h2 className="card-title">{t('Choose your point')}</h2><span className="small">{t('LOLA · south polar stereographic')}</span></div>
       {map ? <FreePointMap map={map} sites={sites} point={point} onSelect={select} /> : <p role="status">{t('Loading basemap…')}</p>}
