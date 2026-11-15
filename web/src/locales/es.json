@@ -573,5 +573,10 @@
   "Overview": "Vista general",
   "Coarse 240 m LOLA terrain: shapes are approximate; no 5 m detail": "Terreno LOLA de 240 m: las formas son aproximadas; sin detalle de 5 m",
   "Distant terrain uses 960 m block maxima, out to 150 km. Mesh visibility is approximate; use the horizon chart for analysis.": "El terreno distante usa máximos de bloques de 960 m, hasta 150 km. La visibilidad de la malla es aproximada; use el gráfico del horizonte para el análisis.",
-  "Terrain beyond the map edge is missing; nodata holes are left open.": "Falta el terreno más allá del borde del mapa; los huecos sin datos permanecen abiertos."
+  "Terrain beyond the map edge is missing; nodata holes are left open.": "Falta el terreno más allá del borde del mapa; los huecos sin datos permanecen abiertos.",
+  "No clone ensemble": "Sin clones de terreno",
+  "Sunlight p5–p95 from 30 LOLA error clones, year 2027, 2 m": "Luz solar p5–p95 de 30 clones de error LOLA, año 2027, 2 m",
+  "2 m mask, at landing": "máscara de 2 m, al alunizar",
+  "Sunlight p5–p95": "Luz solar p5–p95",
+  "30 LOLA clones, 2027, 2 m": "30 clones LOLA, 2027, 2 m"
 }

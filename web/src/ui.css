@@ -1849,3 +1849,6 @@ body .risk-tip-content { background: var(--panel-2, #1b222b); border: 1px solid 
 .brand-logo { display: block; flex-shrink: 0; line-height: 0; }
 .brand-logo img { display: block; height: 52px; width: auto; }
 @media (max-width: 699px) { .brand-logo img { height: 38px; } }
+
+/* Compare: landing-risk level and uncertainty under each site card. */
+.compare-extra { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 12px; }

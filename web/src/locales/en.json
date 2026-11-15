@@ -573,5 +573,10 @@
   "Overview": "Overview",
   "Coarse 240 m LOLA terrain: shapes are approximate; no 5 m detail": "Coarse 240 m LOLA terrain: shapes are approximate; no 5 m detail",
   "Distant terrain uses 960 m block maxima, out to 150 km. Mesh visibility is approximate; use the horizon chart for analysis.": "Distant terrain uses 960 m block maxima, out to 150 km. Mesh visibility is approximate; use the horizon chart for analysis.",
-  "Terrain beyond the map edge is missing; nodata holes are left open.": "Terrain beyond the map edge is missing; nodata holes are left open."
+  "Terrain beyond the map edge is missing; nodata holes are left open.": "Terrain beyond the map edge is missing; nodata holes are left open.",
+  "No clone ensemble": "No clone ensemble",
+  "Sunlight p5–p95 from 30 LOLA error clones, year 2027, 2 m": "Sunlight p5–p95 from 30 LOLA error clones, year 2027, 2 m",
+  "2 m mask, at landing": "2 m mask, at landing",
+  "Sunlight p5–p95": "Sunlight p5–p95",
+  "30 LOLA clones, 2027, 2 m": "30 LOLA clones, 2027, 2 m"
 }

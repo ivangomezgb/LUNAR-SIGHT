@@ -14,7 +14,13 @@ import PanoramaChart, { type PathPoint } from '../components/PanoramaChart';
 import { maskFor } from '../components/series';
 import { groupColor, shortName } from '../components/format';
 import { assumptionsFor, coverage, seriesFor } from '../components/series';
-import { hourIndex } from '../lib/metrics';
+import { getSeries, hourIndex } from '../lib/metrics';
+import { computeLandingRisk, RISK_MASK_HEIGHT_M, type LandingLightRisk } from '../lib/landingRisk';
+import '../styles/report.css'; // .risk-level styles shared with the landing-risk card
+
+const riskLabel = (r: LandingLightRisk) => (r.level === 'high' ? t('High light risk') : r.level === 'medium' ? t('Medium light risk') : t('Low light risk'));
+const uncertaintyText = (s: SiteData) =>
+  s.uncertainty ? `${fmtNum(s.uncertainty.illum_pct_p5, 1)}–${fmtNum(s.uncertainty.illum_pct_p95, 1)} %` : t('No clone ensemble');
 import { fmtNum, fmtUtc, HOUR_MS, isoShort } from '../components/format';
 import { isSynthetic } from '../components/format';
 
@@ -159,7 +165,14 @@ function CompareGrid({
             sp.push({ az: series.sunAz[i], el: series.sunEl[i], vis: series.sunFrac[i] >= assumptions.dayFraction });
             ep.push({ az: series.earthAz[i], el: series.earthEl[i], vis: series.earthVis[i] > 0 });
           }
-        return { ...c, series, metrics, sp, ep };
+        let risk: LandingLightRisk | null = null;
+        if (ok) {
+          try {
+            // Same rule as the landing-risk card: always the 2 m mask, independent of the panel height.
+            risk = computeLandingRisk(getSeries(c.site, { ...assumptions, heightM: RISK_MASK_HEIGHT_M }), i0, c.site.ephem.step_h);
+          } catch { risk = null; }
+        }
+        return { ...c, series, metrics, sp, ep, risk };
       }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [ids.join(','), data, landingUtc, missionH, assumptions],
@@ -205,6 +218,12 @@ function CompareGrid({
             ) : (
               <p className="muted">{t("Mission window outside data coverage.")}</p>
             )}
+            <div className="compare-extra">
+              {c.risk && <span className={`risk-level risk-${c.risk.level}`}>● {riskLabel(c.risk)}</span>}
+              <span className="small muted" title={t('Sunlight p5–p95 from 30 LOLA error clones, year 2027, 2 m')}>
+                {t('Terrain uncertainty · {0}', { 0: '2027' })}: {uncertaintyText(c.site)}
+              </span>
+            </div>
             <Link className="btn btn-ghost btn-sm" to={`/?site=${encodeURIComponent(c.id)}&t=${isoShort(landingUtc)}&h=${assumptions.heightM}&lang=${useApp.getState().lang}`}> {t("Open in panorama →")} </Link>
           </section>
         ))}
@@ -265,6 +284,18 @@ function CompareGrid({
                   })}
                 </tr>
               ))}
+              <tr>
+                <th scope="row">{t('Landing light risk')} <span className="unit">({t('2 m mask, at landing')})</span></th>
+                {computed.map((c) => (
+                  <td key={c.id}>{c.risk ? <span className={`risk-level risk-${c.risk.level}`}>● {riskLabel(c.risk)}</span> : '—'}</td>
+                ))}
+              </tr>
+              <tr>
+                <th scope="row">{t('Sunlight p5–p95')} <span className="unit">({t('30 LOLA clones, 2027, 2 m')})</span></th>
+                {computed.map((c) => (
+                  <td key={c.id} className="mono">{uncertaintyText(c.site)}</td>
+                ))}
+              </tr>
             </tbody>
           </table>
         </div>
