@@ -197,3 +197,37 @@ sites:
     tags: [artemis-iii-2022, artemis-iii-2024, rim, nobile]
     source_url: https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components
     source_note: Centre of NASA's ADC 2023 Nobile Rim 2 region grid (4000x4000).
+
+  # ---- Artemis III candidate regions added in the Oct 2024 list (not in the ADC 2023 data).
+  # Coordinates: area-weighted centre of the region's 21 x 21 km LGRS navigation grid (441 cells
+  # of 1 km) from the USGS data release McClernan (2024), doi:10.5066/P1MEQ6UK, computed with
+  # pipeline/scripts/usgs_region_center.py (centroid in the release's polar stereographic
+  # projection, converted to planetocentric lat / east lon).
+  - id: peak-near-cabeus-b
+    name: Peak near Cabeus B
+    lat_deg: -83.64777
+    lon_deg: -68.6432
+    ref_lat_deg: -83.65136
+    ref_lon_deg: -68.72626
+    selection: best-lit point with slope <= 8 deg within 1 km of the reference (300 m away; 35.6% -> 62.71% sunlight in 2027 at 2 m)
+    group: artemis
+    tags: [artemis-iii-2024, peak, cabeus]
+    source_url: https://doi.org/10.5066/P1MEQ6UK
+    source_note: >-
+      Centre of the USGS LGRS 1 km navigation grid for the "Peak near Cabeus B" Artemis III
+      candidate region (McClernan 2024, USGS data release). North of the 87 S 5 m LOLA mosaic:
+      the near-field horizon uses the 10 m/px 83 S LOLA mosaic.
+
+  - id: slater-plain
+    name: Slater Plain
+    lat_deg: -87.20736
+    lon_deg: 125.5116
+    ref_lat_deg: -87.16972
+    ref_lon_deg: 125.45962
+    selection: best-lit point with slope <= 8 deg within 1 km of the reference (1145 m away; 1.9% -> 20.57% sunlight in 2027 at 2 m)
+    group: artemis
+    tags: [artemis-iii-2024, plain, slater]
+    source_url: https://doi.org/10.5066/P1MEQ6UK
+    source_note: >-
+      Centre of the USGS LGRS 1 km navigation grid for the "Slater Plain" Artemis III candidate
+      region (McClernan 2024, USGS data release).

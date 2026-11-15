@@ -123,7 +123,7 @@ export default function View3D() {
           <div className="expedition-actions">
             <div className="expedition-modes" role="group" aria-label={t('View')}>
               <button aria-pressed={mode === 'overview'} onClick={() => switchMode('overview')}>{t('3D overview')}</button>
-              <button aria-pressed={mode === 'first'} onClick={() => switchMode('first')}>{t('First person · 2 m')}</button>
+              <button aria-pressed={mode === 'first'} onClick={() => switchMode('first')}>{t('First person')}</button>
               <button aria-pressed={mode === 'pano'} onClick={() => switchMode('pano')}>{t('Astronaut 360°')}</button>
             </div>
             <button className="expedition-fullscreen" onClick={fullscreen} aria-label={t('Toggle fullscreen')} title={t('Toggle fullscreen')}>⛶</button>
@@ -137,7 +137,7 @@ export default function View3D() {
         </div>
         {site && series && <>
           <Suspense fallback={<div className="expedition-loading" role="status">{t('Loading 3D viewer…')}<progress /></div>}>
-            <View mode={mode} onMode={switchMode} sunTrail={trails?.sun} earthTrail={trails?.earth} siteId={site.id} sunAz={series.sunAz[index]} sunEl={series.sunEl[index]} earthAz={series.earthAz[index]} earthEl={series.earthEl[index]} horizon={site.horizon.elev_cdeg[String(viewHeight)]} horizonStep={site.horizon.az_step_deg} />
+            <View mode={mode} onMode={switchMode} sunVisible={series.sunEl[index] >= series.horizonSunEl[index]} sunTrail={trails?.sun} earthTrail={trails?.earth} siteId={site.id} sunAz={series.sunAz[index]} sunEl={series.sunEl[index]} earthAz={series.earthAz[index]} earthEl={series.earthEl[index]} horizon={site.horizon.elev_cdeg[String(viewHeight)]} horizonStep={site.horizon.az_step_deg} />
           </Suspense>
           <div className="expedition-timeline">
             <div className="expedition-time-row">
@@ -152,7 +152,7 @@ export default function View3D() {
         </>}
       </div>
       {fullscreenError && <p role="status">{fullscreenError}</p>}
-      <footer className="expedition-footnote"><span>{t('NASA / LOLA terrain · SPICE ephemerides')}</span><span>{t('Visibility: body centre above the 2 m horizon. Earth disk: geometric phase, uniform albedo.')}</span></footer>
+      <footer className="expedition-footnote"><span>{t('Approximate lunar reflectance; fixed exposure; LOLA relief, no added surface detail.')}</span>{mode === 'first' && <span>{t('Mesh horizon approx. (up to ~0.6°); exact horizon in 360°.')}</span>}{mode === 'pano' && <span>{t('360 panorama shading has no per-pixel cast shadows.')}</span>}<span>{t('NASA / LOLA terrain · SPICE ephemerides')}</span><span>{t('Visibility: body centre above the 2 m horizon. Earth disk: geometric phase, uniform albedo.')}</span></footer>
     </section>
   );
 }

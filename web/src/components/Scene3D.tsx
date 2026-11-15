@@ -6,11 +6,19 @@ import type { Trail, ViewProps } from '../lib/terrain';
 import { attachLook, disposeObject, disposeScene, marker, phaseEarth, ray, releaseRenderer, skyDome, trailLine } from './three/sceneTools';
 import { t } from '../i18n';
 import { gridGeometry } from '../game/render/terrainMesh';
+import '../styles/freepoint3d.css'; // shared night hint / enhanced-light / eye-height styles
+import { horizonAt } from '../lib/sunFraction';
+import { lunarMaterial, LUNAR_EXPOSURE, SUN_INTENSITY, EARTH_INTENSITY } from './three/lunarMaterial';
 
 
 /** Elevations on the overview dome are exaggerated so polar Sun/Earth paths (a few degrees) are readable. */
 const DOME_EL_SCALE = 6;
 const FP_HEIGHT_M = 2;
+/** First-person eye heights (m). 2 m is the physical observer; higher values only lift the camera. */
+const EYE_HEIGHTS_M = [2, 10, 50, 200];
+const DEFAULT_EYE_M = 200;
+/** Intensity of the optional, clearly labelled non-physical fill light. */
+const ENHANCE_FILL = 1.6;
 const SKY_R = 100000;
 type Flight = { t0: number; ms: number; fromPos: THREE.Vector3; toPos: THREE.Vector3; fromLook: THREE.Vector3; toLook: THREE.Vector3; done: () => void };
 
@@ -19,35 +27,49 @@ export default function Scene3D(props: ViewProps) {
   const sunLabel = useRef<HTMLSpanElement>(null), earthLabel = useRef<HTMLSpanElement>(null);
   const setModeRef = useRef<((first: boolean) => void) | null>(null);
   const firstPerson = props.mode === 'first';
-  const [status, setStatus] = useState(t('Loading terrain… {0}%', { 0: 0 })), [failed, setFailed] = useState(false), [compass, setCompass] = useState('');
+  const [status, setStatus] = useState<{ key: string; n?: number } | null>({ key: 'Loading terrain… {0}%', n: 0 }), [failed, setFailed] = useState(false), [compass, setCompass] = useState('');
+  // Eye height and the non-physical fill light, as in the Any point viewer.
+  const [eyeH, setEyeH] = useState<number>(DEFAULT_EYE_M), eyeRef = useRef(eyeH); eyeRef.current = eyeH;
+  const [enhance, setEnhance] = useState(false), enhanceRef = useRef(enhance); enhanceRef.current = enhance;
+  const setEyeHRef = useRef<(h: number) => void>(() => {}), setFillRef = useRef<(on: boolean) => void>(() => {});
 
   useEffect(() => {
     const started = performance.now();
     const node = host.current!; const abort = new AbortController(); let cleanup = () => {};
-    setStatus(t('Loading terrain… {0}%', { 0: 0 })); setFailed(false);
-    loadTerrain(props.siteId, n => setStatus(t('Loading terrain… {0}%', { 0: n })), abort.signal).then(data => {
+    setStatus({ key: 'Loading terrain… {0}%', n: 0 }); setFailed(false);
+    loadTerrain(props.siteId, n => setStatus({ key: 'Loading terrain… {0}%', n }), abort.signal).then(data => {
       if (abort.signal.aborted) return;
       const created: THREE.WebGLRenderer[] = [];
       try {
       const lowEnd = matchMedia('(max-width: 699px)').matches || navigator.hardwareConcurrency <= 4;
       const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd }); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMappingExposure = 1.25; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.type = THREE.PCFSoftShadowMap; created.push(renderer); node.appendChild(renderer.domElement);
+      const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd }); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMappingExposure = LUNAR_EXPOSURE; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.type = THREE.PCFShadowMap; created.push(renderer); node.appendChild(renderer.domElement);
       const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(65, 1, .1, 400000);
       const extent = (data.meta.near.n - 1) * data.meta.near.res_m / 2;
-      const material = new THREE.MeshStandardMaterial({ color: 0xaaa59d, roughness: 1 });
-      for (const [spec, h, hole] of [[data.meta.near, data.near, 0], [data.meta.far, data.far, extent]] as const) { const mesh = new THREE.Mesh(gridGeometry(spec, h, hole ? spec.n : lowEnd ? 512 : 1024, hole), material); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); }
-      const sun = new THREE.DirectionalLight(0xffffff, 3), earth = new THREE.DirectionalLight(0xa8bcff, .008); scene.add(sun, sun.target, earth, earth.target); sun.castShadow = true; sun.shadow.mapSize.set(lowEnd ? 2048 : 4096, lowEnd ? 2048 : 4096);
+      const material = lunarMaterial();
+      const meshes: THREE.Mesh[] = [];
+      for (const [spec, h, hole] of [[data.meta.near, data.near, 0], [data.meta.far, data.far, extent]] as const) { const mesh = new THREE.Mesh(gridGeometry(spec, h, hole ? spec.n : lowEnd ? 512 : 1024, hole), material); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); meshes.push(mesh); }
+      // Put the eye above the decimated mesh surface at the site (the mesh need not pass through z = 0 there).
+      scene.updateMatrixWorld(true);
+      const groundHit = new THREE.Raycaster(new THREE.Vector3(0, 20000, 0), new THREE.Vector3(0, -1, 0)).intersectObjects(meshes)[0];
+      const ground = groundHit ? groundHit.point.y : 0;
+      const fill = new THREE.Group();
+      const fillKey = new THREE.DirectionalLight(0xdfe6f0, ENHANCE_FILL); fillKey.position.set(0.75, 0.3, 0.55).multiplyScalar(extent * 3); // ~17 deg, like a hillshade
+      fill.add(new THREE.HemisphereLight(0xc8d2e0, 0x202020, ENHANCE_FILL * 0.35), fillKey, fillKey.target);
+      fill.visible = enhanceRef.current; scene.add(fill);
+      const sun = new THREE.DirectionalLight(0xffffff, SUN_INTENSITY), earth = new THREE.DirectionalLight(0xffffff, EARTH_INTENSITY); scene.add(sun, sun.target, earth, earth.target); sun.castShadow = true; sun.shadow.mapSize.set(lowEnd ? 2048 : 4096, lowEnd ? 2048 : 4096);
       Object.assign(sun.shadow.camera, { left: -extent * 1.5, right: extent * 1.5, top: extent * 1.5, bottom: -extent * 1.5, near: 1, far: extent * 8 }); sun.shadow.camera.updateProjectionMatrix(); sun.shadow.bias = -.00002; sun.shadow.normalBias = 1.2;
       const sky = new THREE.Mesh(new THREE.SphereGeometry(180000, 32, 16), new THREE.MeshBasicMaterial({ color: 0, side: THREE.BackSide })); scene.add(sky);
       const sunDisk = marker(.267, 0xffffff, 150000), earthDisk = phaseEarth(150000); scene.add(sunDisk, earthDisk);
-      // Decorative glow so the grazing Sun is easy to find; the terrain still occludes it (depth-tested).
+      // Neutral optical glare, not atmosphere. Suppressed when the real horizon hides
+      // any part of the solar disk; depth testing also preserves mesh occlusion.
       const glowCanvas = document.createElement('canvas'); glowCanvas.width = glowCanvas.height = 128;
       const gctx = glowCanvas.getContext('2d')!, grad = gctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-      grad.addColorStop(0, 'rgba(255,244,214,1)'); grad.addColorStop(.12, 'rgba(255,226,160,.55)'); grad.addColorStop(1, 'rgba(255,200,120,0)');
+      grad.addColorStop(0, 'rgba(255,255,255,.65)'); grad.addColorStop(.12, 'rgba(255,255,255,.15)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
       gctx.fillStyle = grad; gctx.fillRect(0, 0, 128, 128);
       const glowTexture = new THREE.CanvasTexture(glowCanvas); glowTexture.colorSpace = THREE.SRGBColorSpace;
       const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-      const glowSize = Math.tan(3 * Math.PI / 180) * 150000 * 2; sunGlow.scale.set(glowSize, glowSize, 1); scene.add(sunGlow);
+      const glowSize = Math.tan(1.2 * Math.PI / 180) * 150000 * 2; sunGlow.scale.set(glowSize, glowSize, 1); scene.add(sunGlow);
 
       // Overview: site pin plus a dome of sky directions with the real Sun/Earth paths.
       const domeR = extent * 0.6;
@@ -81,15 +103,17 @@ export default function Scene3D(props: ViewProps) {
       let unlook = () => {};
       let first = latest.current.mode === 'first';
       let flight: Flight | null = null;
-      const eye = () => new THREE.Vector3(0, FP_HEIGHT_M, 0);
+      const eye = () => new THREE.Vector3(0, ground + Math.max(FP_HEIGHT_M, eyeRef.current), 0);
       const lookAhead = () => eye().add(new THREE.Vector3(...azElToThree(latest.current.sunAz, 0)).multiplyScalar(400));
-      const enterFirst = () => { first = true; orbit.enabled = false; unlook = attachLook(renderer.domElement, camera, setCompass, latest.current.sunAz); };
+      const enterFirst = () => { first = true; orbit.enabled = false; unlook = attachLook(renderer.domElement, camera, setCompass, latest.current.sunAz, eyeRef.current >= 50 ? -6 : -2); };
       const enterOverview = () => { first = false; orbit.enabled = true; orbit.target.set(0, 0, 0); orbit.update(); };
       const fly = (toPos: THREE.Vector3, toLook: THREE.Vector3, ms: number, done: () => void) => {
         const fromLook = first ? camera.position.clone().add(camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(400)) : orbit.target.clone();
         if (reducedMotion) { camera.position.copy(toPos); camera.lookAt(toLook); done(); return; }
         flight = { t0: performance.now(), ms, fromPos: camera.position.clone(), toPos, fromLook, toLook, done };
       };
+      setEyeHRef.current = () => { if (first && !flight) camera.position.copy(eye()); dirty = true; };
+      setFillRef.current = (on: boolean) => { fill.visible = on; dirty = true; };
       setModeRef.current = (toFirst: boolean) => {
         if (toFirst === first && !flight) return;
         unlook(); unlook = () => {}; orbit.enabled = false;
@@ -131,7 +155,7 @@ export default function Scene3D(props: ViewProps) {
         const earthDome = new THREE.Vector3(...azElToThree(p.earthAz, p.earthEl * DOME_EL_SCALE)).multiplyScalar(domeR);
         sunBall.position.copy(sunDome); earthBall.position.copy(earthDome);
         sunRay.geometry.setFromPoints([new THREE.Vector3(0, 30, 0), sunDome]); earthRay.geometry.setFromPoints([new THREE.Vector3(0, 30, 0), earthDome]);
-        earthDisk.material.uniforms.sunDirection.value.copy(s); sun.position.copy(s).multiplyScalar(extent * 3); earth.position.copy(e).multiplyScalar(extent * 3); sunDisk.position.copy(s).multiplyScalar(150000); earthDisk.position.copy(e).multiplyScalar(150000); sunDisk.position.add(camera.position); earthDisk.position.add(camera.position); sunGlow.position.copy(sunDisk.position); sky.position.copy(camera.position);
+        earthDisk.material.uniforms.sunDirection.value.copy(s); sun.position.copy(s).multiplyScalar(extent * 3); earth.position.copy(e).multiplyScalar(extent * 3); sunDisk.position.copy(s).multiplyScalar(150000); earthDisk.position.copy(e).multiplyScalar(150000); sunDisk.position.add(camera.position); earthDisk.position.add(camera.position); sunGlow.position.copy(sunDisk.position); sunGlow.visible = p.sunEl - .267 > horizonAt(p.horizon, p.sunAz, p.horizonStep); sky.position.copy(camera.position);
         const sunKey = p.sunAz + ',' + p.sunEl; if (sunKey !== lastSun) { renderer.shadowMap.needsUpdate = true; lastSun = sunKey; }
         const viewKey = camera.position.toArray().join(',') + camera.quaternion.toArray().join(',') + p.sunAz + ',' + p.sunEl + ',' + p.earthAz + ',' + p.earthEl + inFirst;
         if (dirty || moving || viewKey !== lastView) {
@@ -142,14 +166,16 @@ export default function Scene3D(props: ViewProps) {
         if (firstFrame) { node.dataset.firstFrameMs = (performance.now() - started).toFixed(0); performance.mark('lunar-terrain-first-frame'); firstFrame = false; }
         frame = requestAnimationFrame(draw);
       };
-      draw(); setStatus('');
+      draw(); setStatus(null);
       cleanup = () => { setModeRef.current = null; cancelAnimationFrame(frame); renderer.domElement.removeEventListener('pointerdown', stopIntro); resize.disconnect(); unlook(); orbit.dispose(); disposeScene(scene); releaseRenderer(renderer); };
       } catch (error) { created.forEach(releaseRenderer); throw error; }
-    }).catch((error: unknown) => { if (!abort.signal.aborted) { setFailed(true); setStatus(t(viewerError(error))); } });
+    }).catch((error: unknown) => { if (!abort.signal.aborted) { setFailed(true); setStatus({ key: viewerError(error) }); } });
     return () => { abort.abort(); cleanup(); };
   }, [props.siteId, props.horizon, props.horizonStep]);
 
   useEffect(() => { setModeRef.current?.(firstPerson); }, [firstPerson]);
+  useEffect(() => { setEyeHRef.current(eyeH); }, [eyeH]);
+  useEffect(() => { setFillRef.current(enhance); }, [enhance]);
 
   const go = props.onMode ?? (() => {});
   return <section className="expedition-renderer">
@@ -159,13 +185,18 @@ export default function Scene3D(props: ViewProps) {
       <div className="expedition-cta">
         {firstPerson
           ? <button type="button" onClick={() => go('overview')}>↑ {t('Back to 3D overview')}</button>
-          : <button type="button" onClick={() => go('first')}>↓ {t('First person · 2 m')}</button>}
+          : <button type="button" onClick={() => go('first')}>↓ {t('First person')}</button>}
+        {firstPerson && <label className="free3d-eye">{t('Eye height (visual only)')} <select value={eyeH} onChange={e => setEyeH(Number(e.target.value))}>{EYE_HEIGHTS_M.map(h => <option key={h} value={h}>{h} m</option>)}</select></label>}
+        <button type="button" aria-pressed={enhance} className={enhance ? 'is-primary' : ''} onClick={() => setEnhance(v => !v)} title={t('Adds a soft fill light that does not exist on the Moon, to read the relief in shadow.')}>{t('Enhance visibility')}</button>
         <button type="button" className="is-primary" onClick={() => go('pano')}>{t('Astronaut view (360°)')}</button>
       </div>
       <p>{firstPerson
         ? <>{compass}<br />{t('Mesh horizon approx. (up to ~0.6°); exact horizon in 360°.')}</>
         : <>{t('Drag to orbit · Scroll to zoom')}<br />{t('Sky dome: real Sun (gold) and Earth (blue, dashed) paths; elevation ×{0}; dim = below the horizon.', { 0: DOME_EL_SCALE })}</>}</p>
     </div>
-    {status && <div className="expedition-loading" role="status">{status}{!failed && <progress max={100} value={Number(status.match(/(\d+)%/)?.[1] ?? 0)} />}</div>}
+    {!status && props.sunVisible === false && !enhance && <div className="free3d-dark" role="note">{t('The Sun is behind the terrain here at this hour, so the real scene is dark.')} <button type="button" className="btn btn-sm" onClick={() => setEnhance(true)}>{t('Enhance visibility')}</button></div>}
+    {enhance && <div className="free3d-enhanced" role="note">{t('Enhanced visibility: non-physical fill light')}</div>}
+    {/* Translated at render time so switching EN/ES updates an open viewer. */}
+    {status && <div className="expedition-loading" role="status">{t(status.key, { 0: status.n ?? 0 })}{!failed && <progress max={100} value={status.n ?? 0} />}</div>}
   </section>;
 }

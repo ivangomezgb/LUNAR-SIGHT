@@ -285,3 +285,9 @@ html:not(.pre-done) .mission-hero .hero-in, html.pre-done .mission-hero .hero-in
   .hero-caption { font-size: 0.58rem; line-height: 1.5; letter-spacing: 0.05em; top: 14px; }
   .mission-hero::before { background: linear-gradient(0deg, var(--bg) 4%, oklch(0.135 0.012 255 / 0.55) 40%, transparent 60%); }
 }
+
+/* The published hillshade is the instant/fallback backdrop; once the live 3D terrain (lit at the
+   chosen hour) is on, hide it and its credit so the caption describes what is actually shown. */
+.mission-hero > picture, .mission-hero > .terrain-credit { transition: opacity 1200ms var(--ease-out); }
+.mission-hero:has(.hero-canvas.is-on) > picture,
+.mission-hero:has(.hero-canvas.is-on) > .terrain-credit { opacity: 0; }

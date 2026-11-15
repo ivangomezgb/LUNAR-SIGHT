@@ -7,12 +7,17 @@ import { useApp, MAX_COMPARE } from '../state';
 import { useShallow } from 'zustand/react/shallow';
 import { useBasemap, useSite, useSites } from '../components/hooks';
 import SiteMap from '../components/SiteMap';
+import TerrainBackdrop from '../components/TerrainBackdrop';
 import { groupColor, shortName, isSynthetic } from '../components/format';
 import Panorama from '../components/Panorama';
 import MetricCards from '../components/MetricCards';
 import Timeline from '../components/Timeline';
 import DateTimePicker from '../components/DateTimePicker';
 import AssumptionsPanel from '../components/AssumptionsPanel';
+import LandingRisk from '../components/LandingRisk';
+import EnergyCard from '../components/EnergyCard';
+import SlopeMap from '../components/SlopeMap';
+import PsrCard from '../components/PsrCard';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import { seriesFor, coverage, assumptionsFor } from '../components/series';
 import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc, fmtInt } from '../components/format';
@@ -72,6 +77,7 @@ export default function Explore() {
   return (
     <div className="explore">
       <section className="mission-hero" aria-labelledby="mission-heading">
+        <TerrainBackdrop />
         {siteId && heroSun && (
           <Suspense fallback={null}>
             <HeroTerrain siteId={siteId} sunAz={heroSun.az} sunEl={heroSun.el} exaggeration={HERO_RELIEF} />
@@ -131,6 +137,17 @@ export default function Explore() {
         {site.loading && <Loading label={t("Loading horizon and ephemeris…")} />}
         {site.error && <ErrorBox error={site.error} title={t("Site data not available")} />}
         {site.data && <SiteView site={site.data} landingUtc={landingUtc} onLanding={(t) => siteId && go(siteId, t)} />}
+        {site.data && <LandingRisk site={site.data} utc={landingUtc} assumptions={store.assumptions} />}
+        {site.data && <EnergyCard site={site.data} utc={landingUtc} missionDays={store.missionDays} assumptions={store.assumptions} />}
+        {site.data && <SlopeMap siteId={site.data.id} siteName={entry?.name} />}
+        {site.data && <PsrCard siteId={site.data.id} siteName={entry?.name} />}
+        {site.data && siteId && (
+          <div className="report-cta">
+            <Link className="btn btn-ghost" to={`/report?site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}&days=${store.missionDays}&h=${store.assumptions.heightM}&lang=${store.lang}`}>
+              {t('Mission brief (PDF)')} <span aria-hidden>→</span>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   );

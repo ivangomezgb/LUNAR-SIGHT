@@ -1,4 +1,5 @@
 import { t } from '../i18n';
+import TerrainBackdrop from '../components/TerrainBackdrop';
 
 const MEMBERS = [
   'Brayan David López Castellanos',
@@ -13,7 +14,8 @@ const asset = (file: string) => `${import.meta.env.BASE_URL}${file}`;
 export default function Team() {
   return (
     <div className="page prose-page team-page">
-      <header className="page-head">
+      <header className="page-head terrain-header">
+        <TerrainBackdrop />
         <div>
           <div className="eyebrow">{t('NASA Space Apps Challenge 2026')}</div>
           <h1 className="team-name">Apolo404</h1>

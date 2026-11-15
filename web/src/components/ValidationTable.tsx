@@ -33,10 +33,10 @@ export default function ValidationTable({ data }: { data: ValidationData }) {
                 </td>
                 <td className="mono num">{r.az_ours.toFixed(3)}</td>
                 <td className="mono num">{r.az_horizons.toFixed(3)}</td>
-                <td className={`mono num${Math.abs(r.d_az) > thr ? ' txt-bad' : ''}`}>{r.d_az === 0 ? '<1e-4' : fmtErr(r.d_az)}</td>
+                <td className={`mono num${Math.abs(r.d_az) > thr ? ' txt-bad' : ''}`}>{r.d_az === 0 ? '<1e-9' : fmtErr(r.d_az)}</td>
                 <td className="mono num">{r.el_ours.toFixed(3)}</td>
                 <td className="mono num">{r.el_horizons.toFixed(3)}</td>
-                <td className={`mono num${Math.abs(r.d_el) > thr ? ' txt-bad' : ''}`}>{r.d_el === 0 ? '<1e-4' : fmtErr(r.d_el)}</td>
+                <td className={`mono num${Math.abs(r.d_el) > thr ? ' txt-bad' : ''}`}>{r.d_el === 0 ? '<1e-9' : fmtErr(r.d_el)}</td>
               </tr>
             );
           })}

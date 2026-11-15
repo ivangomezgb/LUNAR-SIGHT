@@ -8,8 +8,8 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 
 | Plan | Estado | Dónde |
 | --- | --- | --- |
-| 1. 10–15 sitios curados con fuente, mapa polar, comparar hasta 3 | ✅ 15 sitios | `pipeline/config/sites.yaml`, `SiteMap.tsx`, `Compare.tsx` |
-| 1b. Coordenadas libres | ❌ diferido (ver §3) | — |
+| 1. 10–15 sitios curados con fuente, mapa polar, comparar hasta 3 | ✅ 17 sitios (las 9 regiones Artemis III de 2024) | `pipeline/config/sites.yaml`, `SiteMap.tsx`, `Compare.tsx` |
+| 1b. Coordenadas libres | ✅ aproximado, `#/free` | `lib/freepoint.ts`, `docs/freepoint.md` |
 | 2. Máscara de horizonte real | ✅ 5/10 m → 20 m → 240 m, hasta 200 km, alturas 1/2/5/10 m | `lln/horizon.py`, `lln/dem.py` |
 | 3. Sol y Tierra cada hora nov 2026 – dic 2028 | ✅ SPICE DE440, n = 19008 | `lln/ephem.py` |
 | 4. Panorama 360° | ✅ SVG 2D (azimut × elevación) | `PanoramaChart.tsx`, `Panorama.tsx` |
@@ -17,7 +17,7 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 | 6. Línea de tiempo 30 días | ✅ | `Timeline.tsx` |
 | 7. Modo "Se retrasó" | ✅ máx. 3 fechas por sitio, ~150 ms | `lib/score.ts`, `Replan.tsx` |
 | 8. Validación Horizons + IM-2 | ✅ error máx. 2,7e-5° | `lln/validate.py`, `Validation.tsx`, `docs/validation.md` |
-| T25. Incertidumbre con clones LOLA | 🟡 2/14 sitios publicados; cálculo de los 12 restantes en curso (2026-11-14) | `lln/uncertainty.py`, `docs/uncertainty.md` |
+| T25. Incertidumbre con clones LOLA | ✅ 14/14 sitios cubiertos (30 clones, GitHub Actions) | `lln/uncertainty.py`, `docs/uncertainty.md` |
 | T26. Altura del panel 1/2/5/10 m en URL | ✅ `?h=` | `state.ts`, `AssumptionsPanel.tsx` |
 | T27. Escena 3D con sombras + 360° inmersivo | ✅ ruta `#/3d`, tres modos (ver §1.1) | `lln/terrain.py`, `lln/pano.py`, `Scene3D.tsx`, `ImmersivePano.tsx`, `three/sceneTools.ts` |
 | Página del equipo Apolo404 | ✅ ruta `#/team` | `pages/Team.tsx`, `public/team-apolo404.*` |
@@ -76,32 +76,44 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 **Entrega (Space Apps):**
 
-- [ ] Activar GitHub Pages y probar la URL publicada en ventana privada y en celular (T18, T32).
+- [x] GitHub Pages activo (más despliegue en Vercel, `vercel.yml`); el equipo probó la página en celular (2026-11-15).
 - [ ] Pedir la clasificación FortiGuard del dominio (T32).
-- [ ] Storyboard, nombre y logo (T12); capturas y grabaciones (T24); video de 30 s con subtítulos en inglés (T29).
+- [x] Nombre y logo: Apolo404 (barra superior y favicon).
+- [ ] Capturas y grabaciones (T24); video de 30 s con subtítulos en inglés (T29); guion en `docs/submission.md`.
 - [ ] Página del proyecto en inglés con todos los campos (T30) y envío (T33).
 - [x] Eliminados `frontend/` y `backend/` (prototipo anterior "LUNAR SIGHT", sin uso).
 
 **Extras del plan (en este orden):**
 
-- [ ] **T25 Incertidumbre**: publicada para Connecting Ridge (69,0/78,8/81,4 %) y Shackleton Rim (52,5/54,2/55,8 %).
-      El 2026-11-14 se lanzó `python pipeline/run_all.py --uncertainty --skip-ephem --skip-validate` para los 12
-      restantes (~45 min por sitio; log en `%TEMP%\lln-uncertainty.out.log`). Al terminar, `export` reescribe
-      `web/public/data/sites/*.json`: revisar el diff (solo debe cambiar `uncertainty`) y commitear.
-      Ese comando recalcula también los sitios ya hechos (con descargas en caché). Mons Mouton no está en
-      ningún DEM de PGDA 78.
+- [x] **T25 Incertidumbre**: 30 clones PGDA 78 en los 14 sitios cubiertos (Mons Mouton no está en ningún DEM
+      de PGDA 78). Se calcula en la nube con `.github/workflows/uncertainty.yml`: un trabajo por sitio en paralelo
+      (~45 min), que verifica el horizonte contra el publicado y luego publica solo `uncertainty` y `has_clones`.
+      Para recalcular sitios: editar `pipeline/config/uncertainty-sites.json` y hacer push a `main`.
 - [x] **T26 Control de altura del panel** (Connecting Ridge 1/2/5/10 m: 65,5/79,2/87,3/89,3 % de luz).
-- [ ] Riesgo de luz al aterrizar (Sol bajo, sombras largas, horas de luz restantes tras el aterrizaje).
+- [x] Riesgo de luz al aterrizar: tarjeta en Explora (`components/LandingRisk.tsx`, `lib/landingRisk.ts`); umbrales en
+      `docs/assumptions.md` § Landing light risk.
 - [x] **T27 Escena 3D con sombras** y 360° inmersivo (ver §1.1 y §5). Falta probar en un teléfono real (carga < 3 s).
 - [x] **T28 Bilingüe EN/ES** (diccionario propio, sin i18next).
-- [ ] Asistente en lenguaje natural; reporte exportable (PDF/PNG del escenario).
+- [x] Reporte exportable: `#/report?site=&t=&days=&h=` (`pages/Report.tsx`), A4 de 2 páginas con "Descargar PDF"
+      (impresión del navegador, sin dependencias).
+- [x] Energía y supervivencia nocturna: tarjeta en Explora (`lib/energy.ts`, `components/EnergyCard.tsx`); supuestos en
+      `docs/assumptions.md` § Energy and night survival.
+- [x] Pendientes y zona segura de aterrizaje: mapa en Explora (`lib/hazard.ts`, `components/SlopeMap.tsx`); método y
+      umbrales en `docs/hazard.md`.
+- [x] Zonas de sombra permanente (PSR): tarjeta en Explora (`lln/psr.py`, `components/PsrCard.tsx`, `docs/psr.md`),
+      mapas oficiales LOLA de PGDA 69 leídos por rangos.
+- [x] Validación contra la literatura: `scripts/literature_check.py` + `LiteratureTable` en Validación; los 17 sitios
+      contra los mapas de visibilidad media de Mazarico et al. 2011 con la misma definición (Tierra r = 0,984). Explica
+      la diferencia de Connecting Ridge (definiciones distintas). Ver `docs/validation.md`.
+- Descartado por decisión del equipo: asistente en lenguaje natural (una app estática no puede llamar a un modelo
+  sin exponer una clave) y su variante de buscador guiado.
 
 **Diferido por diseño:**
 
-- [ ] **Coordenadas libres**: una app estática no puede calcular el horizonte de un punto cualquiera. Hay dos
-      opciones. (a) Precalcular una grilla de horizontes (p. ej. cada 250 m en zonas de interés) e interpolar.
-      (b) Exponer `pipeline` como API (p. ej. FastAPI; el esqueleto viejo de `backend/` se eliminó) que calcule a
-      demanda, en ~5–10 s por punto con caché de tiles.
+- [x] **Coordenadas libres** (`#/free`, ver `docs/freepoint.md`): vectores Sol/Tierra horarios en MOON_ME y DEM
+      LOLA grueso (240 m + 960 m, 7,4 MB, carga diferida); un Web Worker calcula el horizonte (~0,1 s). Es
+      **aproximado**: en los 15 sitios, error de máscara medio 0,25° (máx. 2,64°) y de luz 2027 medio 1,25 pp (máx.
+      4,47 pp). Regenerar con `python -m lln.freepoint` desde `pipeline/`.
 
 ## 4. Mejoras pendientes y problemas conocidos
 
@@ -112,9 +124,14 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
   - puntuar luz + Tierra + pendiente en vez de solo luz;
   - ampliar el radio de búsqueda;
   - usar varios años en lugar de solo 2027.
-- Falta comparar la iluminación con valores publicados en más sitios (hoy solo Mazarico 2011 en Connecting Ridge:
-  80,9 % nuestro contra ~86–89 % publicado). También falta la prueba visual de siluetas con Quickmap/Moon Trek (`docs/validation.md`).
-- Faltan las regiones de la lista 2024 sin coordenadas publicadas: "Peak near Cabeus B" y "Slater Plain".
+- Comparación con la literatura hecha para los 17 sitios (ver arriba). Falta la prueba visual de siluetas con Quickmap/Moon Trek.
+- "Peak near Cabeus B" y "Slater Plain" (lista 2024) ya son sitios curados: centro de la cuadrícula LGRS de 1 km del
+  USGS (McClernan 2024, doi:10.5066/P1MEQ6UK), calculado con `pipeline/scripts/usgs_region_center.py`
+  (los shapefiles van en `pipeline/data/raw/usgs_artemis/`, gitignored; ScienceBase bloquea descargas
+  automáticas). Cabeus B está al norte del mosaico de 5 m: su campo cercano usa LOLA 10 m (83° S). Ninguno de
+  los dos está cubierto por los clones de PGDA 78, así que no tienen incertidumbre.
+- `export.py` conserva la incertidumbre ya publicada si no hay intermedio local y la máscara de 2 m no cambió
+  (los clones se calculan en GitHub Actions); un export local ya no la borra.
 - Chandrayaan-3 (69,4° S) quedó fuera, porque no lo cubre ningún DEM de 80° S ni el mapa base.
 - Las filas de `validation.json` guardan `d_az`/`d_el` redondeados (se ven como 0). El resumen sí tiene el valor exacto.
 

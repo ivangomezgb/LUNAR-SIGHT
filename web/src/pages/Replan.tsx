@@ -101,7 +101,7 @@ export default function Replan() {
           {result && !result.error && (
             <div className={stale ? 'is-stale' : ''}>
               {result.out.length ? (
-                <RankingTable options={result.out} index={list} onView={view} />
+                <RankingTable options={result.out} index={list} onView={view} sites={data.data ?? undefined} assumptions={assumptions} />
               ) : (
                 <Empty title={t("No option passes the filters")}>
                   <p className="muted">{t("Relax the minimum sunlight / Earth visibility, allow a steeper slope, or widen the tolerance.")}</p>

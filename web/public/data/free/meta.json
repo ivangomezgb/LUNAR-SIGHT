@@ -1,0 +1,51 @@
+{
+  "version": 1,
+  "generated_utc": "2026-11-15T13:43:45.635563+00:00",
+  "frame": "MOON_ME",
+  "abcorr": "LT+S",
+  "radius_m": 1737400.0,
+  "t0_utc": "2026-11-01T00:00:00Z",
+  "step_h": 1,
+  "n": 19008,
+  "vectors_file": "vectors.bin",
+  "vectors_layout": "hour, body(sun,earth), xyz; float32 LE km",
+  "grids": [
+    {
+      "file": "inner.bin",
+      "n": 1696,
+      "left": -203040.0,
+      "top": 203040.0,
+      "res_m": 240.0,
+      "scale_m": 1,
+      "nodata": -32768,
+      "source": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_240MPP_ADJ.TIF",
+      "reduction": "none"
+    },
+    {
+      "file": "outer.bin",
+      "n": 856,
+      "left": -410160.0,
+      "top": 410160.0,
+      "res_m": 960.0,
+      "scale_m": 1,
+      "nodata": -32768,
+      "source": "https://pgda.gsfc.nasa.gov/data/LOLA_20mpp/LDEM_60S_240MPP_ADJ.TIF",
+      "reduction": "4x4 maximum"
+    }
+  ],
+  "az_step_deg": 0.5,
+  "max_dist_m": 200000,
+  "heights_m": [
+    1,
+    2,
+    5,
+    10
+  ],
+  "bounds_m": [
+    -200000,
+    -200000,
+    200000,
+    200000
+  ],
+  "payload_bytes": 7674496
+}

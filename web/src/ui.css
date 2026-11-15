@@ -1769,3 +1769,110 @@ tbody tr:hover { background: #ffffff07; }
   .topbar nav .nav-link { flex: none; white-space: nowrap; }
   .topbar nav .lang-toggle { flex: none; }
 }
+
+/* Lunar survey presentation: neutral instrument panels and real published relief. */
+:root {
+  --bg: #080a0c; --bg-2: #0e1114; --panel: #14181c; --panel-2: #1e242a;
+  --line: #30363c; --line-2: #4b545d; --text: #f3f4f4; --text-2: #c5cbd0;
+  --muted: #a5afb8; --terrain-hi: #777774; --terrain-lo: #242524;
+  --terrain-ridge: #c1c2bd; --radius: 12px;
+  --shadow-card: 0 2px 3px #0003, 0 16px 32px -20px #0009;
+}
+body { background: var(--bg); }
+.topbar { background: #0b0e11f5; }
+.card, .metric, .rank-row { background: var(--panel); }
+.card-head { padding-bottom: 10px; border-bottom: 1px solid var(--line); }
+.card-title { color: #cdd2d7; }
+.page-head h1, .mission-hero h1 { text-wrap: balance; }
+.page-head p { text-wrap: pretty; }
+.mission-hero, .terrain-header { position: relative; isolation: isolate; overflow: hidden; background: #101214; border: 1px solid #484c50; border-radius: 12px; }
+.mission-hero { padding: 42px 36px 70px; min-height: 320px; }
+.terrain-header { padding: 32px 36px 66px; }
+.terrain-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 56%; z-index: -3; }
+.mission-hero::before, .terrain-header::before { content: ''; position: absolute; inset: 0; z-index: -2; background: linear-gradient(90deg, #07090bec 0%, #07090bd9 48%, #07090b82 100%); }
+.mission-hero::after, .terrain-header::after { content: ''; position: absolute; inset: 0; z-index: -1; background: linear-gradient(0deg, #080a0cf5, transparent 40%); }
+.mission-hero .terrain-credit, .terrain-header .terrain-credit { position: absolute; bottom: 18px; left: 36px; right: 24px; margin: 0; color: #c5cbd0; font-size: .68rem; line-height: 1.5; letter-spacing: .025em; }
+.mission-hero p, .terrain-header .lead { color: #dde0e2; }
+.hero-proof { border-color: #8d949966; padding: 20px 0 20px 24px; color: #e2e5e7; }
+.hero-proof .link { color: #c5dcff; }
+.hero-actions .btn-ghost { background: #0a0c0edb; border-color: #747b82; }
+.site-header { padding: 4px 0 16px; border-bottom: 1px solid var(--line); }
+.site-meta { color: #adb6bf; }
+.pano-card { background: #101316; border-color: #444b52; }
+.pano-ridge { stroke-width: 1.2; }
+.pano-major { stroke: #454a50; }
+.pano-minor { stroke: #24282c; }
+.pano-sun-dot { fill: #fff2cd; }
+.metric:first-child { background: #211f19; border-color: #766444; }
+.metric-value, .vs-num, .mm-v { font-variant-numeric: tabular-nums; }
+.metric:first-child .mv-num { font-size: 2.5rem; }
+.sitemap-svg { background: #030405; border: 1px solid #52585d; border-radius: 6px; }
+.sitemap-img { filter: brightness(.78) contrast(1.12); }
+.sm-dot { stroke: #050607; }
+.sm-label { font-family: var(--font); }
+.map-scale path { stroke: #fff; filter: drop-shadow(0 1px 2px #000); }
+.map-scale text { fill: #fff; stroke: #101214; paint-order: stroke; font-family: var(--mono); }
+.map-readout { display: flex; flex-direction: column; gap: 3px; min-height: 82px; padding: 12px 14px; margin-top: 10px; border-left: 2px solid var(--sun); background: #0c0f12; font-size: .74rem; color: var(--text-2); }
+.map-readout strong { color: var(--text); font-size: .86rem; }
+.sitemap-legend { gap: 7px 12px; padding-top: 6px; }
+.timeline { padding-top: 4px; }
+.timeline > .muted { margin-bottom: 12px; }
+.tl-earth-bg { fill: #050709; }
+.tl-window { stroke: #e4e8ec; }
+.table th { background: #1b2025; }
+.rank-row.is-top { border-color: #887344; box-shadow: inset 3px 0 var(--sun), var(--shadow-card); }
+.reasons li { background: #101417; }
+.score-fill { background: #957a3d; }
+.score-num { background: #111519; padding-inline: 5px; border-radius: 3px; text-shadow: none; }
+.team-members ul { grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); }
+.team-quote { background: #171916; }
+.team-photo { max-width: 1120px; align-self: center; }
+.status-loading { position: relative; overflow: hidden; min-height: 110px; background: var(--panel); }
+.status-loading::after { content: ''; position: absolute; left: 32px; right: 32px; bottom: 16px; height: 4px; border-radius: 2px; background: #30383e; }
+@media (prefers-reduced-motion: no-preference) {
+  .page, .explore { animation: survey-enter 220ms ease-out both; }
+  @keyframes survey-enter { from { opacity: .4; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+}
+@media (max-width: 720px) {
+  .topbar { backdrop-filter: none; }
+  .mission-hero { padding: 28px 20px 78px; min-height: 370px; }
+  .terrain-header { padding: 24px 20px 80px; }
+  .mission-hero .terrain-credit, .terrain-header .terrain-credit { left: 20px; right: 20px; bottom: 18px; font-size: .65rem; }
+  .mission-hero::before, .terrain-header::before { background: #07090bd9; }
+  .mission-hero h1 { font-size: clamp(1.9rem, 8vw, 2.5rem); }
+  .metric:first-child .mv-num { font-size: 2rem; }
+  .nav-link, .lang-toggle .chip { min-height: 40px; }
+  .field-grid { grid-template-columns: repeat(auto-fit, minmax(min(100%, 140px), 1fr)); }
+  .weight-row { grid-template-columns: minmax(0, 1fr) minmax(60px, 95px) 32px; }
+  .map-readout { min-height: 82px; }
+  .pano, .timeline { min-width: 0; }
+}
+
+.mission-hero > picture, .terrain-header > picture { position: absolute; inset: 0; z-index: -3; pointer-events: none; }
+.mission-hero > picture .terrain-backdrop, .terrain-header > picture .terrain-backdrop { z-index: auto; }
+
+/* Mission brief link under the landing-risk card. */
+.report-cta { display: flex; justify-content: flex-end; margin: 12px 0 4px; }
+
+/* Landing-risk card on Explore: dark dashboard theme (report.css keeps the white print sheet). */
+body .landing-risk { background: var(--panel, #11161c); color: var(--text); border: 1px solid var(--line-2); border-radius: 10px; padding: 18px 20px; margin-top: 18px; }
+body .landing-risk h2 { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-2); }
+body .risk-grid dt, body .risk-caption, body .risk-assumptions, body .risk-shadow p { color: var(--text-2); }
+body .risk-grid dd { font-family: var(--mono, ui-monospace, monospace); font-size: 1.15rem; color: var(--text); }
+body .risk-low { color: #8be0a6; background: rgba(46, 160, 90, .12); }
+body .risk-medium { color: #ffd27a; background: rgba(230, 160, 40, .14); }
+body .risk-high { color: #ff9a9a; background: rgba(220, 60, 60, .14); }
+body .risk-shadow svg { color: var(--sun); }
+body .risk-tip-content { background: var(--panel-2, #1b222b); border: 1px solid var(--line-2); }
+
+/* Apolo404 team logo in the top bar (transparent PNG/WebP, white + blue strokes). */
+.brand-logo { display: block; flex-shrink: 0; line-height: 0; }
+.brand-logo img { display: block; height: 52px; width: auto; }
+@media (max-width: 699px) { .brand-logo img { height: 38px; } }
+
+/* Compare: landing-risk level and uncertainty under each site card. */
+.compare-extra { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin: 10px 0 12px; }
+
+/* Visible label for the panorama playback speed. */
+.speed { display: inline-flex; align-items: center; gap: 6px; }
+.speed-label { font-size: .75rem; color: var(--text-2, #bac5d3); }

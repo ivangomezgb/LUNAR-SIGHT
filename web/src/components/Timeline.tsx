@@ -22,7 +22,7 @@ interface Props {
   title?: string;
 }
 
-const sunColor = interpolateRgb('#1a1d24', '#f5c542');
+const sunColor = interpolateRgb('#111315', '#f4ce72');
 
 export default function Timeline({
   site,
@@ -42,7 +42,7 @@ export default function Timeline({
   const nightId = `night-${patternId}`;
   const nodataId = `nodata-${patternId}`;
   const [ref, measured] = useElementWidth<HTMLDivElement>();
-  const width = Math.max(300, measured || 800);
+  const width = Math.max(220, measured || 800);
   const labelW = compact ? 56 : 74;
   const m = { l: labelW, r: 8, t: compact ? 4 : 18, b: 20 };
   const bandH = compact ? 16 : 24;

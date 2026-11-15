@@ -1,0 +1,23 @@
+﻿.free3d { min-width: 0; overflow: hidden; padding: 0; }
+.free3d-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; padding: 1rem; }
+.free3d-toolbar [role=group] { display: flex; flex-wrap: wrap; gap: .5rem; }
+.free3d-toolbar button { min-height: 44px; white-space: normal; }
+.free3d-stage { position: relative; background: #000; aspect-ratio: 16 / 9; min-height: 280px; }
+.free3d-canvas { position: absolute; inset: 0; }
+.free3d-canvas canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+.free3d :focus-visible { outline: 3px solid var(--accent, #f2ce80); outline-offset: -3px; }
+.free3d-hud { position: absolute; left: .75rem; right: .75rem; bottom: .75rem; display: flex; flex-wrap: wrap; gap: .4rem .9rem; pointer-events: none; font-size: .8rem; }
+.free3d-hud span { background: #080c12ed; color: #e6edf5; padding: .35rem .55rem; border: 1px solid var(--line); border-radius: 6px; overflow-wrap: anywhere; }
+.free3d-hud .free3d-sun { color: #f5d481; }
+.free3d-hud .free3d-earth { color: #a9cdff; }
+.free3d-status { position: absolute; inset: 0; display: grid; place-content: center; padding: 1.5rem; background: #080c12e8; color: var(--text); }
+.free3d-caption { padding: .75rem 1rem; color: var(--text-2, #c4cfdd); font-size: .85rem; overflow-wrap: anywhere; }
+.free3d-caption p { margin: .35rem 0; }
+@media (max-width: 600px) { .free3d-stage { aspect-ratio: 4 / 5; } .free3d-toolbar { padding: .75rem; } }
+@media (prefers-reduced-motion: reduce) { .free3d *, .free3d *::before, .free3d *::after { transition: none !important; animation: none !important; } }
+
+/* Night hint and the label of the non-physical fill light. */
+.free3d-dark { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: min(420px, 86%); padding: 14px 16px; border: 1px solid var(--line-2, #3b4b60); border-radius: 10px; background: rgba(6, 9, 14, .86); color: var(--text, #f0f3f7); font-size: .9rem; line-height: 1.45; text-align: center; display: grid; gap: 10px; justify-items: center; }
+.free3d-enhanced { position: absolute; right: 12px; top: 12px; padding: 4px 8px; border: 1px dashed #e7be68; border-radius: 4px; background: rgba(6, 9, 14, .8); color: #ffe2a0; font-size: .75rem; }
+.free3d-eye { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--text-2, #bac5d3); }
+.free3d-eye select { background: #111925; color: var(--text, #f0f3f7); border: 1px solid var(--line-2, #3b4b60); border-radius: 6px; padding: 6px 8px; min-height: 36px; }

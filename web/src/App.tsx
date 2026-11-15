@@ -17,6 +17,8 @@ import { DATA_DIR } from './components/hooks';
 
 const View3D = lazy(() => import('./pages/View3D'));
 const Mission = lazy(() => import('./pages/Mission'));
+const Report = lazy(() => import('./pages/Report'));
+const FreePointExplorer = lazy(() => import('./components/FreePointPanel').then((m) => ({ default: m.FreePointExplorer })));
 
 function Nav() {
   const { siteId, landingUtc, lang, setLang, assumptions } = useApp(useShallow((s) => ({ siteId: s.siteId, landingUtc: s.landingUtc, lang: s.lang, setLang: s.setLang, assumptions: s.assumptions })));
@@ -29,11 +31,10 @@ function Nav() {
     <header className="topbar">
       <a href="#main" className="skip-link"> {t("Skip to content")} </a>
       <NavLink to={exploreLink} className="brand" aria-label={t("Lunar Landing Site Navigator, home")}>
-        <svg viewBox="0 0 32 32" width="28" height="28" aria-hidden>
-          <path d="M2 24 L9 17 L13 20 L19 12 L30 22 L30 30 L2 30 Z" fill="var(--terrain-hi)" />
-          <circle cx="23" cy="8" r="4" fill="var(--sun)" />
-          <circle cx="8" cy="8" r="2.6" fill="var(--earth)" />
-        </svg>
+        <picture className="brand-logo">
+          <source srcSet={`${import.meta.env.BASE_URL}media/apolo404-logo.webp`} type="image/webp" />
+          <img src={`${import.meta.env.BASE_URL}media/apolo404-logo.png`} width={255} height={112} alt="Apolo404" decoding="async" />
+        </picture>
         <span className="brand-text">
           <span className="brand-name">{t("Lunar Landing Site Navigator")}</span>
           <span className="brand-sub">{t("South pole · Sun & Earth visibility")}</span>
@@ -45,6 +46,7 @@ function Nav() {
         <NavLink to={`/mission?${shared}${siteId ? `&site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : ''}`} className={({ isActive }) => `${cls({ isActive })} nav-play`}> {t('Play mission')} </NavLink>
         <NavLink to={to('/compare')} className={cls}> {t("Compare")} </NavLink>
         <NavLink to={to('/replan')} className={cls}> {t("Mission delayed")} </NavLink>
+        <NavLink to={to('/free')} className={cls}> {t('Any point')} </NavLink>
         <NavLink to={to('/validation')} className={cls}> {t("Validation")} </NavLink>
         <NavLink to={to('/about')} className={cls}> {t("About")} </NavLink>
         <NavLink to={to('/team')} className={cls} title="Apolo404"> {t('Team')} </NavLink>
@@ -125,6 +127,8 @@ export default function App() {
           <Route path="/mission" element={<Mission />} />
           <Route path="/about" element={<About />} />
           <Route path="/team" element={<Team />} />
+          <Route path="/report" element={<Report />} />
+          <Route path="/free" element={<FreePointExplorer />} />
           <Route path="*" element={<Explore />} />
             </Routes>
           </Suspense>

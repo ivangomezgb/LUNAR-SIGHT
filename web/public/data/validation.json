@@ -1,35 +1,35 @@
 {
- "generated_utc": "2026-11-14T16:54:09Z",
+ "generated_utc": "2026-11-15T15:25:04Z",
  "method": "Ours: SPICE (spiceypy) with naif0012.tls, de440s.bsp, pck00011.tpc, moon_pa_de440_200625.bpc and moon_de440_250416.tf. Apparent (LT+S) Sun and Earth positions from the Moon's centre in MOON_ME (DE440 mean-Earth frame), computed once hourly; per site the observer vector (sphere 1737.4 km + elevation) is subtracted and projected on local east/north/up (azimuth from north, clockwise). Reference: JPL Horizons API, OBSERVER table from a geodetic lunar surface site (coord@301), QUANTITIES=4 (airless apparent azimuth/elevation, DE441, MEAN_ME high precision). 3 sites x 10 instants (2026-11 to 2028-12) x Sun and Earth; d_az is circular.",
  "rows": [
   {
    "site": "shackleton_rim",
    "t_utc": "2026-11-03T06:00:00Z",
    "body": "sun",
-   "az_ours": 257.733818,
-   "el_ours": 1.457911,
+   "az_ours": 257.733817649,
+   "el_ours": 1.457911208,
    "az_horizons": 257.733817659,
    "el_horizons": 1.457911211,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -1e-08,
+   "d_el": -3e-09
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2027-01-17T13:00:00Z",
    "body": "sun",
-   "az_ours": 61.712974,
-   "el_ours": 0.720717,
+   "az_ours": 61.712974178,
+   "el_ours": 0.720716871,
    "az_horizons": 61.712974172,
    "el_horizons": 0.720716869,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 6e-09,
+   "d_el": 2e-09
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2027-04-02T20:00:00Z",
    "body": "sun",
-   "az_ours": 225.527073,
-   "el_ours": -1.334593,
+   "az_ours": 225.527072587,
+   "el_ours": -1.334592994,
    "az_horizons": 225.527072587,
    "el_horizons": -1.334592994,
    "d_az": 0.0,
@@ -39,634 +39,634 @@
    "site": "shackleton_rim",
    "t_utc": "2027-06-15T03:00:00Z",
    "body": "sun",
-   "az_ours": 50.611816,
-   "el_ours": -1.130912,
+   "az_ours": 50.611815735,
+   "el_ours": -1.13091166,
    "az_horizons": 50.611815732,
    "el_horizons": -1.130911661,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 3e-09,
+   "d_el": 1e-09
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2027-08-29T10:00:00Z",
    "body": "sun",
-   "az_ours": 210.750506,
-   "el_ours": 0.570975,
+   "az_ours": 210.750506075,
+   "el_ours": 0.570974986,
    "az_horizons": 210.75050608,
    "el_horizons": 0.570974989,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -5e-09,
+   "d_el": -3e-09
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2027-11-12T17:00:00Z",
    "body": "sun",
-   "az_ours": 12.793801,
-   "el_ours": 1.623222,
+   "az_ours": 12.79380123,
+   "el_ours": 1.623222324,
    "az_horizons": 12.793801241,
    "el_horizons": 1.623222322,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -1.1e-08,
+   "d_el": 2e-09
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2028-01-26T00:00:00Z",
    "body": "sun",
-   "az_ours": 189.393896,
-   "el_ours": -0.204633,
+   "az_ours": 189.393895586,
+   "el_ours": -0.204633419,
    "az_horizons": 189.393895581,
    "el_horizons": -0.204633419,
-   "d_az": 0.0,
+   "d_az": 5e-09,
    "d_el": 0.0
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2028-04-10T07:00:00Z",
    "body": "sun",
-   "az_ours": 352.709014,
-   "el_ours": -1.427985,
+   "az_ours": 352.709013949,
+   "el_ours": -1.427984724,
    "az_horizons": 352.709013937,
    "el_horizons": -1.427984719,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 1.2e-08,
+   "d_el": -5e-09
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2028-07-24T14:00:00Z",
    "body": "sun",
-   "az_ours": 146.531101,
-   "el_ours": 0.146326,
+   "az_ours": 146.531100828,
+   "el_ours": 0.146325834,
    "az_horizons": 146.531100825,
    "el_horizons": 0.146325833,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 3e-09,
+   "d_el": 1e-09
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2028-12-08T21:00:00Z",
    "body": "sun",
-   "az_ours": 272.865462,
-   "el_ours": 0.711573,
+   "az_ours": 272.865461813,
+   "el_ours": 0.711572644,
    "az_horizons": 272.865461821,
    "el_horizons": 0.711572647,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -8e-09,
+   "d_el": -3e-09
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2026-11-03T06:00:00Z",
    "body": "earth",
-   "az_ours": 5.378715,
-   "el_ours": -0.406133,
+   "az_ours": 5.378715028,
+   "el_ours": -0.406133417,
    "az_horizons": 5.378715294,
    "el_horizons": -0.406158747,
-   "d_az": 0.0,
-   "d_el": 2.5e-05
+   "d_az": -2.66e-07,
+   "d_el": 2.533e-05
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2027-01-17T13:00:00Z",
    "body": "earth",
-   "az_ours": 353.084962,
-   "el_ours": 6.599532,
+   "az_ours": 353.084962394,
+   "el_ours": 6.59953246,
    "az_horizons": 353.084962793,
    "el_horizons": 6.599557346,
-   "d_az": 0.0,
-   "d_el": -2.5e-05
+   "d_az": -3.99e-07,
+   "d_el": -2.4886e-05
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2027-04-02T20:00:00Z",
    "body": "earth",
-   "az_ours": 356.768955,
-   "el_ours": 0.440078,
+   "az_ours": 356.768954669,
+   "el_ours": 0.440078246,
    "az_horizons": 356.768954857,
    "el_horizons": 0.440060007,
-   "d_az": 0.0,
-   "d_el": 1.8e-05
+   "d_az": -1.88e-07,
+   "d_el": 1.8239e-05
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2027-06-15T03:00:00Z",
    "body": "earth",
-   "az_ours": 5.843456,
-   "el_ours": -6.81103,
+   "az_ours": 5.843455597,
+   "el_ours": -6.811030013,
    "az_horizons": 5.843455712,
    "el_horizons": -6.81101274,
-   "d_az": 0.0,
-   "d_el": -1.7e-05
+   "d_az": -1.15e-07,
+   "d_el": -1.7273e-05
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2027-08-29T10:00:00Z",
    "body": "earth",
-   "az_ours": 358.127683,
-   "el_ours": 0.752324,
+   "az_ours": 358.12768319,
+   "el_ours": 0.752324269,
    "az_horizons": 358.127683483,
    "el_horizons": 0.752309312,
-   "d_az": 0.0,
-   "d_el": 1.5e-05
+   "d_az": -2.93e-07,
+   "d_el": 1.4957e-05
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2027-11-12T17:00:00Z",
    "body": "earth",
-   "az_ours": 354.961511,
-   "el_ours": 6.401897,
+   "az_ours": 354.961510653,
+   "el_ours": 6.401896523,
    "az_horizons": 354.961511039,
    "el_horizons": 6.401904771,
-   "d_az": 0.0,
-   "d_el": -8e-06
+   "d_az": -3.86e-07,
+   "d_el": -8.248e-06
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2028-01-26T00:00:00Z",
    "body": "earth",
-   "az_ours": 2.492071,
-   "el_ours": -0.575242,
+   "az_ours": 2.492071064,
+   "el_ours": -0.575241887,
    "az_horizons": 2.492071353,
    "el_horizons": -0.575244695,
-   "d_az": 0.0,
-   "d_el": 3e-06
+   "d_az": -2.89e-07,
+   "d_el": 2.808e-06
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2028-04-10T07:00:00Z",
    "body": "earth",
-   "az_ours": 4.42296,
-   "el_ours": -6.686247,
+   "az_ours": 4.42295984,
+   "el_ours": -6.686246952,
    "az_horizons": 4.422960196,
    "el_horizons": -6.686252823,
-   "d_az": 0.0,
-   "d_el": 6e-06
+   "d_az": -3.56e-07,
+   "d_el": 5.871e-06
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2028-07-24T14:00:00Z",
    "body": "earth",
-   "az_ours": 0.572324,
-   "el_ours": -4.813711,
+   "az_ours": 0.572324115,
+   "el_ours": -4.813710713,
    "az_horizons": 0.572324586,
    "el_horizons": -4.813695908,
-   "d_az": 0.0,
-   "d_el": -1.5e-05
+   "d_az": -4.71e-07,
+   "d_el": -1.4805e-05
   },
   {
    "site": "shackleton_rim",
    "t_utc": "2028-12-08T21:00:00Z",
    "body": "earth",
-   "az_ours": 357.919049,
-   "el_ours": -5.886569,
+   "az_ours": 357.919049492,
+   "el_ours": -5.886569493,
    "az_horizons": 357.919049819,
    "el_horizons": -5.886596183,
-   "d_az": 0.0,
-   "d_el": 2.7e-05
+   "d_az": -3.27e-07,
+   "d_el": 2.669e-05
   },
   {
    "site": "mons_mouton",
    "t_utc": "2026-11-03T06:00:00Z",
    "body": "sun",
-   "az_ours": 228.557338,
-   "el_ours": -1.970697,
+   "az_ours": 228.557338477,
+   "el_ours": -1.970696586,
    "az_horizons": 228.55733843,
    "el_horizons": -1.970696584,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 4.7e-08,
+   "d_el": -2e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-01-17T13:00:00Z",
    "body": "sun",
-   "az_ours": 32.65691,
-   "el_ours": 5.06354,
+   "az_ours": 32.65690999,
+   "el_ours": 5.063540037,
    "az_horizons": 32.656910056,
    "el_horizons": 5.063540031,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -6.6e-08,
+   "d_el": 6e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-04-02T20:00:00Z",
    "body": "sun",
-   "az_ours": 196.426434,
-   "el_ours": -6.262819,
+   "az_ours": 196.426434319,
+   "el_ours": -6.262818596,
    "az_horizons": 196.426434237,
    "el_horizons": -6.262818598,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 8.2e-08,
+   "d_el": 2e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-06-15T03:00:00Z",
    "body": "sun",
-   "az_ours": 21.458626,
-   "el_ours": 3.655055,
+   "az_ours": 21.458625623,
+   "el_ours": 3.655055227,
    "az_horizons": 21.4586257,
    "el_horizons": 3.655055224,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -7.7e-08,
+   "d_el": 3e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-08-29T10:00:00Z",
    "body": "sun",
-   "az_ours": 181.56017,
-   "el_ours": -4.55056,
+   "az_ours": 181.560170005,
+   "el_ours": -4.550560415,
    "az_horizons": 181.560169926,
    "el_horizons": -4.550560413,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 7.9e-08,
+   "d_el": -2e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-11-12T17:00:00Z",
    "body": "sun",
-   "az_ours": 343.493603,
-   "el_ours": 6.522037,
+   "az_ours": 343.493603146,
+   "el_ours": 6.522037174,
    "az_horizons": 343.493603239,
    "el_horizons": 6.522037175,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -9.3e-08,
+   "d_el": -1e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2028-01-26T00:00:00Z",
    "body": "sun",
-   "az_ours": 160.11918,
-   "el_ours": -5.006512,
+   "az_ours": 160.119179585,
+   "el_ours": -5.006511786,
    "az_horizons": 160.119179501,
    "el_horizons": -5.006511783,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 8.4e-08,
+   "d_el": -3e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2028-04-10T07:00:00Z",
    "body": "sun",
-   "az_ours": 323.482258,
-   "el_ours": 2.661329,
+   "az_ours": 323.482258415,
+   "el_ours": 2.661328671,
    "az_horizons": 323.482258471,
    "el_horizons": 2.661328677,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -5.6e-08,
+   "d_el": -6e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2028-07-24T14:00:00Z",
    "body": "sun",
-   "az_ours": 117.25721,
-   "el_ours": -2.160539,
+   "az_ours": 117.257209989,
+   "el_ours": -2.160539322,
    "az_horizons": 117.257209948,
    "el_horizons": -2.16053932,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 4.1e-08,
+   "d_el": -2e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2028-12-08T21:00:00Z",
    "body": "sun",
-   "az_ours": 243.707529,
-   "el_ours": -1.603716,
+   "az_ours": 243.707529484,
+   "el_ours": -1.603716411,
    "az_horizons": 243.707529454,
    "el_horizons": -1.60371641,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 3e-08,
+   "d_el": -1e-09
   },
   {
    "site": "mons_mouton",
    "t_utc": "2026-11-03T06:00:00Z",
    "body": "earth",
-   "az_ours": 336.104245,
-   "el_ours": 4.259888,
+   "az_ours": 336.104244705,
+   "el_ours": 4.259887684,
    "az_horizons": 336.10424512,
    "el_horizons": 4.259862421,
-   "d_az": 0.0,
-   "d_el": 2.5e-05
+   "d_az": -4.15e-07,
+   "d_el": 2.5263e-05
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-01-17T13:00:00Z",
    "body": "earth",
-   "az_ours": 323.408825,
-   "el_ours": 10.699885,
+   "az_ours": 323.408824981,
+   "el_ours": 10.699885316,
    "az_horizons": 323.408825516,
    "el_horizons": 10.699909974,
-   "d_az": -1e-06,
-   "d_el": -2.5e-05
+   "d_az": -5.35e-07,
+   "d_el": -2.4658e-05
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-04-02T20:00:00Z",
    "body": "earth",
-   "az_ours": 327.437008,
-   "el_ours": 4.735772,
+   "az_ours": 327.437007547,
+   "el_ours": 4.735772041,
    "az_horizons": 327.437007861,
    "el_horizons": 4.73575388,
-   "d_az": 0.0,
-   "d_el": 1.8e-05
+   "d_az": -3.14e-07,
+   "d_el": 1.8161e-05
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-06-15T03:00:00Z",
    "body": "earth",
-   "az_ours": 336.802522,
-   "el_ours": -2.126136,
+   "az_ours": 336.802522246,
+   "el_ours": -2.126136377,
    "az_horizons": 336.802522502,
    "el_horizons": -2.126118982,
-   "d_az": 0.0,
-   "d_el": -1.7e-05
+   "d_az": -2.56e-07,
+   "d_el": -1.7395e-05
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-08-29T10:00:00Z",
    "body": "earth",
-   "az_ours": 328.783284,
-   "el_ours": 5.112926,
+   "az_ours": 328.783283908,
+   "el_ours": 5.112925785,
    "az_horizons": 328.783284349,
    "el_horizons": 5.112910892,
-   "d_az": 0.0,
-   "d_el": 1.5e-05
+   "d_az": -4.41e-07,
+   "d_el": 1.4893e-05
   },
   {
    "site": "mons_mouton",
    "t_utc": "2027-11-12T17:00:00Z",
    "body": "earth",
-   "az_ours": 325.315081,
-   "el_ours": 10.601377,
+   "az_ours": 325.31508066,
+   "el_ours": 10.601376684,
    "az_horizons": 325.31508118,
    "el_horizons": 10.601384877,
-   "d_az": -1e-06,
-   "d_el": -8e-06
+   "d_az": -5.2e-07,
+   "d_el": -8.193e-06
   },
   {
    "site": "mons_mouton",
    "t_utc": "2028-01-26T00:00:00Z",
    "body": "earth",
-   "az_ours": 333.218681,
-   "el_ours": 3.978277,
+   "az_ours": 333.218681498,
+   "el_ours": 3.978276808,
    "az_horizons": 333.218681919,
    "el_horizons": 3.978274031,
-   "d_az": 0.0,
-   "d_el": 3e-06
+   "d_az": -4.21e-07,
+   "d_el": 2.777e-06
   },
   {
    "site": "mons_mouton",
    "t_utc": "2028-04-10T07:00:00Z",
    "body": "earth",
-   "az_ours": 335.386132,
-   "el_ours": -2.053994,
+   "az_ours": 335.386132219,
+   "el_ours": -2.053993592,
    "az_horizons": 335.386132721,
    "el_horizons": -2.053999486,
-   "d_az": -1e-06,
-   "d_el": 6e-06
+   "d_az": -5.02e-07,
+   "d_el": 5.894e-06
   },
   {
    "site": "mons_mouton",
    "t_utc": "2028-07-24T14:00:00Z",
    "body": "earth",
-   "az_ours": 331.479098,
-   "el_ours": -0.33897,
+   "az_ours": 331.47909848,
+   "el_ours": -0.338970056,
    "az_horizons": 331.479099097,
    "el_horizons": -0.338955177,
-   "d_az": -1e-06,
-   "d_el": -1.5e-05
+   "d_az": -6.17e-07,
+   "d_el": -1.4879e-05
   },
   {
    "site": "mons_mouton",
    "t_utc": "2028-12-08T21:00:00Z",
    "body": "earth",
-   "az_ours": 328.887715,
-   "el_ours": -1.530807,
+   "az_ours": 328.887715026,
+   "el_ours": -1.530807432,
    "az_horizons": 328.887715489,
    "el_horizons": -1.530834252,
-   "d_az": 0.0,
-   "d_el": 2.7e-05
+   "d_az": -4.63e-07,
+   "d_el": 2.682e-05
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2026-11-03T06:00:00Z",
    "body": "sun",
-   "az_ours": 226.91978,
-   "el_ours": -12.887637,
+   "az_ours": 226.919780086,
+   "el_ours": -12.887636916,
    "az_horizons": 226.919779862,
    "el_horizons": -12.887636965,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 2.24e-07,
+   "d_el": 4.9e-08
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-01-17T13:00:00Z",
    "body": "sun",
-   "az_ours": 31.172583,
-   "el_ours": 18.536719,
+   "az_ours": 31.172583277,
+   "el_ours": 18.536719372,
    "az_horizons": 31.172583573,
    "el_horizons": 18.536719316,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -2.96e-07,
+   "d_el": 5.6e-08
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-04-02T20:00:00Z",
    "body": "sun",
-   "az_ours": 194.192416,
-   "el_ours": -21.317483,
+   "az_ours": 194.192416309,
+   "el_ours": -21.317482893,
    "az_horizons": 194.192415962,
    "el_horizons": -21.317482922,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 3.47e-07,
+   "d_el": 2.9e-08
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-06-15T03:00:00Z",
    "body": "sun",
-   "az_ours": 19.308483,
-   "el_ours": 18.354592,
+   "az_ours": 19.308483219,
+   "el_ours": 18.354592086,
    "az_horizons": 19.308483548,
    "el_horizons": 18.35459205,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -3.29e-07,
+   "d_el": 3.6e-08
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-08-29T10:00:00Z",
    "body": "sun",
-   "az_ours": 178.331919,
-   "el_ours": -19.962005,
+   "az_ours": 178.331918566,
+   "el_ours": -19.962005291,
    "az_horizons": 178.331918218,
    "el_horizons": -19.962005287,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 3.48e-07,
+   "d_el": -4e-09
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-11-12T17:00:00Z",
    "body": "sun",
-   "az_ours": 339.04354,
-   "el_ours": 20.905323,
+   "az_ours": 339.043540456,
+   "el_ours": 20.905323101,
    "az_horizons": 339.043540803,
    "el_horizons": 20.905323143,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -3.47e-07,
+   "d_el": -4.2e-08
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2028-01-26T00:00:00Z",
    "body": "sun",
-   "az_ours": 155.66545,
-   "el_ours": -19.037534,
+   "az_ours": 155.665449677,
+   "el_ours": -19.037533674,
    "az_horizons": 155.665449351,
    "el_horizons": -19.037533628,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 3.26e-07,
+   "d_el": -4.6e-08
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2028-04-10T07:00:00Z",
    "body": "sun",
-   "az_ours": 318.88241,
-   "el_ours": 14.262168,
+   "az_ours": 318.88240964,
+   "el_ours": 14.262167675,
    "az_horizons": 318.882409886,
    "el_horizons": 14.26216773,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": -2.46e-07,
+   "d_el": -5.5e-08
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2028-07-24T14:00:00Z",
    "body": "sun",
-   "az_ours": 112.898932,
-   "el_ours": -8.089642,
+   "az_ours": 112.898931913,
+   "el_ours": -8.089641923,
    "az_horizons": 112.898931781,
    "el_horizons": -8.08964188,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 1.32e-07,
+   "d_el": -4.3e-08
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2028-12-08T21:00:00Z",
    "body": "sun",
-   "az_ours": 241.921451,
-   "el_ours": -9.303441,
+   "az_ours": 241.92145131,
+   "el_ours": -9.303440765,
    "az_horizons": 241.921451158,
    "el_horizons": -9.303440808,
-   "d_az": 0.0,
-   "d_el": 0.0
+   "d_az": 1.52e-07,
+   "d_el": 4.3e-08
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2026-11-03T06:00:00Z",
    "body": "earth",
-   "az_ours": 331.539764,
-   "el_ours": 17.814026,
+   "az_ours": 331.539764479,
+   "el_ours": 17.814026247,
    "az_horizons": 331.539765348,
    "el_horizons": 17.8140022,
-   "d_az": -1e-06,
-   "d_el": 2.4e-05
+   "d_az": -8.69e-07,
+   "d_el": 2.4047e-05
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-01-17T13:00:00Z",
    "body": "earth",
-   "az_ours": 317.205424,
-   "el_ours": 22.162411,
+   "az_ours": 317.205424305,
+   "el_ours": 22.162411488,
    "az_horizons": 317.205425229,
    "el_horizons": 22.162434952,
-   "d_az": -1e-06,
-   "d_el": -2.3e-05
+   "d_az": -9.24e-07,
+   "d_el": -2.3464e-05
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-04-02T20:00:00Z",
    "body": "earth",
-   "az_ours": 322.504245,
-   "el_ours": 16.993159,
+   "az_ours": 322.504245112,
+   "el_ours": 16.99315878,
    "az_horizons": 322.504245784,
    "el_horizons": 16.993141486,
-   "d_az": -1e-06,
-   "d_el": 1.7e-05
+   "d_az": -6.72e-07,
+   "d_el": 1.7294e-05
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-06-15T03:00:00Z",
    "body": "earth",
-   "az_ours": 333.104021,
-   "el_ours": 11.563,
+   "az_ours": 333.104021173,
+   "el_ours": 11.562999911,
    "az_horizons": 333.104021845,
    "el_horizons": 11.563017067,
-   "d_az": -1e-06,
-   "d_el": -1.7e-05
+   "d_az": -6.72e-07,
+   "d_el": -1.7156e-05
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-08-29T10:00:00Z",
    "body": "earth",
-   "az_ours": 323.821806,
-   "el_ours": 17.586633,
+   "az_ours": 323.821805592,
+   "el_ours": 17.58663297,
    "az_horizons": 323.821806469,
    "el_horizons": 17.586618833,
-   "d_az": -1e-06,
-   "d_el": 1.4e-05
+   "d_az": -8.77e-07,
+   "d_el": 1.4137e-05
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2027-11-12T17:00:00Z",
    "body": "earth",
-   "az_ours": 319.21853,
-   "el_ours": 22.410639,
+   "az_ours": 319.218529611,
+   "el_ours": 22.410639372,
    "az_horizons": 319.218530519,
    "el_horizons": 22.410647277,
-   "d_az": -1e-06,
-   "d_el": -8e-06
+   "d_az": -9.08e-07,
+   "d_el": -7.905e-06
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2028-01-26T00:00:00Z",
    "body": "earth",
-   "az_ours": 328.591021,
-   "el_ours": 17.138345,
+   "az_ours": 328.591020526,
+   "el_ours": 17.138345416,
    "az_horizons": 328.591021338,
    "el_horizons": 17.138342904,
-   "d_az": -1e-06,
-   "d_el": 3e-06
+   "d_az": -8.12e-07,
+   "d_el": 2.512e-06
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2028-04-10T07:00:00Z",
    "body": "earth",
-   "az_ours": 331.658267,
-   "el_ours": 11.453796,
+   "az_ours": 331.658267415,
+   "el_ours": 11.453795934,
    "az_horizons": 331.658268356,
    "el_horizons": 11.453790275,
-   "d_az": -1e-06,
-   "d_el": 6e-06
+   "d_az": -9.41e-07,
+   "d_el": 5.659e-06
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2028-07-24T14:00:00Z",
    "body": "earth",
-   "az_ours": 327.454257,
-   "el_ours": 12.610473,
+   "az_ours": 327.454256638,
+   "el_ours": 12.610472918,
    "az_horizons": 327.45425769,
    "el_horizons": 12.610487594,
-   "d_az": -1e-06,
-   "d_el": -1.5e-05
+   "d_az": -1.052e-06,
+   "d_el": -1.4676e-05
   },
   {
    "site": "chandrayaan3",
    "t_utc": "2028-12-08T21:00:00Z",
    "body": "earth",
-   "az_ours": 325.02126,
-   "el_ours": 11.03709,
+   "az_ours": 325.021260171,
+   "el_ours": 11.037090127,
    "az_horizons": 325.021261033,
    "el_horizons": 11.037063894,
-   "d_az": -1e-06,
-   "d_el": 2.6e-05
+   "d_az": -8.62e-07,
+   "d_el": 2.6233e-05
   }
  ],
  "summary": {
   "n": 60,
-  "max_abs_d_az_deg": 1e-06,
-  "max_abs_d_el_deg": 2.7e-05,
+  "max_abs_d_az_deg": 1.052e-06,
+  "max_abs_d_el_deg": 2.682e-05,
   "threshold_deg": 0.05,
   "pass": true
  },

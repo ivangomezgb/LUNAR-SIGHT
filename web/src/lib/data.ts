@@ -53,3 +53,41 @@ export async function loadValidation(): Promise<ValidationData | null> {
   if (!response.ok) throw new Error(`Unable to load validation: ${response.status}`);
   try { return await response.json() as ValidationData; } catch { return null; }
 }
+
+/** Nearest permanently shadowed region per site (pipeline/lln/psr.py, Mazarico et al. 2011 products). */
+export interface PsrSite {
+  product: string; resolution_m: number; search_radius_km: number;
+  psr_area_km2_within: Record<string, number>;
+  nearest: { distance_km: number; bearing_deg: number; area_km2: number; area_is_lower_bound: boolean } | null;
+  avg_sun_any_disc_pct: number; avg_earth_any_disc_pct: number;
+  overlay: { n_rows: number; n_cols: number; res_m: number; site_row: number; site_col: number; north_deg_from_up: number; bits: string };
+}
+export interface PsrData { source: string; files: string; citation: string; definition: string; sites: Record<string, PsrSite> }
+let psrCache: Promise<PsrData> | null = null;
+export function loadPsr(): Promise<PsrData> {
+  psrCache ??= read<PsrData>('psr/psr.json').then((d) => {
+    if (!d || typeof d.sites !== 'object') throw new Error('Invalid psr.json');
+    return d;
+  }).catch((e) => { psrCache = null; throw e; });
+  return psrCache;
+}
+
+/** Our illumination vs the published LOLA long-term averages (pipeline/scripts/literature_check.py). */
+export interface LiteratureRow {
+  id: string; name: string; published_product: string; published_resolution_m: number;
+  published_sun_any_pct: number; published_earth_any_pct: number;
+  published_sun_neighbourhood: { radius_m: number; min_pct: number; max_pct: number };
+  ours_in_neighbourhood_1m: boolean;
+  ours: Record<string, { sun_any_pct_full: number; sun_any_pct_2027: number; earth_any_pct_full: number }>;
+}
+export interface LiteratureData {
+  reference: { citation: string; source: string; files: string; definition: string };
+  ours_definition: string; rows: LiteratureRow[];
+  summary: Record<string, { mean_diff_pp: number; median_abs_diff_pp: number; max_abs_diff_pp: number; corr: number } | string>;
+}
+export function loadLiterature(): Promise<LiteratureData> {
+  return read<LiteratureData>('literature.json').then((d) => {
+    if (!d || !Array.isArray(d.rows)) throw new Error('Invalid literature.json');
+    return d;
+  });
+}

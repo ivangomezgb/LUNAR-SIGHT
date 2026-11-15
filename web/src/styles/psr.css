@@ -1,0 +1,13 @@
+.psr-card { margin-top: 18px; }
+.psr-body { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 18px; align-items: start; }
+.psr-map { display: block; width: 100%; max-width: 320px; height: auto; aspect-ratio: 1 / 1; border: 1px solid var(--line-2, #3b4b60); border-radius: 8px; }
+.psr-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px 16px; margin: 0 0 10px; }
+.psr-stats dt { font-size: .78rem; color: var(--text-2, #bac5d3); }
+.psr-stats dd { margin: 2px 0 0; font-family: var(--mono, ui-monospace, monospace); font-size: 1.05rem; color: var(--text, #f0f3f7); }
+@media (max-width: 699px) { .psr-body { grid-template-columns: 1fr; } .psr-map { margin-inline: auto; } }
+
+.lit-table td, .lit-table th { white-space: nowrap; }
+.lit-table .lit-in { color: #8be0a6; }
+.lit-table .lit-out { color: #ffd27a; }
+.lit-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px 16px; margin: 6px 0 12px; }
+.lit-summary b { font-family: var(--mono, ui-monospace, monospace); font-size: 1.1rem; display: block; }

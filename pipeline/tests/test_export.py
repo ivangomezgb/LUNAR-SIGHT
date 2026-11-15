@@ -189,7 +189,7 @@ def test_reject_bad_horizon():
 @pytest.mark.skipif(not SITES_YAML.exists(), reason="sites.yaml not written yet")
 def test_sites_yaml_is_well_formed():
     sites = export.load_sites(SITES_YAML)
-    assert 10 <= len(sites) <= 15
+    assert 10 <= len(sites) <= 20
     for s in sites:
         assert s["id"] == s["id"].lower() and " " not in s["id"] and "_" not in s["id"]
         assert -90 <= s["lat_deg"] <= -80 and -180 <= s["lon_deg"] <= 180
@@ -243,3 +243,16 @@ def test_site_ephem_recomputes_for_moved_or_untagged_site(tmp_path, real_site_ep
     (tmp_path / "aa.json").write_text(json.dumps({**_ephem(), **tag}))
     e = export.site_ephem({"id": "aa", "lat_deg": -89.5, "lon_deg": -150.0}, 0.0)
     assert e == {"computed": True} and real_site_ephem == [(-89.5, -150.0)]
+
+
+def test_published_uncertainty_kept_only_for_same_horizon(tmp_path):
+    """A local export must not erase uncertainty computed elsewhere (e.g. in GitHub Actions)."""
+    from lln import export as ex
+
+    u = {"illum_pct_p5": 1.0, "illum_pct_p50": 2.0, "illum_pct_p95": 3.0}
+    (tmp_path / "sites").mkdir()
+    (tmp_path / "sites" / "a.json").write_text(
+        json.dumps({"horizon": {"elev_cdeg": {"2": [1, 2, 3]}}, "uncertainty": u}), encoding="utf-8")
+    assert ex.published_uncertainty(tmp_path, "a", [1, 2, 3]) == u
+    assert ex.published_uncertainty(tmp_path, "a", [1, 2, 4]) is None  # site moved: drop it
+    assert ex.published_uncertainty(tmp_path, "missing", [1, 2, 3]) is None

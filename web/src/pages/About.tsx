@@ -1,8 +1,10 @@
 import { t } from '../i18n';
+import TerrainBackdrop from '../components/TerrainBackdrop';
 export default function About() {
   return (
     <div className="page prose-page">
-      <header className="page-head">
+      <header className="page-head terrain-header">
+        <TerrainBackdrop />
         <div>
           <div className="eyebrow">{t("NASA Space Apps Challenge 2026")}</div>
           <h1>{t("About the Lunar Landing Site Navigator")}</h1>

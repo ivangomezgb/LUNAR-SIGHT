@@ -1,0 +1,20 @@
+.energy-card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 16px; min-width: 0; color: var(--text); overflow-wrap: anywhere; }
+.energy-card h2 { margin-top: 0; font-size: 1.15rem; }
+.energy-card p, .energy-card figcaption { font-size: .85rem; }
+.energy-controls, .energy-values { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 165px), 1fr)); gap: 12px; }
+.energy-controls label { display: flex; flex-direction: column; gap: 5px; font-size: .8rem; min-width: 0; }
+.energy-controls input, .energy-controls select { width: 100%; min-width: 0; box-sizing: border-box; background: var(--bg, #07090d); color: var(--text); border: 1px solid var(--line); border-radius: 5px; padding: 8px; }
+.energy-values dt { color: var(--muted); font-size: .8rem; }
+.energy-values dd { margin: 4px 0 0; font-variant-numeric: tabular-nums; }
+.energy-verdict { font-weight: 700; border-left: 3px solid currentColor; padding-left: 10px; }
+.energy-card figure { margin: 16px 0; }
+.energy-card svg { display: block; width: 100%; height: auto; }
+.energy-card svg text { fill: currentColor; font-size: 12px; }
+.energy-card summary { cursor: pointer; }
+.energy-controls label, .energy-values > div, .energy-verdict, .energy-card figcaption { position: relative; }
+.energy-tip { cursor: help; text-decoration: underline dotted; text-underline-offset: 3px; }
+.energy-tip > [role=tooltip] { display: none; position: absolute; z-index: 30; inset-inline-start: 0; bottom: calc(100% + 8px); width: min(220px, 100%); box-sizing: border-box; padding: 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--panel, #151922); color: var(--text); font-size: .8rem; font-weight: normal; text-align: start; box-shadow: 0 4px 16px #0008; }
+.energy-tip:hover > [role=tooltip]:not([hidden]), .energy-tip:focus > [role=tooltip]:not([hidden]) { display: block; }
+.energy-card :focus-visible { outline: 2px solid currentColor; outline-offset: 3px; }
+@media (max-width: 480px) { .energy-controls, .energy-values { grid-template-columns: 1fr; } .energy-card { padding: 12px; } }
+@media print { .energy-card { background: white; color: black; border-color: #999; } .energy-controls input, .energy-controls select { color: black; background: white; } .energy-card details { display: block; } .energy-tip > [role=tooltip] { display: none !important; } }
