@@ -14,6 +14,7 @@ import { isoShort } from './components/format';
 import { DATA_DIR } from './components/hooks';
 
 const View3D = lazy(() => import('./pages/View3D'));
+const Mission = lazy(() => import('./pages/Mission'));
 
 function Nav() {
   const { siteId, landingUtc, lang, setLang, assumptions } = useApp(useShallow((s) => ({ siteId: s.siteId, landingUtc: s.landingUtc, lang: s.lang, setLang: s.setLang, assumptions: s.assumptions })));
@@ -44,6 +45,7 @@ function Nav() {
         <NavLink to={to('/about')} className={cls}> {t("About")} </NavLink>
         <NavLink to={to('/team')} className={cls}>Apolo404</NavLink>
         <NavLink to={`/3d?${shared}${siteId ? `&site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : ''}`} className={cls}> {t('3D')} </NavLink>
+        <NavLink to={`/mission?${shared}${siteId ? `&site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}` : ''}`} className={cls}> {t('Mission')} </NavLink>
         <span className="lang-toggle" role="group" aria-label={t('Language')}>
           <button type="button" className="chip" aria-pressed={lang === 'en'} onClick={() => setLang('en')}>EN</button>
           <span aria-hidden>|</span>
@@ -116,6 +118,7 @@ export default function App() {
           <Route path="/replan" element={<Replan />} />
           <Route path="/validation" element={<Validation />} />
           <Route path="/3d" element={<View3D />} />
+          <Route path="/mission" element={<Mission />} />
           <Route path="/about" element={<About />} />
           <Route path="/team" element={<Team />} />
           <Route path="*" element={<Explore />} />
