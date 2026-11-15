@@ -211,6 +211,26 @@ def site_ephem(site: dict, elev_m: float) -> dict | None:
     return _se(float(site["lat_deg"]), float(site["lon_deg"]), float(elev_m))
 
 
+def published_uncertainty(out_dir: Path, sid: str, mask_2m) -> dict | None:
+    """Keep an already published uncertainty when no local intermediate exists.
+
+    Clone ensembles are often computed elsewhere (GitHub Actions, see
+    .github/workflows/uncertainty.yml), so a local export must not erase them. The published
+    value is kept only if the site's 2 m mask is unchanged, i.e. it still describes this point.
+    """
+    path = out_dir / "sites" / f"{sid}.json"
+    try:
+        old = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        return None
+    if old.get("uncertainty") is None:
+        return None
+    if mask_2m is None or old.get("horizon", {}).get("elev_cdeg", {}).get("2") != mask_2m:
+        warn(f"{sid}: horizon changed; published uncertainty dropped (rerun the clones)")
+        return None
+    return old["uncertainty"]
+
+
 def site_uncertainty(sid: str) -> dict | None:
     path = UNCERTAINTY_DIR / f"{sid}.json"
     try:
@@ -261,6 +281,8 @@ def export(sites_yaml: Path = SITES_YAML, out_dir: Path = OUT_DIR, basemap: bool
             skipped.append(sid)
             continue
         uncertainty = site_uncertainty(sid)
+        if uncertainty is None:
+            uncertainty = published_uncertainty(out_dir, sid, hz["elev_cdeg"].get("2"))
         site_data = {
             "id": sid,
             "generated_utc": hz["generated_utc"],
