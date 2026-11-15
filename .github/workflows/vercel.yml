@@ -1,0 +1,29 @@
+# Deploys web/ to Vercel (https://apolo404-alunizaje.vercel.app) on every push to main.
+# Needs the repository secret VERCEL_TOKEN. The Vercel project's Root Directory is set to `web`.
+name: Deploy to Vercel
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: vercel-production
+  cancel-in-progress: true
+
+env:
+  VERCEL_ORG_ID: team_avCCFG4zMHHgdB98yLIUZezV
+  VERCEL_PROJECT_ID: prj_Y0Tc50JVpIj3CG3Nns0I5bHQvVcv
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --global vercel@59
+      - run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+      - run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+      - run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
