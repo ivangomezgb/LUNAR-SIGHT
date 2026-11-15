@@ -15,6 +15,7 @@ import { DATA_DIR } from './components/hooks';
 
 const View3D = lazy(() => import('./pages/View3D'));
 const Report = lazy(() => import('./pages/Report'));
+const FreePointExplorer = lazy(() => import('./components/FreePointPanel').then((m) => ({ default: m.FreePointExplorer })));
 
 function Nav() {
   const { siteId, landingUtc, lang, setLang, assumptions } = useApp(useShallow((s) => ({ siteId: s.siteId, landingUtc: s.landingUtc, lang: s.lang, setLang: s.setLang, assumptions: s.assumptions })));
@@ -41,6 +42,7 @@ function Nav() {
         <NavLink to={exploreLink} end className={({ isActive }) => cls({ isActive })}> {t("Explore")} </NavLink>
         <NavLink to={to('/compare')} className={cls}> {t("Compare")} </NavLink>
         <NavLink to={to('/replan')} className={cls}> {t("Mission delayed")} </NavLink>
+        <NavLink to={to('/free')} className={cls}> {t('Any point')} </NavLink>
         <NavLink to={to('/validation')} className={cls}> {t("Validation")} </NavLink>
         <NavLink to={to('/about')} className={cls}> {t("About")} </NavLink>
         <NavLink to={to('/team')} className={cls}>Apolo404</NavLink>
@@ -120,6 +122,7 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/team" element={<Team />} />
           <Route path="/report" element={<Report />} />
+          <Route path="/free" element={<FreePointExplorer />} />
           <Route path="*" element={<Explore />} />
             </Routes>
           </Suspense>

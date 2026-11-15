@@ -1,0 +1,148 @@
+{
+  "sites": 15,
+  "mask_max_deg": 2.64,
+  "mask_mean_deg": 0.24837407407407386,
+  "sunlight_max_pp": 4.4705947010054885,
+  "sunlight_mean_pp": 1.254413921343431,
+  "ephem_max_deg": 0.01,
+  "runtime_max_ms": 26.702599999999848,
+  "generated_utc": "2026-11-15T13:43:45.635563+00:00",
+  "measurement": "Node running the browser algorithm; not phone timing",
+  "rows": [
+    {
+      "id": "shackleton-rim",
+      "mask_mean_deg": 0.2813194444444457,
+      "mask_max_deg": 2.39,
+      "sunlight_pct": 58.52919611446817,
+      "published_sunlight_pct": 56.548307545610214,
+      "sunlight_delta_pp": 1.9808885688579565,
+      "runtime_ms": 22.652000000000044
+    },
+    {
+      "id": "mons-mouton",
+      "mask_mean_deg": 0.04529166666666669,
+      "mask_max_deg": 0.29,
+      "sunlight_pct": 43.87912301759809,
+      "published_sunlight_pct": 43.740377097088455,
+      "sunlight_delta_pp": 0.13874592050963486,
+      "runtime_ms": 24.01610000000005
+    },
+    {
+      "id": "connecting-ridge",
+      "mask_mean_deg": 0.39476388888888897,
+      "mask_max_deg": 1.84,
+      "sunlight_pct": 81.99165293577923,
+      "published_sunlight_pct": 79.21154137387586,
+      "sunlight_delta_pp": 2.780111561903368,
+      "runtime_ms": 22.333500000000072
+    },
+    {
+      "id": "connecting-ridge-extension",
+      "mask_mean_deg": 0.541777777777775,
+      "mask_max_deg": 1.76,
+      "sunlight_pct": 48.01642282507201,
+      "published_sunlight_pct": 43.545828124066524,
+      "sunlight_delta_pp": 4.4705947010054885,
+      "runtime_ms": 22.471000000000004
+    },
+    {
+      "id": "de-gerlache-rim-1",
+      "mask_mean_deg": 0.3841111111111099,
+      "mask_max_deg": 1.79,
+      "sunlight_pct": 78.3452210857126,
+      "published_sunlight_pct": 81.14815788613323,
+      "sunlight_delta_pp": -2.802936800420639,
+      "runtime_ms": 21.63930000000005
+    },
+    {
+      "id": "de-gerlache-rim-2",
+      "mask_mean_deg": 0.24437500000000043,
+      "mask_max_deg": 1.44,
+      "sunlight_pct": 36.29917232708096,
+      "published_sunlight_pct": 35.8135277991139,
+      "sunlight_delta_pp": 0.4856445279670609,
+      "runtime_ms": 23.298000000000002
+    },
+    {
+      "id": "de-gerlache-kocher-massif",
+      "mask_mean_deg": 0.2931111111111091,
+      "mask_max_deg": 2.14,
+      "sunlight_pct": 79.85453608695373,
+      "published_sunlight_pct": 80.06111730242927,
+      "sunlight_delta_pp": -0.20658121547553776,
+      "runtime_ms": 23.179300000000012
+    },
+    {
+      "id": "amundsen-rim",
+      "mask_mean_deg": 0.18654166666666638,
+      "mask_max_deg": 1.44,
+      "sunlight_pct": 53.56844839408427,
+      "published_sunlight_pct": 53.09179716650071,
+      "sunlight_delta_pp": 0.4766512275835595,
+      "runtime_ms": 22.427599999999984
+    },
+    {
+      "id": "faustini-rim-a",
+      "mask_mean_deg": 0.01424999999999994,
+      "mask_max_deg": 0.2,
+      "sunlight_pct": 41.171818282064166,
+      "published_sunlight_pct": 41.202136013288175,
+      "sunlight_delta_pp": -0.030317731224009492,
+      "runtime_ms": 23.738800000000083
+    },
+    {
+      "id": "peak-near-shackleton",
+      "mask_mean_deg": 0.2972916666666671,
+      "mask_max_deg": 1.03,
+      "sunlight_pct": 85.49210560305076,
+      "published_sunlight_pct": 83.42692832863698,
+      "sunlight_delta_pp": 2.0651772744137844,
+      "runtime_ms": 23.49709999999982
+    },
+    {
+      "id": "haworth",
+      "mask_mean_deg": 0.142666666666667,
+      "mask_max_deg": 0.68,
+      "sunlight_pct": 37.349512673245044,
+      "published_sunlight_pct": 37.10970698464747,
+      "sunlight_delta_pp": 0.23980568859757767,
+      "runtime_ms": 23.496999999999844
+    },
+    {
+      "id": "malapert-massif",
+      "mask_mean_deg": 0.3871111111111107,
+      "mask_max_deg": 2.64,
+      "sunlight_pct": 65.5266078338871,
+      "published_sunlight_pct": 65.6689396166905,
+      "sunlight_delta_pp": -0.14233178280339587,
+      "runtime_ms": 22.151499999999942
+    },
+    {
+      "id": "leibnitz-beta-plateau",
+      "mask_mean_deg": 0.2514027777777784,
+      "mask_max_deg": 1.14,
+      "sunlight_pct": 75.56759571059595,
+      "published_sunlight_pct": 73.9775691136424,
+      "sunlight_delta_pp": 1.5900265969535496,
+      "runtime_ms": 26.702599999999848
+    },
+    {
+      "id": "nobile-rim-1",
+      "mask_mean_deg": 0.2026944444444446,
+      "mask_max_deg": 1.5,
+      "sunlight_pct": 46.09301996000405,
+      "published_sunlight_pct": 47.19127831129432,
+      "sunlight_delta_pp": -1.0982583512902693,
+      "runtime_ms": 22.848399999999856
+    },
+    {
+      "id": "nobile-rim-2",
+      "mask_mean_deg": 0.05890277777777795,
+      "mask_max_deg": 0.31,
+      "sunlight_pct": 43.96930823579817,
+      "published_sunlight_pct": 44.2774451069438,
+      "sunlight_delta_pp": -0.3081368711456349,
+      "runtime_ms": 24.721900000000005
+    }
+  ]
+}
