@@ -523,5 +523,20 @@
   "Battery below 25%! Time slowed to 60×. Find sunlight to recharge.": "Battery below 25%! Time slowed to 60×. Find sunlight to recharge.",
   "How to play": "How to play",
   "Continue": "Continue",
-  "Navigate": "Navigate"
+  "Navigate": "Navigate",
+  "Find your place": "Find your place",
+  "on the Moon.": "on the Moon.",
+  "Scroll to plan": "Scroll to plan",
+  "Real LOLA terrain of": "Real LOLA terrain of",
+  "Sun at its real direction · {0}": "Sun at its real direction · {0}",
+  "Relief ×{0}": "Relief ×{0}",
+  "Reading the site index…": "Reading the site index…",
+  "Typesetting…": "Typesetting…",
+  "{0} candidate sites indexed": "{0} candidate sites indexed",
+  "Horizon of {0}: 720 azimuths · {1} hours of Sun and Earth": "Horizon of {0}: 720 azimuths · {1} hours of Sun and Earth",
+  "Lunar south pole ready": "Lunar south pole ready",
+  "Loading real lunar data, {0}%": "Loading real lunar data, {0}%",
+  "Where the Sun": "Where the Sun",
+  "never sets high.": "never sets high.",
+  "Real 2 m horizon of {0}": "Real 2 m horizon of {0}"
 }

@@ -1,3 +1,4 @@
+import CountUp from '../fx/CountUp';
 import { t } from '../i18n';
 import ExplainTip from './ExplainTip';
 import type { Metrics, SiteData } from '../lib/types';
@@ -74,7 +75,7 @@ export default function MetricCards({ metrics, site }: { metrics: Metrics; site?
         <div key={c.key} className={`metric tone-${c.tone ?? 'none'}`}>
           <div className="metric-label">{t(c.label)}</div>
           <div className="metric-value">
-            <span className="mv-num">{c.value}</span>
+            <CountUp className="mv-num" value={c.value} />
             {c.unit && <span className="mv-unit">{t(c.unit)}</span>}
           </div>
           {c.sub && <div className="metric-sub">{c.sub}</div>}

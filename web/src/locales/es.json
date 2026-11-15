@@ -523,5 +523,20 @@
   "Battery below 25%! Time slowed to 60×. Find sunlight to recharge.": "¡Batería bajo el 25 %! El tiempo bajó a 60×. Busca la luz del Sol para recargar.",
   "How to play": "Cómo jugar",
   "Continue": "Continuar",
-  "Navigate": "Navegar"
+  "Navigate": "Navegar",
+  "Find your place": "Encuentra tu lugar",
+  "on the Moon.": "en la Luna.",
+  "Scroll to plan": "Desliza para planear",
+  "Real LOLA terrain of": "Terreno LOLA real de",
+  "Sun at its real direction · {0}": "Sol en su dirección real · {0}",
+  "Relief ×{0}": "Relieve ×{0}",
+  "Reading the site index…": "Leyendo el índice de sitios…",
+  "Typesetting…": "Preparando la tipografía…",
+  "{0} candidate sites indexed": "{0} sitios candidatos indexados",
+  "Horizon of {0}: 720 azimuths · {1} hours of Sun and Earth": "Horizonte de {0}: 720 acimuts · {1} horas de Sol y Tierra",
+  "Lunar south pole ready": "Polo sur lunar listo",
+  "Loading real lunar data, {0}%": "Cargando datos lunares reales, {0}%",
+  "Where the Sun": "Donde el Sol",
+  "never sets high.": "nunca sube alto.",
+  "Real 2 m horizon of {0}": "Horizonte real a 2 m de {0}"
 }

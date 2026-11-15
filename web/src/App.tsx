@@ -1,6 +1,8 @@
 import { t } from './i18n';
 import { HashRouter, NavLink, Route, Routes, useLocation, useSearchParams } from 'react-router-dom';
 import { lazy, Suspense, useEffect, useRef } from 'react';
+import Preloader from './fx/Preloader';
+import { installFx } from './fx/interactions';
 import ErrorBoundary from './components/ErrorBoundary';
 import Explore from './pages/Explore';
 import Compare from './pages/Compare';
@@ -95,14 +97,16 @@ function PreferencesUrl() {
 /** A crash in one view must not follow the user to the next route. */
 function RouteBoundary({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation();
-  return <ErrorBoundary key={pathname}>{children}</ErrorBoundary>;
+  return <ErrorBoundary key={pathname}><div className="route-enter">{children}</div></ErrorBoundary>;
 }
 
 export default function App() {
   const lang = useApp((state) => state.lang);
   useEffect(() => { document.documentElement.lang = lang; }, [lang]);
+  useEffect(() => installFx(), []);
   return (
     <HashRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+      <Preloader />
       <PreferencesUrl />
       <ScrollTop />
       <Nav />

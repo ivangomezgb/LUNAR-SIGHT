@@ -1,8 +1,8 @@
 import { t, sourceText } from '../i18n';
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import type { SiteData, SiteIndexEntry } from '../lib/types';
-import { computeMetrics } from '../lib/metrics';
+import { computeMetrics, getSeries, hourIndex } from '../lib/metrics';
 import { useApp, MAX_COMPARE } from '../state';
 import { useShallow } from 'zustand/react/shallow';
 import { useBasemap, useSite, useSites } from '../components/hooks';
@@ -16,6 +16,9 @@ import AssumptionsPanel from '../components/AssumptionsPanel';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import { seriesFor, coverage, assumptionsFor } from '../components/series';
 import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc, fmtInt } from '../components/format';
+
+const HeroTerrain = lazy(() => import('../fx/HeroTerrain'));
+const HERO_RELIEF = 3;
 
 export default function Explore() {
   const sites = useSites();
@@ -47,6 +50,13 @@ export default function Explore() {
 
   const site = useSite(siteId);
   const entry = list.find((s) => s.id === siteId);
+  // The hero is lit by the Sun's real direction at the chosen landing hour.
+  const heroSun = useMemo(() => {
+    if (!site.data) return null;
+    const s = getSeries(site.data, assumptionsFor(site.data, store.assumptions));
+    const i = Math.max(0, Math.min(site.data.ephem.n - 1, hourIndex(site.data, landingUtc)));
+    return { az: s.sunAz[i], el: s.sunEl[i] };
+  }, [site.data, landingUtc, store.assumptions]);
 
   if (sites.loading) return <Loading label={t("Loading site index…")} />;
   if (sites.error)
@@ -62,15 +72,28 @@ export default function Explore() {
   return (
     <div className="explore">
       <section className="mission-hero" aria-labelledby="mission-heading">
+        {siteId && heroSun && (
+          <Suspense fallback={null}>
+            <HeroTerrain siteId={siteId} sunAz={heroSun.az} sunEl={heroSun.el} exaggeration={HERO_RELIEF} />
+          </Suspense>
+        )}
+        {entry && heroSun && (
+          <p className="hero-caption">
+            {t('Real LOLA terrain of')} <b>{shortName(entry.name)}</b><br />
+            {t('Sun at its real direction · {0}', { 0: fmtUtc(landingUtc) })}<br />
+            {t('Relief ×{0}', { 0: HERO_RELIEF })}
+          </p>
+        )}
         <div>
-          <div className="eyebrow">{t('Lunar south pole · Mission planning')}</div>
-          <h1 id="mission-heading">{t('Find your place on the Moon.')}</h1>
-          <p>{t('{0} candidate sites. Real terrain. Every hour matters.', { 0: list.length })}</p>
-          <div className="hero-actions">
+          <div className="eyebrow hero-in">{t('Lunar south pole · Mission planning')}</div>
+          <h1 id="mission-heading" className="hero-in">{t('Find your place')} <span className="display-accent">{t('on the Moon.')}</span></h1>
+          <p className="hero-in">{t('{0} candidate sites. Real terrain. Every hour matters.', { 0: list.length })}</p>
+          <div className="hero-actions hero-in">
             <Link className="btn btn-primary" to={`/mission?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Play the mission')} <span aria-hidden>▶</span></Link>
             <Link className="btn btn-ghost" to={`/3d?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Stand on the site in 3D')} <span aria-hidden>↗</span></Link>
             <Link className="btn btn-ghost" to={`/3d?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&view=pano&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Look around in 360°')} <span aria-hidden>→</span></Link>
           </div>
+          <span className="hero-scroll" aria-hidden><i />{t('Scroll to plan')}</span>
         </div>
         <div className="hero-proof"><span className="eyebrow">{t('Built on public science')}</span><strong>{t('LOLA / SPICE')}</strong><span>{t('Terrain from NASA. Positions from JPL.')}</span><Link className="link" to={`/validation?lang=${store.lang}`}>{t('Inspect the validation')} →</Link></div>
       </section>
