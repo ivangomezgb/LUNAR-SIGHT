@@ -268,7 +268,7 @@ export class OrbitScene {
       this.placeShip(st.pos, st.up, st.fwd);
       this.shipAt = id;
       const c = this.chase(st.pos, st.up, st.fwd);
-      const arrive = () => { this.orbitAround(c.look, 2.5, 900); this.controls.enabled = true; this.onArrive(id); };
+      const arrive = () => { this.orbitAround(c.look, 2.5, 900); this.controls.enabled = true; this.onArrive(id); this.runAfterArrive(); };
       if (this.reduced) { this.camera.position.copy(c.cam); this.camera.lookAt(c.look); arrive(); return; }
       this.controls.enabled = false;
       this.fly = { t0: performance.now(), ms: 2600, from: this.camera.position.clone(), to: c.cam, fromT: this.controls.target.clone(), toT: c.look, done: arrive };
@@ -321,7 +321,7 @@ export class OrbitScene {
       this.shipAt = tr.id;
       this.orbitAround(c.look, 2.5, 900);
       this.controls.enabled = true;
-      this.onArrive(tr.id);
+      this.onArrive(tr.id); this.runAfterArrive();
     }
   }
 
@@ -371,8 +371,19 @@ export class OrbitScene {
     return { x: ((v.x + 1) / 2) * this.node.clientWidth, y: ((1 - v.y) / 2) * this.node.clientHeight };
   }
 
+  private afterArrive: (() => void) | null = null;
+  private runAfterArrive() { const next = this.afterArrive; this.afterArrive = null; next?.(); }
+
   /** Cinematic dive from orbit to a few km above the site, then `done`. */
   descend(id: string, done: () => void) {
+    // From the whole-Moon view a straight dive would pass through the Moon (black screen):
+    // first fly the ship to the station, then dive from there.
+    if (this.far || !this.shipAt || this.travel) {
+      if (!this.pins.get(id)) { done(); return; }
+      this.afterArrive = () => this.descend(id, done);
+      if (!this.travel) this.goToStation(id);
+      return;
+    }
     const pin = this.pins.get(id);
     if (!pin) { done(); return; }
     this.controls.enabled = false;
