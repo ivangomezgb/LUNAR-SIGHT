@@ -65,3 +65,14 @@
 /* Explain-tip buttons inherit the dark-theme panel colour; on the white sheet make them visible. */
 .report-sheet .explain-tip > button { background: #fff; color: #1d3557; border: 1px solid #5b6b7f; width: 1.35em; height: 1.35em; line-height: 1; }
 @media print { .report-sheet .explain-tip { display: none; } }
+
+/* The dashboard theme (ui.css, "body .landing-risk") is dark; the printable brief stays a white sheet. */
+.report-sheet .landing-risk { background: #fff; color: #18212c; border-color: #64748b; margin-top: 0; }
+.report-sheet .landing-risk h2 { color: #18212c; letter-spacing: normal; text-transform: none; font-size: 1.1rem; }
+.report-sheet .risk-grid dt, .report-sheet .risk-caption, .report-sheet .risk-assumptions, .report-sheet .risk-shadow p { color: #18212c; }
+.report-sheet .risk-grid dd { color: #18212c; font-family: inherit; font-size: inherit; }
+.report-sheet .risk-low { color: #15522e; background: #edfff2; }
+.report-sheet .risk-medium { color: #704400; background: #fff5d6; }
+.report-sheet .risk-high { color: #8a1919; background: #fff0f0; }
+.report-sheet .risk-shadow svg { color: #18212c; }
+.report-sheet .risk-tip-content { background: #18212c; border: 0; }
