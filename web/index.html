@@ -16,6 +16,26 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
     <title>Lunar Landing Site Navigator</title>
+    <script>
+      // After a deploy, a cached copy of this page can point at build files that no longer exist
+      // (blank page), and an open tab can fail to load a lazy screen. Reload once to get the new
+      // build; the time stamp stops a loop when the network is really down.
+      (function () {
+        function recover() {
+          try {
+            var last = Number(sessionStorage.getItem('lls-reload') || 0);
+            if (Date.now() - last < 20000) return;
+            sessionStorage.setItem('lls-reload', String(Date.now()));
+          } catch (e) { /* storage blocked: still try once */ }
+          location.reload();
+        }
+        window.addEventListener('error', function (e) {
+          var el = e.target;
+          if (el && (el.tagName === 'SCRIPT' || el.tagName === 'LINK') && /\/assets\//.test(el.src || el.href || '')) recover();
+        }, true);
+        window.addEventListener('vite:preloadError', function (e) { e.preventDefault(); recover(); });
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>
