@@ -152,7 +152,7 @@ export default function View3D() {
         </>}
       </div>
       {fullscreenError && <p role="status">{fullscreenError}</p>}
-      <footer className="expedition-footnote"><span>{t('NASA / LOLA terrain · SPICE ephemerides')}</span><span>{t('Visibility: body centre above the 2 m horizon. Earth disk: geometric phase, uniform albedo.')}</span></footer>
+      <footer className="expedition-footnote"><span>{t('Approximate lunar reflectance; fixed exposure; LOLA relief, no added surface detail.')}</span>{mode === 'first' && <span>{t('Mesh horizon approx. (up to ~0.6°); exact horizon in 360°.')}</span>}{mode === 'pano' && <span>{t('360 panorama shading has no per-pixel cast shadows.')}</span>}<span>{t('NASA / LOLA terrain · SPICE ephemerides')}</span><span>{t('Visibility: body centre above the 2 m horizon. Earth disk: geometric phase, uniform albedo.')}</span></footer>
     </section>
   );
 }

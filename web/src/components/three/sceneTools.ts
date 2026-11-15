@@ -8,7 +8,7 @@ export function phaseEarth(distance: number) {
   return new THREE.Mesh(new THREE.SphereGeometry(Math.tan(.95 * Math.PI / 180) * distance, 48, 32), new THREE.ShaderMaterial({
     uniforms: { sunDirection: { value: new THREE.Vector3() } },
     vertexShader: `varying vec3 n; void main(){n=mat3(modelMatrix)*normal;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}`,
-    fragmentShader: `varying vec3 n; uniform vec3 sunDirection; void main(){float light=max(0.,dot(normalize(n),sunDirection));gl_FragColor=vec4(vec3(.30,.52,.75)*light,1.);
+    fragmentShader: `varying vec3 n; uniform vec3 sunDirection; void main(){float light=max(0.,dot(normalize(n),sunDirection));gl_FragColor=vec4(vec3(.24,.32,.42)*light + vec3(.0004,.0005,.0006),1.);
     #include <tonemapping_fragment>
     #include <colorspace_fragment>
     }`,

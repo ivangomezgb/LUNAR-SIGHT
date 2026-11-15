@@ -5,6 +5,8 @@ import { azElToThree, loadTerrain, viewerError } from '../lib/terrain';
 import type { GridSpec, Trail, ViewProps } from '../lib/terrain';
 import { attachLook, disposeObject, disposeScene, marker, phaseEarth, ray, releaseRenderer, skyDome, trailLine } from './three/sceneTools';
 import { t } from '../i18n';
+import { horizonAt } from '../lib/sunFraction';
+import { lunarMaterial, LUNAR_EXPOSURE, SUN_INTENSITY, EARTH_INTENSITY } from './three/lunarMaterial';
 
 function gridGeometry(spec: GridSpec, heights: Float32Array, max: number, hole = 0) {
   const count = Math.min(max, spec.n), positions = new Float32Array(count * count * 3), indices = new Uint32Array((count - 1) * (count - 1) * 6), valid: boolean[] = [];
@@ -47,23 +49,24 @@ export default function Scene3D(props: ViewProps) {
       try {
       const lowEnd = matchMedia('(max-width: 699px)').matches || navigator.hardwareConcurrency <= 4;
       const reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
-      const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd }); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMappingExposure = 1.25; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.type = THREE.PCFSoftShadowMap; created.push(renderer); node.appendChild(renderer.domElement);
+      const renderer = new THREE.WebGLRenderer({ antialias: !lowEnd }); renderer.toneMapping = THREE.ACESFilmicToneMapping; renderer.outputColorSpace = THREE.SRGBColorSpace; renderer.toneMappingExposure = LUNAR_EXPOSURE; renderer.setPixelRatio(Math.min(devicePixelRatio, 2)); renderer.shadowMap.enabled = true; renderer.shadowMap.autoUpdate = false; renderer.shadowMap.type = THREE.PCFShadowMap; created.push(renderer); node.appendChild(renderer.domElement);
       const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(65, 1, .1, 400000);
       const extent = (data.meta.near.n - 1) * data.meta.near.res_m / 2;
-      const material = new THREE.MeshStandardMaterial({ color: 0xaaa59d, roughness: 1 });
+      const material = lunarMaterial();
       for (const [spec, h, hole] of [[data.meta.near, data.near, 0], [data.meta.far, data.far, extent]] as const) { const mesh = new THREE.Mesh(gridGeometry(spec, h, hole ? spec.n : lowEnd ? 512 : 1024, hole), material); mesh.castShadow = true; mesh.receiveShadow = true; scene.add(mesh); }
-      const sun = new THREE.DirectionalLight(0xffffff, 3), earth = new THREE.DirectionalLight(0xa8bcff, .008); scene.add(sun, sun.target, earth, earth.target); sun.castShadow = true; sun.shadow.mapSize.set(lowEnd ? 2048 : 4096, lowEnd ? 2048 : 4096);
+      const sun = new THREE.DirectionalLight(0xffffff, SUN_INTENSITY), earth = new THREE.DirectionalLight(0xffffff, EARTH_INTENSITY); scene.add(sun, sun.target, earth, earth.target); sun.castShadow = true; sun.shadow.mapSize.set(lowEnd ? 2048 : 4096, lowEnd ? 2048 : 4096);
       Object.assign(sun.shadow.camera, { left: -extent * 1.5, right: extent * 1.5, top: extent * 1.5, bottom: -extent * 1.5, near: 1, far: extent * 8 }); sun.shadow.camera.updateProjectionMatrix(); sun.shadow.bias = -.00002; sun.shadow.normalBias = 1.2;
       const sky = new THREE.Mesh(new THREE.SphereGeometry(180000, 32, 16), new THREE.MeshBasicMaterial({ color: 0, side: THREE.BackSide })); scene.add(sky);
       const sunDisk = marker(.267, 0xffffff, 150000), earthDisk = phaseEarth(150000); scene.add(sunDisk, earthDisk);
-      // Decorative glow so the grazing Sun is easy to find; the terrain still occludes it (depth-tested).
+      // Neutral optical glare, not atmosphere. Suppressed when the real horizon hides
+      // any part of the solar disk; depth testing also preserves mesh occlusion.
       const glowCanvas = document.createElement('canvas'); glowCanvas.width = glowCanvas.height = 128;
       const gctx = glowCanvas.getContext('2d')!, grad = gctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-      grad.addColorStop(0, 'rgba(255,244,214,1)'); grad.addColorStop(.12, 'rgba(255,226,160,.55)'); grad.addColorStop(1, 'rgba(255,200,120,0)');
+      grad.addColorStop(0, 'rgba(255,255,255,.65)'); grad.addColorStop(.12, 'rgba(255,255,255,.15)'); grad.addColorStop(1, 'rgba(255,255,255,0)');
       gctx.fillStyle = grad; gctx.fillRect(0, 0, 128, 128);
       const glowTexture = new THREE.CanvasTexture(glowCanvas); glowTexture.colorSpace = THREE.SRGBColorSpace;
       const sunGlow = new THREE.Sprite(new THREE.SpriteMaterial({ map: glowTexture, blending: THREE.AdditiveBlending, depthWrite: false, transparent: true }));
-      const glowSize = Math.tan(3 * Math.PI / 180) * 150000 * 2; sunGlow.scale.set(glowSize, glowSize, 1); scene.add(sunGlow);
+      const glowSize = Math.tan(1.2 * Math.PI / 180) * 150000 * 2; sunGlow.scale.set(glowSize, glowSize, 1); scene.add(sunGlow);
 
       // Overview: site pin plus a dome of sky directions with the real Sun/Earth paths.
       const domeR = extent * 0.6;
@@ -147,7 +150,7 @@ export default function Scene3D(props: ViewProps) {
         const earthDome = new THREE.Vector3(...azElToThree(p.earthAz, p.earthEl * DOME_EL_SCALE)).multiplyScalar(domeR);
         sunBall.position.copy(sunDome); earthBall.position.copy(earthDome);
         sunRay.geometry.setFromPoints([new THREE.Vector3(0, 30, 0), sunDome]); earthRay.geometry.setFromPoints([new THREE.Vector3(0, 30, 0), earthDome]);
-        earthDisk.material.uniforms.sunDirection.value.copy(s); sun.position.copy(s).multiplyScalar(extent * 3); earth.position.copy(e).multiplyScalar(extent * 3); sunDisk.position.copy(s).multiplyScalar(150000); earthDisk.position.copy(e).multiplyScalar(150000); sunDisk.position.add(camera.position); earthDisk.position.add(camera.position); sunGlow.position.copy(sunDisk.position); sky.position.copy(camera.position);
+        earthDisk.material.uniforms.sunDirection.value.copy(s); sun.position.copy(s).multiplyScalar(extent * 3); earth.position.copy(e).multiplyScalar(extent * 3); sunDisk.position.copy(s).multiplyScalar(150000); earthDisk.position.copy(e).multiplyScalar(150000); sunDisk.position.add(camera.position); earthDisk.position.add(camera.position); sunGlow.position.copy(sunDisk.position); sunGlow.visible = p.sunEl - .267 > horizonAt(p.horizon, p.sunAz, p.horizonStep); sky.position.copy(camera.position);
         const sunKey = p.sunAz + ',' + p.sunEl; if (sunKey !== lastSun) { renderer.shadowMap.needsUpdate = true; lastSun = sunKey; }
         const viewKey = camera.position.toArray().join(',') + camera.quaternion.toArray().join(',') + p.sunAz + ',' + p.sunEl + ',' + p.earthAz + ',' + p.earthEl + inFirst;
         if (dirty || moving || viewKey !== lastView) {

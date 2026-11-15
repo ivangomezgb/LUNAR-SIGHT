@@ -72,3 +72,12 @@
 .expedition-camera{bottom:182px}
 .expedition-camera p{display:none}
 }
+/* Keep model limitations readable below the photographic viewport on phones. */
+.expedition-footnote{font-size:11px;border-top:1px solid #29333f;align-items:start}
+.expedition-footnote span{max-width:62ch;overflow-wrap:anywhere}
+.expedition-actions,.expedition-modes,.expedition-speed{min-width:0}
+@media(max-width:380px){
+  .expedition-fullscreen{padding-inline:7px}
+  .expedition-modes button{font-size:10px;padding-inline:3px;overflow-wrap:anywhere}
+  .expedition-time-row{gap:6px}
+}
