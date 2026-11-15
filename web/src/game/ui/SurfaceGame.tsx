@@ -1,10 +1,11 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { t } from '../../i18n';
 import { fmtUtc } from '../../components/format';
 import type { TerrainData } from '../../lib/terrain';
 import { viewerError } from '../../lib/terrain';
 import { MAX_DRIVE_WARP, WARPS } from '../sim/clock';
+import { heightAt } from '../sim/field';
 import { fmtLatLon, type LatLon, latLonToLocal, localToLatLon, parseLatLon, route } from '../sim/geo';
 import { allDone, type MissionState, newMission, type ObjectiveId, OBJECTIVES, score, updateMission } from '../sim/mission';
 import { netPowerW } from '../sim/power';
@@ -12,6 +13,13 @@ import { RULES } from '../sim/rules';
 import { type Env, newWorld, scan, scanBlocker, stepWorld, type World } from '../sim/world';
 import { type CameraMode, SurfaceScene } from '../render/SurfaceScene';
 import { LESSONS } from './lessons';
+import { newLander, stepLander, type LanderState } from '../sim/lander';
+import { newRover } from '../sim/rover';
+import { sunFraction } from '../../lib/sunFraction';
+import { skyAt } from '../sim/clock';
+import Minimap from './Minimap';
+import DescentPanel from './DescentPanel';
+import { clearSave, loadSave, writeSave } from './save';
 
 interface Props {
   env: Env;
@@ -22,7 +30,9 @@ interface Props {
   published: { lightPct: number; earthPct: number } | null;
 }
 
-const KEYS = { up: ['w', 'arrowup'], down: ['s', 'arrowdown'], left: ['a', 'arrowleft'], right: ['d', 'arrowright'] };
+const KEYS = { up: ['w', 'arrowup'], down: ['s', 'arrowdown'], left: ['a', 'arrowleft'], right: ['d', 'arrowright'], thrust: [' '] };
+type Phase = 'brief' | 'descent' | 'surface';
+const TARGET = { x: 0, y: 0 };
 const objectiveTitle = (id: ObjectiveId) =>
   t(LESSONS[id].title, { 0: id === 'drive' ? RULES.mission.driveM : id === 'downlink' ? RULES.mission.downlinkMB : RULES.mission.surviveH });
 
@@ -32,7 +42,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
   const mission = useRef<MissionState>(newMission(env.field, startMs));
   const sceneRef = useRef<SurfaceScene | null>(null);
   const keys = useRef(new Set<string>());
-  const touch = useRef({ throttle: 0, steer: 0 });
+  const touch = useRef({ throttle: 0, steer: 0, thrust: 0 });
   const [hud, setHud] = useState<World>(world.current);
   const [m, setM] = useState<MissionState>(mission.current);
   const [briefing, setBriefing] = useState(true);
@@ -47,6 +57,20 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
   const [alert, setAlert] = useState<World['alert']>('');
   const [navOpen, setNavOpen] = useState(() => !window.matchMedia('(max-width: 699px)').matches);
   const [compact] = useState(() => window.matchMedia('(max-width: 699px)').matches);
+  const [saved, setSaved] = useState(() => loadSave(site.id, startMs));
+  const phaseRef = useRef<Phase>('brief');
+  const [phase, setPhaseState] = useState<Phase>('brief');
+  const setPhase = (p: Phase) => { phaseRef.current = p; setPhaseState(p); };
+  const landerRef = useRef<LanderState | null>(null);
+  const [landerHud, setLanderHud] = useState<LanderState | null>(null);
+  const landingRef = useRef<{ x: number; y: number } | null>(null);
+  const [landing, setLanding] = useState<{ ok: boolean; reason: string; vz: number; vh: number; slope: number; dist: number; fuelPct: number; lit: boolean } | null>(null);
+  const [bakeVersion, setBakeVersion] = useState(0);
+  const sunlitAt = useCallback((x: number, y: number) => sceneRef.current?.sunlitAt(x, y) ?? 1, []);
+  const sunBelow = useCallback((l: LanderState) => {
+    const sky = skyAt(env.ephem, world.current.tMs);
+    return sunFraction(sky.sunEl, env.horizon.at(l.x, l.y, sky.sunAz));
+  }, [env]);
 
   const doScan = () => {
     const why = scanBlocker(world.current);
@@ -68,7 +92,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
       return;
     }
     sceneRef.current = scene;
-    if (import.meta.env.DEV) (window as unknown as { __surface?: SurfaceScene }).__surface = scene;
+    if (import.meta.env.DEV) Object.assign(window, { __surface: scene, __lander: landerRef });
     let frame = 0, last = performance.now(), lastHud = 0, toastTimer = 0;
     const loop = (now: number) => {
       const dt = Math.min(0.25, (now - last) / 1000);
@@ -78,6 +102,22 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
         throttle: (any(KEYS.up) ? 1 : 0) - (any(KEYS.down) ? 1 : 0) + touch.current.throttle,
         steer: (any(KEYS.right) ? 1 : 0) - (any(KEYS.left) ? 1 : 0) + touch.current.steer,
       };
+      if (phaseRef.current === 'descent' && landerRef.current) {
+        const lin = { throttle: any(KEYS.thrust) || touch.current.thrust ? 1 : 0, east: input.steer, north: (any(KEYS.up) ? 1 : 0) - (any(KEYS.down) ? 1 : 0) + touch.current.throttle };
+        let l = landerRef.current;
+        for (let t2 = 0; t2 < dt && !l.landed; t2 += 0.02) l = stepLander(env.field, l, lin, Math.min(0.02, dt - t2));
+        if (l.landed && !landerRef.current.landed) {
+          const tc = l.touch!;
+          const lit = sunBelow(l) > 0.5;
+          setLanding({ ok: l.landed === 'ok', reason: l.reason, vz: tc.vz, vh: tc.vh, slope: tc.slope, dist: Math.hypot(l.x - TARGET.x, l.y - TARGET.y), fuelPct: (l.fuelKg / RULES.lander.fuelKg) * 100, lit });
+          if (l.landed === 'ok') landingRef.current = { x: l.x, y: l.y };
+        }
+        landerRef.current = l;
+        scene.render(world.current, dt, l, true);
+        if (now - lastHud > 100) { setLanderHud(l); lastHud = now; }
+        frame = requestAnimationFrame(loop);
+        return;
+      }
       const wasEnded = world.current.ended;
       world.current = stepWorld(env, world.current, input, dt);
       const r = updateMission(mission.current, world.current);
@@ -95,8 +135,8 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
         world.current = { ...world.current, alert: '' };
         window.setTimeout(() => setAlert(''), 8000);
       }
-      scene.render(world.current, dt);
-      if (now - lastHud > 120) { setHud(world.current); lastHud = now; }
+      scene.render(world.current, dt, landerRef.current, false);
+      if (now - lastHud > 120) { setHud(world.current); setBakeVersion(scene.bakeVersion); lastHud = now; }
       frame = requestAnimationFrame(loop);
     };
     frame = requestAnimationFrame(loop);
@@ -106,6 +146,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
       if (typing(e)) return;
       const key = e.key.toLowerCase();
       if (Object.values(KEYS).flat().includes(key)) { e.preventDefault(); keys.current.add(key); }
+      if (phaseRef.current !== 'surface') return;
       if (key === 'p') world.current = { ...world.current, paused: !world.current.paused };
       if (key === 'e') scanRef.current();
       if (key === '[' || key === ']') {
@@ -129,9 +170,20 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
       scene.dispose();
       sceneRef.current = null;
     };
-  }, [env, terrain]);
+  }, [env, terrain, sunBelow]);
 
   useEffect(() => { if (sceneRef.current) sceneRef.current.mode = camera; }, [camera]);
+  useEffect(() => {
+    if (phase !== 'surface') return;
+    const save = () => {
+      const w = world.current;
+      if (w.ended) return;
+      writeSave({ site: site.id, startMs, savedAt: Date.now(), landing: landingRef.current, world: { tMs: w.tMs, warp: w.warp, rover: w.rover, power: w.power, scans: w.scans }, mission: mission.current });
+    };
+    const id = window.setInterval(save, 5000);
+    window.addEventListener('pagehide', save);
+    return () => { clearInterval(id); window.removeEventListener('pagehide', save); save(); };
+  }, [phase, site.id, startMs]);
   useEffect(() => { sceneRef.current?.setBeacon(nav); }, [nav]);
   useEffect(() => {
     if (!scanMsg) return;
@@ -140,13 +192,45 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
   }, [scanMsg]);
 
   const set = (patch: Partial<World>) => { world.current = { ...world.current, ...patch }; setHud(world.current); };
-  const start = () => { setBriefing(false); set({ paused: false }); sceneRef.current?.renderer.domElement.focus(); };
+  const focusView = () => sceneRef.current?.renderer.domElement.focus();
+  const beginSurface = (at: { x: number; y: number } | null) => {
+    landingRef.current = at;
+    const spot = at ? { x: at.x + 5, y: at.y - 3 } : { x: 0, y: 0 };
+    world.current = { ...world.current, rover: newRover(spot.x, spot.y, 0), paused: false };
+    setHud(world.current);
+    setPhase('surface');
+  };
+  const startDescent = () => {
+    setBriefing(false); setLanding(null);
+    landerRef.current = newLander(env.field, TARGET);
+    setLanderHud(landerRef.current);
+    setPhase('descent');
+    focusView();
+  };
+  const skipToSurface = () => { setBriefing(false); landerRef.current = { ...newLander(env.field, TARGET), x: TARGET.x - 6, y: TARGET.y + 4, z: 0, landed: 'ok' }; landerRef.current.z = heightAtSite(landerRef.current.x, landerRef.current.y); beginSurface({ x: landerRef.current.x, y: landerRef.current.y }); focusView(); };
+  const continueSaved = () => {
+    if (!saved) return;
+    setBriefing(false);
+    world.current = { ...newWorld(env, saved.world.tMs), ...saved.world, paused: false };
+    mission.current = saved.mission;
+    setM(saved.mission);
+    if (saved.landing) landerRef.current = { ...newLander(env.field, TARGET), x: saved.landing.x, y: saved.landing.y, z: heightAtSite(saved.landing.x, saved.landing.y), landed: 'ok' };
+    landingRef.current = saved.landing;
+    setHud(world.current);
+    setPhase('surface');
+    focusView();
+  };
+  const start = () => { setBriefing(false); set({ paused: false }); focusView(); };
   const resume = () => { setDebrief(false); set({ paused: false }); };
   const restart = () => {
-    world.current = newWorld(env, startMs);
+    clearSave(); setSaved(null);
+    world.current = { ...newWorld(env, startMs), paused: true };
     mission.current = newMission(env.field, startMs);
+    landerRef.current = null; landingRef.current = null; setLanding(null);
     setM(mission.current); setHud(world.current); setNav(null); setDebrief(false); setToast(null);
+    setPhase('brief'); setBriefing(true);
   };
+  const heightAtSite = (x: number, y: number) => heightAt(env.field, x, y);
   const here = localToLatLon(site, hud.rover.x, hud.rover.y);
   const battery = hud.power.chargeWh / RULES.power.batteryWh;
   const net = netPowerW(hud.sunFrac, Math.abs(hud.rover.speed) > 1e-3);
@@ -169,7 +253,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
     setNavMsg('');
     setNav(local);
   };
-  const hold = (patch: Partial<{ throttle: number; steer: number }>) => {
+  const hold = (patch: Partial<{ throttle: number; steer: number; thrust: number }>) => {
     const release = () => Object.assign(touch.current, Object.fromEntries(Object.keys(patch).map((k) => [k, 0])));
     return {
       onPointerDown: (e: React.PointerEvent) => { e.preventDefault(); Object.assign(touch.current, patch); },
@@ -182,6 +266,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
       <div ref={host} className="game-canvas" aria-label={t('Rover on the real lunar terrain')} />
       {error && <div className="game-overlay" role="alert">{error}</div>}
 
+      {phase === 'surface' && (<>
       <div className="game-hud game-top">
         <div className="hud-col">
         <div className="hud-card">
@@ -218,6 +303,9 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
           <div className="hud-label">{t('Position')}</div>
           <div className="mono">{fmtLatLon(here)}</div>
           <div className="mono small">{t('Heading')} {hud.rover.heading.toFixed(0)}° · {(hud.rover.odometer / 1000).toFixed(2)} km</div>
+          <Minimap field={env.field} sunlitAt={sunlitAt} bakeVersion={bakeVersion} size={compact ? 110 : 156}
+            rover={{ x: hud.rover.x, y: hud.rover.y, heading: hud.rover.heading }}
+            waypoint={m.done.waypoint === undefined ? m.waypoint : null} nav={nav} lander={landingRef.current} />
         </div>
       </div>
 
@@ -290,14 +378,52 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
         </div>
       </div>
 
-      <div className="game-touch">
-        <button type="button" aria-label={t('Forward')} {...hold({ throttle: 1 })}>▲</button>
-        <div>
-          <button type="button" aria-label={t('Turn left')} {...hold({ steer: -1 })}>◀</button>
-          <button type="button" aria-label={t('Reverse')} {...hold({ throttle: -1 })}>▼</button>
-          <button type="button" aria-label={t('Turn right')} {...hold({ steer: 1 })}>▶</button>
+      </>)}
+
+      {phase === 'descent' && landerHud && (
+        <DescentPanel field={env.field} lander={landerHud} target={TARGET} sunBelow={sunBelow(landerHud)} />
+      )}
+
+      {phase !== 'brief' && (
+        <div className="game-touch">
+          <button type="button" aria-label={t(phase === 'descent' ? 'Slide north' : 'Forward')} {...hold({ throttle: 1 })}>▲</button>
+          <div>
+            <button type="button" aria-label={t(phase === 'descent' ? 'Slide west' : 'Turn left')} {...hold({ steer: -1 })}>◀</button>
+            <button type="button" aria-label={t(phase === 'descent' ? 'Slide south' : 'Reverse')} {...hold({ throttle: -1 })}>▼</button>
+            <button type="button" aria-label={t(phase === 'descent' ? 'Slide east' : 'Turn right')} {...hold({ steer: 1 })}>▶</button>
+          </div>
+          {phase === 'descent' && <button type="button" className="touch-thrust" {...hold({ thrust: 1 })}>{t('THRUST')}</button>}
         </div>
-      </div>
+      )}
+
+      {landing && phase === 'descent' && (
+        <div className="game-overlay game-briefing" role="dialog" aria-modal="true" aria-labelledby="landing-title">
+          <div className="brief-card">
+            <p className="eyebrow">{t('Touchdown report')}</p>
+            <h2 id="landing-title">{landing.ok ? t('Touchdown! Safe landing.') : t('Crash')}</h2>
+            {!landing.ok && (
+              <p>{t(landing.reason === 'speed' ? 'Too fast: you hit the ground at {0} m/s (limit {1}).' : landing.reason === 'drift' ? 'Sliding sideways at {0} m/s tipped the lander (limit {1}).' : 'The ground was too steep for the legs: {0}° (limit {1}°).',
+                { 0: (landing.reason === 'speed' ? -landing.vz : landing.reason === 'drift' ? landing.vh : landing.slope).toFixed(1), 1: landing.reason === 'speed' ? RULES.lander.maxTouchVz : landing.reason === 'drift' ? RULES.lander.maxTouchVh : RULES.lander.maxSlopeDeg })}</p>
+            )}
+            <div className="brief-stats mono">
+              <div><span className="hud-label">{t('Vertical speed')}</span><strong>{(-landing.vz).toFixed(1)} m/s</strong></div>
+              <div><span className="hud-label">{t('Drift')}</span><strong>{landing.vh.toFixed(1)} m/s</strong></div>
+              <div><span className="hud-label">{t('Slope')}</span><strong>{landing.slope.toFixed(1)}°</strong></div>
+              <div><span className="hud-label">{t('From target')}</span><strong>{landing.dist.toFixed(0)} m</strong></div>
+              <div><span className="hud-label">{t('Fuel left')}</span><strong>{landing.fuelPct.toFixed(0)}%</strong></div>
+            </div>
+            {landing.ok && (
+              <p>{landing.lit ? t('You landed in sunlight: the rover starts charging right away.') : t('You landed in shadow: the rover must drive to the light before its battery runs out. Real missions avoid this by timing the landing.')}</p>
+            )}
+            <div className="hud-row">
+              {landing.ok
+                ? <button type="button" className="btn btn-primary" autoFocus onClick={() => { beginSurface(landingRef.current); setLanding(null); focusView(); }}>{t('Deploy the rover')}</button>
+                : <button type="button" className="btn btn-primary" autoFocus onClick={startDescent}>{t('Try again')}</button>}
+              {!landing.ok && <button type="button" className="btn btn-ghost" onClick={() => { setLanding(null); skipToSurface(); }}>{t('Skip to the surface')}</button>}
+            </div>
+          </div>
+        </div>
+      )}
 
       {briefing && (
         <div className="game-overlay game-briefing" role="dialog" aria-modal="true" aria-labelledby="brief-title">
@@ -305,16 +431,26 @@ export default function SurfaceGame({ env, terrain, site, startMs, published }: 
             <p className="eyebrow">{t('Mission briefing')}</p>
             <h2 id="brief-title">{t('You command a solar rover at {0}', { 0: site.name })}</h2>
             <p>{t('Near the lunar south pole the Sun never climbs high: it circles just above the horizon, so every ridge decides who gets light and who freezes. Your rover lives on sunlight and talks to Earth only when it can see it.')}</p>
+            {phase === 'brief' && <p>{t('First, pilot the lander down onto the real terrain, or skip straight to the surface.')}</p>}
             <ul className="brief-facts">
               <li><strong>{t('Real:')}</strong> {t('NASA LOLA terrain, Sun and Earth positions for {0} (JPL SPICE), lunar gravity.', { 0: fmtUtc(startMs) })}</li>
               <li><strong>{t('Game:')}</strong> {t('Battery size, speed and objectives are game assumptions (see Game rules below the view).')}</li>
               <li><strong>{t('Goal:')}</strong> {t('Complete {0} objectives. Each one explains why landing sites are chosen where they are.', { 0: OBJECTIVES.length })}</li>
             </ul>
             <div className="brief-controls">
+              {phase === 'brief' && <div className="ctl-keys"><span className="hud-label">{t('Landing')}</span><span>{t('SPACE engine · arrows / WASD slide sideways')}</span></div>}
               <div className="ctl-keys"><span className="hud-label">{t('Keyboard')}</span><span>{t('W/S or ↑/↓ drive · A/D or ←/→ steer · E scan · [ ] time warp · C camera · P pause · drag to look')}</span></div>
               <div className="ctl-touch"><span className="hud-label">{t('Touch')}</span><span>{t('Arrow pad to drive · Scan button · drag to look around')}</span></div>
             </div>
-            <button type="button" className="btn btn-primary" onClick={start} autoFocus>{hud.tMs > startMs ? t('Continue') : t('Start mission')}</button>
+            {phase === 'surface' ? (
+              <button type="button" className="btn btn-primary" onClick={start} autoFocus>{t('Continue')}</button>
+            ) : (
+              <div className="hud-row">
+                {saved && <button type="button" className="btn btn-primary" onClick={continueSaved} autoFocus>{t('Continue saved mission ({0}/{1})', { 0: Object.keys(saved.mission.done).length, 1: OBJECTIVES.length })}</button>}
+                <button type="button" className={`btn ${saved ? 'btn-ghost' : 'btn-primary'}`} onClick={startDescent} autoFocus={!saved}>{t('Land it yourself')}</button>
+                <button type="button" className="btn btn-ghost" onClick={skipToSurface}>{t('Skip to the surface')}</button>
+              </div>
+            )}
           </div>
         </div>
       )}

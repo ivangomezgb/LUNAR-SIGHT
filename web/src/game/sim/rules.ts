@@ -31,6 +31,19 @@ export const RULES = {
     downlinkMB: 4,
     surviveH: 48,
   },
+  lander: {
+    // Small robotic lander (CLPS-class order of magnitude), declared game numbers.
+    dryKg: 1200,
+    fuelKg: 700,
+    maxThrustN: 6500, // throttleable main engine; hover throttle ~0.47 when full
+    ispS: 311,
+    rcsAccel: 1.2, // m/s^2 lateral translation
+    rcsKgPerS: 0.25,
+    maxTouchVz: 2.0, // m/s
+    maxTouchVh: 1.0, // m/s
+    maxSlopeDeg: 8, // under the legs, from the real 10 m terrain
+    start: { altitude: 900, vDown: -18, offsetEast: 140, offsetNorth: -90, vEast: -4, vNorth: 3 },
+  },
   comms: {
     earthMarginDeg: 0.5, // same Earth-visible margin as the rest of the app
     downlinkMBps: 0.25, // MB per simulated second while the Earth is in view

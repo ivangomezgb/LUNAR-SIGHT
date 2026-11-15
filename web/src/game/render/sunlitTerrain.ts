@@ -33,6 +33,8 @@ export class SunlitBake {
   private lit: Float32Array;
   private next: Float32Array;
   private cursor = -1;
+  /** Increments every time a finished bake is published (for the minimap). */
+  version = 0;
   private bakeAz = NaN;
   private bakeEl = NaN;
   private doneAz = NaN;
@@ -101,5 +103,6 @@ export class SunlitBake {
     const a = this.attr.array as Float32Array, p = this.positions;
     for (let v = 0; v < a.length; v++) a[v] = this.sample(p[v * 3], -p[v * 3 + 2]);
     this.attr.needsUpdate = true;
+    this.version++;
   }
 }

@@ -225,3 +225,88 @@ describe('fast warp safety', () => {
     expect(w.ended).toBe('');
   });
 });
+
+import { altitude, hoverThrottle, judge, newLander, stepLander } from '../lander';
+describe('powered descent', () => {
+  const flat = field(() => 100, 201, 10);
+  it('free fall at lunar gravity ends in a crash', () => {
+    let s = newLander(flat);
+    expect(altitude(flat, s)).toBeCloseTo(RULES.lander.start.altitude, 6);
+    for (let k = 0; k < 4000 && !s.landed; k++) s = stepLander(flat, s, { throttle: 0, east: 0, north: 0 }, 0.05);
+    expect(s.landed).toBe('crash');
+    expect(s.reason).toBe('speed');
+  });
+  it('the hover throttle holds altitude and burns fuel', () => {
+    let s = { ...newLander(flat), vx: 0, vy: 0, vz: 0 };
+    const z0 = s.z, f0 = s.fuelKg;
+    for (let k = 0; k < 200; k++) s = stepLander(flat, s, { throttle: hoverThrottle(s), east: 0, north: 0 }, 0.05);
+    expect(Math.abs(s.z - z0)).toBeLessThan(0.5);
+    expect(s.fuelKg).toBeLessThan(f0);
+  });
+  it('a gentle vertical touchdown on flat ground is a landing', () => {
+    let s = { ...newLander(flat), z: 100 + 5, vx: 0, vy: 0, vz: -1 };
+    for (let k = 0; k < 400 && !s.landed; k++) s = stepLander(flat, s, { throttle: hoverThrottle(s) * 0.95, east: 0, north: 0 }, 0.05);
+    expect(s.landed).toBe('ok');
+    expect(s.touch!.vh).toBeLessThan(1e-9);
+  });
+  it('judges drift and slope at contact', () => {
+    expect(judge(-1, 2, 2)).toEqual({ landed: 'crash', reason: 'drift' });
+    expect(judge(-1, 0.2, 12)).toEqual({ landed: 'crash', reason: 'slope' });
+    expect(judge(-1.5, 0.5, 5)).toEqual({ landed: 'ok', reason: '' });
+  });
+  it('RCS translates the lander and the engine stops without fuel', () => {
+    let s = { ...newLander(flat), vx: 0, vy: 0 };
+    s = stepLander(flat, s, { throttle: 0, east: 1, north: 0 }, 1);
+    expect(s.vx).toBeCloseTo(RULES.lander.rcsAccel, 6);
+    const dry = { ...s, fuelKg: 0 };
+    expect(stepLander(flat, dry, { throttle: 1, east: 1, north: 0 }, 1).throttle).toBe(0);
+  });
+});
+
+import { stoppingHeight } from '../lander';
+describe('descent helper', () => {
+  it('stopping height matches the kinematics at full throttle', () => {
+    const s = { ...newLander(field(() => 0, 21, 10)), vz: -20 };
+    const L = RULES.lander, net = L.maxThrustN / (L.dryKg + s.fuelKg) - RULES.gravity;
+    expect(stoppingHeight(s)).toBeCloseTo(400 / (2 * net), 6);
+    expect(stoppingHeight({ ...s, vz: 2 })).toBe(0);
+    expect(stoppingHeight({ ...s, fuelKg: 0 })).toBe(Infinity);
+  });
+});
+
+describe.skipIf(!hasRealData('connecting-ridge'))('descent on the real terrain', () => {
+  it('a pilot using only the player controls can land softly on the target', () => {
+    const { terrain } = loadRealSite('connecting-ridge');
+    const f = makeField(terrain);
+    let s = newLander(f);
+    for (let k = 0; k < 20000 && !s.landed; k++) {
+      const alt = altitude(f, s);
+      const ax = -0.02 * s.x - 0.6 * s.vx, ay = -0.02 * s.y - 0.6 * s.vy;
+      const near = Math.hypot(s.x, s.y) < 30 && Math.hypot(s.vx, s.vy) < 0.6;
+      const want = near ? -Math.max(0.8, alt * 0.06) : alt > 60 ? -Math.max(2, alt * 0.06) : 0;
+      // on/off keys, like the keyboard: full engine or nothing, RCS full or nothing
+      s = stepLander(f, s, { throttle: s.vz < want ? 1 : 0, east: Math.abs(ax) > 0.3 ? Math.sign(ax) : 0, north: Math.abs(ay) > 0.3 ? Math.sign(ay) : 0 }, 0.02);
+    }
+    console.info(`real-terrain landing: ${s.landed} ${s.reason} at ${Math.hypot(s.x, s.y).toFixed(1)} m, touch vz ${s.touch?.vz.toFixed(2)} vh ${s.touch?.vh.toFixed(2)} slope ${s.touch?.slope.toFixed(1)}, fuel ${(100 * s.fuelKg / RULES.lander.fuelKg).toFixed(0)}%`);
+    expect(s.landed).toBe('ok');
+    expect(Math.hypot(s.x, s.y)).toBeLessThan(40);
+    expect(s.fuelKg).toBeGreaterThan(0);
+  });
+  it('the brake cue comes early enough: obeying it from free fall still lands', () => {
+    const { terrain } = loadRealSite('connecting-ridge');
+    const f = makeField(terrain);
+    let s = { ...newLander(f), x: 0, y: 0, vx: 0, vy: 0 };
+    let cueAt = NaN;
+    for (let k = 0; k < 20000 && !s.landed; k++) {
+      const alt = altitude(f, s);
+      const cue = alt > 3 && stoppingHeight(s) > alt * 0.7;
+      if (cue && Number.isNaN(cueAt)) cueAt = alt;
+      const braking = !Number.isNaN(cueAt);
+      const throttle = !braking ? 0 : s.vz < -Math.max(0.8, alt * 0.05) ? 1 : 0;
+      s = stepLander(f, s, { throttle, east: 0, north: 0 }, 0.02);
+    }
+    console.info(`brake cue at ${cueAt.toFixed(0)} m; touch vz ${s.touch?.vz.toFixed(2)}`);
+    expect(cueAt).toBeGreaterThan(50);
+    expect(s.landed).toBe('ok');
+  });
+});

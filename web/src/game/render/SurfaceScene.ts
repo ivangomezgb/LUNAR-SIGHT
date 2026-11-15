@@ -7,6 +7,8 @@ import { type Field, heightAt, normalAt } from '../sim/field';
 import type { World } from '../sim/world';
 import { gridGeometry } from './terrainMesh';
 import { roverModel } from './roverModel';
+import { landerModel } from './landerModel';
+import type { LanderState } from '../sim/lander';
 import { SunlitBake, sunlitMaterial } from './sunlitTerrain';
 import type { Horizon } from '../sim/visibility';
 
@@ -28,6 +30,8 @@ export class SurfaceScene {
   private earthDisk = phaseEarth(SKY_R);
   private sky = new THREE.Mesh(new THREE.SphereGeometry(SKY_R * 1.2, 32, 16), new THREE.MeshBasicMaterial({ color: 0x000000, side: THREE.BackSide }));
   private rover = roverModel();
+  private lander = landerModel();
+  private dust: THREE.Points;
   private track: THREE.Line;
   private trackN = 0;
   private lastTrack = new THREE.Vector3(Infinity, 0, 0);
@@ -96,6 +100,15 @@ export class SurfaceScene {
     this.scene.add(this.sunGlow);
 
     this.scene.add(this.rover.group);
+    this.lander.group.visible = false;
+    this.scene.add(this.lander.group);
+    // Dust kicked up by the engine near the ground (a disc of points pushed outward).
+    const n = 240, pos = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, r = 2 + Math.random() * 14; pos.set([Math.cos(a) * r, Math.random() * 1.5, Math.sin(a) * r], i * 3); }
+    const dg = new THREE.BufferGeometry();
+    dg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    this.dust = new THREE.Points(dg, new THREE.PointsMaterial({ color: 0xcfc6b6, size: 0.35, transparent: true, opacity: 0, depthWrite: false }));
+    this.scene.add(this.dust);
     const trackGeo = new THREE.BufferGeometry();
     trackGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(MAX_TRACK * 3), 3));
     trackGeo.setDrawRange(0, 0);
@@ -153,16 +166,44 @@ export class SurfaceScene {
     };
   }
 
+  /** Visible solar-disk fraction of the terrain at (x, y) from the last finished bake. */
+  sunlitAt(x: number, y: number): number { return this.bake.sample(x, y); }
+  get bakeVersion(): number { return this.bake.version; }
+
   setBeacon(target: { x: number; y: number } | null) {
     this.beacon.visible = !!target;
     if (target) this.beacon.position.copy(v3(target.x, target.y, heightAt(this.field, target.x, target.y)));
   }
 
-  /** Draw one frame for the world state `w`; `dt` = wall-clock seconds since the last frame. */
-  render(w: World, dt: number) {
+  /**
+   * Draw one frame for the world state `w`; `dt` = wall-clock seconds since the last frame.
+   * With `lander` in flight the camera follows the lander and the rover stays aboard (hidden);
+   * after touchdown the lander stays where it landed.
+   */
+  render(w: World, dt: number, lander: LanderState | null = null, flying = false) {
     const { rover, sky } = w;
     const ground = heightAt(this.field, rover.x, rover.y);
-    const pos = v3(rover.x, rover.y, ground);
+    const roverPos = v3(rover.x, rover.y, ground);
+    this.rover.group.visible = !flying;
+    if (lander) {
+      this.lander.group.visible = true;
+      this.lander.group.position.copy(v3(lander.x, lander.y, lander.z));
+      const thr = flying ? lander.throttle : 0;
+      this.lander.plume.visible = thr > 0.02;
+      this.lander.plume.scale.set(0.6 + thr * 0.6, 1 + thr * 9, 0.6 + thr * 0.6);
+      this.lander.plume.position.y = 0.75 - (1 + thr * 9) / 2;
+      this.lander.glow.intensity = thr * 60;
+      const alt = lander.z - heightAt(this.field, lander.x, lander.y);
+      const dustOn = flying && thr > 0.05 && alt < 40;
+      const dm = this.dust.material as THREE.PointsMaterial;
+      dm.opacity += ((dustOn ? Math.min(0.7, thr * (1 - alt / 40)) : 0) - dm.opacity) * Math.min(1, dt * 4);
+      this.dust.position.copy(v3(lander.x, lander.y, heightAt(this.field, lander.x, lander.y)));
+      this.dust.rotation.y += dt * (0.6 + thr * 2);
+      this.dust.scale.setScalar(1 + thr * 0.6);
+    } else {
+      this.lander.group.visible = false;
+    }
+    const pos = flying && lander ? v3(lander.x, lander.y, lander.z) : roverPos;
 
     // Rover pose: up = terrain normal, forward = heading projected on the slope.
     const [nx, ny, nz] = normalAt(this.field, rover.x, rover.y);
@@ -172,7 +213,7 @@ export class SurfaceScene {
     fwd.addScaledVector(up, -fwd.dot(up)).normalize();
     const back = fwd.clone().negate(), right = up.clone().cross(back).normalize();
     this.rover.group.matrixAutoUpdate = true;
-    this.rover.group.position.copy(pos);
+    this.rover.group.position.copy(roverPos);
     this.rover.group.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(right, up, back));
     this.wheelAngle -= (rover.speed * dt * w.warp) / 0.32;
     for (const wh of this.rover.wheels) wh.rotation.x = this.wheelAngle;
@@ -180,7 +221,7 @@ export class SurfaceScene {
     this.rover.dish.rotation.y = -(sky.earthAz - rover.heading) * Math.PI / 180 + Math.PI;
     this.rover.headlight.intensity = w.sunFrac > 0.5 ? 0 : 6;
 
-    if (pos.distanceTo(this.lastTrack) > 1.5 && this.trackN < MAX_TRACK) {
+    if (!flying && pos.distanceTo(this.lastTrack) > 1.5 && this.trackN < MAX_TRACK) {
       const arr = this.track.geometry.getAttribute('position') as THREE.BufferAttribute;
       arr.setXYZ(this.trackN++, pos.x, pos.y + 0.05, pos.z);
       arr.needsUpdate = true;
@@ -205,7 +246,14 @@ export class SurfaceScene {
     // Camera.
     const k = 1 - Math.exp(-dt * 6);
     let wantPos: THREE.Vector3, wantTarget: THREE.Vector3;
-    if (this.mode === 'mast') {
+    if (flying) {
+      // descent chase: behind and above the lander, farther away the higher it is
+      const a = (180 + this.yaw) * Math.PI / 180, p = Math.max(8, this.pitch) * Math.PI / 180;
+      const alt = lander ? lander.z - heightAt(this.field, lander.x, lander.y) : 0;
+      const dist = Math.max(this.dist * 2.5, 30 + Math.min(alt, 600) * 0.12);
+      wantPos = pos.clone().add(v3(Math.sin(a) * Math.cos(p) * dist, Math.cos(a) * Math.cos(p) * dist, Math.sin(p) * dist + 4));
+      wantTarget = pos.clone().add(new THREE.Vector3(0, -2, 0));
+    } else if (this.mode === 'mast') {
       wantPos = pos.clone().addScaledVector(up, 2.05).addScaledVector(fwd, -0.65);
       const a = (rover.heading + this.yaw) * Math.PI / 180, p = (this.pitch - 18) * 0.5 * Math.PI / 180;
       wantTarget = wantPos.clone().add(v3(Math.sin(a) * Math.cos(p), Math.cos(a) * Math.cos(p), Math.sin(p)).multiplyScalar(50));
