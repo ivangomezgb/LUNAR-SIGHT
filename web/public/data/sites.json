@@ -144,7 +144,7 @@
   "source_note": "Centre of NASA's ADC 2023 de Gerlache Rim 2 region grid (4000x4000).",
   "dem_res_m": 5.0,
   "dem_source": "PGDA 81 LOLA 5 m/px (87S) to 7.5 km + PGDA 90 LOLA 20 m/px (80S) to 60 km + PGDA 90 LOLA 240 m/px (60S) to 200 km",
-  "has_clones": false,
+  "has_clones": true,
   "slope_deg_50m": 9.8,
   "map_px": [
    775.7,
