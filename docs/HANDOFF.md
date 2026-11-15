@@ -97,6 +97,11 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
       `docs/assumptions.md` § Energy and night survival.
 - [x] Pendientes y zona segura de aterrizaje: mapa en Explora (`lib/hazard.ts`, `components/SlopeMap.tsx`); método y
       umbrales en `docs/hazard.md`.
+- [x] Zonas de sombra permanente (PSR): tarjeta en Explora (`lln/psr.py`, `components/PsrCard.tsx`, `docs/psr.md`),
+      mapas oficiales LOLA de PGDA 69 leídos por rangos.
+- [x] Validación contra la literatura: `scripts/literature_check.py` + `LiteratureTable` en Validación; los 17 sitios
+      contra los mapas de visibilidad media de Mazarico et al. 2011 con la misma definición (Tierra r = 0,984). Explica
+      la diferencia de Connecting Ridge (definiciones distintas). Ver `docs/validation.md`.
 - Descartado por decisión del equipo: asistente en lenguaje natural (una app estática no puede llamar a un modelo
   sin exponer una clave) y su variante de buscador guiado.
 
@@ -116,8 +121,7 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
   - puntuar luz + Tierra + pendiente en vez de solo luz;
   - ampliar el radio de búsqueda;
   - usar varios años en lugar de solo 2027.
-- Falta comparar la iluminación con valores publicados en más sitios (hoy solo Mazarico 2011 en Connecting Ridge:
-  80,9 % nuestro contra ~86–89 % publicado). También falta la prueba visual de siluetas con Quickmap/Moon Trek (`docs/validation.md`).
+- Comparación con la literatura hecha para los 17 sitios (ver arriba). Falta la prueba visual de siluetas con Quickmap/Moon Trek.
 - "Peak near Cabeus B" y "Slater Plain" (lista 2024) ya son sitios curados: centro de la cuadrícula LGRS de 1 km del
   USGS (McClernan 2024, doi:10.5066/P1MEQ6UK), calculado con `pipeline/scripts/usgs_region_center.py`
   (los shapefiles van en `pipeline/data/raw/usgs_artemis/`, gitignored; ScienceBase bloquea descargas

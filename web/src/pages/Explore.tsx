@@ -17,6 +17,7 @@ import AssumptionsPanel from '../components/AssumptionsPanel';
 import LandingRisk from '../components/LandingRisk';
 import EnergyCard from '../components/EnergyCard';
 import SlopeMap from '../components/SlopeMap';
+import PsrCard from '../components/PsrCard';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import { seriesFor, coverage, assumptionsFor } from '../components/series';
 import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc, fmtInt } from '../components/format';
@@ -114,6 +115,7 @@ export default function Explore() {
         {site.data && <LandingRisk site={site.data} utc={landingUtc} assumptions={store.assumptions} />}
         {site.data && <EnergyCard site={site.data} utc={landingUtc} missionDays={store.missionDays} assumptions={store.assumptions} />}
         {site.data && <SlopeMap siteId={site.data.id} siteName={entry?.name} />}
+        {site.data && <PsrCard siteId={site.data.id} siteName={entry?.name} />}
         {site.data && siteId && (
           <div className="report-cta">
             <Link className="btn btn-ghost" to={`/report?site=${encodeURIComponent(siteId)}&t=${isoShort(landingUtc)}&days=${store.missionDays}&h=${store.assumptions.heightM}&lang=${store.lang}`}>

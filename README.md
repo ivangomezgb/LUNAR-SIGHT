@@ -18,13 +18,13 @@ newest regions, validated against JPL Horizons.
 
 | Screen | What it does |
 | --- | --- |
-| **Explore** | Polar map of the 17 sites. Pick one to see a 2D 360° panorama: real horizon, Sun path (gold, solid) and Earth path (blue, dashed), animated through time. Eight metric cards (sunlight with its p5–p95 terrain-uncertainty band), a 30-day timeline, the **landing light risk** card, an **energy and night-survival** simulation (solar panel, loads and battery, editable) and a **slope map with the safe landing area** (from the 10 m LOLA grid), and a link to the **mission brief (PDF)**. Site and time live in the URL (`#/?site=connecting-ridge&t=2027-01-12T06:00Z`). |
+| **Explore** | Polar map of the 17 sites. Pick one to see a 2D 360° panorama: real horizon, Sun path (gold, solid) and Earth path (blue, dashed), animated through time. Eight metric cards (sunlight with its p5–p95 terrain-uncertainty band), a 30-day timeline, the **landing light risk** card, an **energy and night-survival** simulation (solar panel, loads and battery, editable) a **slope map with the safe landing area** (from the 10 m LOLA grid) and the **nearest permanently shadowed regions** (official LOLA PSR map), and a link to the **mission brief (PDF)**. Site and time live in the URL (`#/?site=connecting-ridge&t=2027-01-12T06:00Z`). |
 | **3D** (`#/3d`) | Three ways to look at a site, sharing the same time slider and path window (`t=`, `days=` 1/14/30): **3D overview** (real LOLA terrain lit by the real Sun with cast shadows, plus a sky dome with the real Sun and Earth paths), **First person · 2 m** (stand on the terrain; mesh horizon approximate) and **Astronaut 360°** (precomputed panorama whose horizon matches the mask within 0.2°). Lunar photometry, Earth with its real phase, no invented surface detail. |
 | **Compare** | Up to 3 sites side by side for the same date: panoramas, aligned timelines, metrics with the best value highlighted, landing light risk and uncertainty band. |
 | **Mission delayed** | Enter the original site and date, the delay and a tolerance; every site × landing time (6 h steps) is scored with adjustable weights and hard filters. Top 10 with the three main reasons each and their landing light risk, in well under a second in the browser. |
 | **Any point** (`#/free`) | Pick any point of the south-polar map (or type coordinates). The browser computes an **approximate** horizon from coarse LOLA grids (240 m + 960 m) and runs every metric, the landing risk and a realistic 3D view of that point, compared with the nearest curated site. Shareable URL (`?lat=&lon=&t=`). Accuracy measured on the curated sites is shown on the page. |
 | **Mission brief** (`#/report`) | Printable A4 brief for one site and landing time: metrics, uncertainty, landing risk, panorama, timeline, assumptions and sources; "Download PDF" uses the browser's print dialog. |
-| **Validation** | Our Sun/Earth azimuth and elevation vs JPL Horizons, the IM-2 *Athena* landing case, and every assumption. |
+| **Validation** | Our Sun/Earth azimuth and elevation vs JPL Horizons, our Sun/Earth visibility vs the published LOLA long-term maps (Mazarico et al. 2011) at all 17 sites, the IM-2 *Athena* landing case, and every assumption. |
 | **About** / **Apolo404** | Data, method, sources and use of AI; the team. |
 
 English and Spanish (EN/ES switch, `?lang=es`); observer / panel height 1, 2, 5 or 10 m (`?h=`).
@@ -89,7 +89,9 @@ pipeline/ (Python)                                   web/ (TypeScript, Vite + Re
 - Horizon algorithm vs analytic cases (smooth Moon, walls), coordinate round trips < 1 m.
 - 360° panoramas vs the horizon masks: within 0.2° in 100 % of columns for 16 of 17 sites.
 - Any point (coarse DEM) vs the curated masks: mean 0.25°, max 2.64°; sunlight within 1.25 pp on average.
-- Illumination vs published values (Mazarico et al. 2011) and the IM-2 *Athena* landing (low Sun,
+- Sun/Earth visibility vs the published LOLA long-term maps (Mazarico et al. 2011), same definition, 17 sites:
+  Earth r = 0.984 (median 2.4 pp), Sun r = 0.914 (higher where our site sits on a best-lit peak).
+- Illumination vs published values and the IM-2 *Athena* landing (low Sun,
   2.47° above a 0.83° horizon). Details in [`docs/validation.md`](docs/validation.md).
 
 ## Run it
@@ -121,6 +123,7 @@ and deploys to GitHub Pages (`.github/workflows/deploy.yml`) and Vercel (`vercel
 - [JPL Horizons API](https://ssd-api.jpl.nasa.gov/doc/horizons.html)
 - Artemis III candidate regions: [NASA App Development Challenge 2023 data](https://www.nasa.gov/learning-resources/app-development-challenge/2023-handbook-and-coding-components) and the USGS LGRS navigation grids, McClernan (2024), [doi:10.5066/P1MEQ6UK](https://doi.org/10.5066/P1MEQ6UK)
 - IM-2 *Athena* landing point: [LROC](https://lroc.im-ldi.com/images/1408)
+- LOLA polar illumination and PSR maps: [PGDA 69](https://pgda.gsfc.nasa.gov/products/69) (Mazarico et al. 2011, doi:10.1016/j.icarus.2010.10.030)
 - Bussey et al. (2010), *Icarus* 208; Mazarico et al. (2011), *Icarus* 211 — south-pole illumination; Barker et al. (2021), *PSS* — LOLA site DEMs and clones
 - Every site's source is in [`pipeline/config/sites.yaml`](pipeline/config/sites.yaml)
 
