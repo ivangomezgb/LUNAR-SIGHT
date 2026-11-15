@@ -62,9 +62,25 @@ export default function SlopeMap({ siteId, siteName }: { siteId: string; siteNam
     ctx.strokeStyle = '#fff'; ctx.setLineDash([5, 4]);
     for (const radius of MAP_RING_RADII_M) circle(0, 0, radius);
     ctx.setLineDash([]);
-    if (r.nearest) { ctx.strokeStyle = '#fff'; circle(r.nearest.eastM, r.nearest.northM, SAFE_CIRCLE_RADIUS_M); text(t('Passing circle'), x(r.nearest.eastM) + 15, y(r.nearest.northM) - 15); }
+    // Put the two labels on opposite sides, along the site -> passing-circle direction, so they never overlap.
+    let ux = 1, uy = 0;
+    if (r.nearest && Math.hypot(r.nearest.eastM, r.nearest.northM) > 1) {
+      const dx = x(r.nearest.eastM) - x(0), dy = y(r.nearest.northM) - y(0), d = Math.hypot(dx, dy);
+      ux = dx / d; uy = dy / d;
+    }
+    const label = (value: string, cx: number, cy: number, dirX: number, dirY: number, gap: number) => {
+      ctx.textAlign = dirX < -0.3 ? 'right' : dirX > 0.3 ? 'left' : 'center';
+      ctx.textBaseline = dirY < -0.3 ? 'bottom' : dirY > 0.3 ? 'top' : 'middle';
+      text(value, cx + dirX * gap, cy + dirY * gap);
+      ctx.textAlign = 'start'; ctx.textBaseline = 'alphabetic';
+    };
+    if (r.nearest) {
+      ctx.strokeStyle = '#fff'; circle(r.nearest.eastM, r.nearest.northM, SAFE_CIRCLE_RADIUS_M);
+      const sameSpot = Math.hypot(r.nearest.eastM, r.nearest.northM) <= 1;
+      label(t('Passing circle'), x(r.nearest.eastM), y(r.nearest.northM), sameSpot ? 0 : ux, sameSpot ? -1 : uy, SAFE_CIRCLE_RADIUS_M / span * w + 8);
+    }
     ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.moveTo(x(0) - 8, y(0)); ctx.lineTo(x(0) + 8, y(0)); ctx.moveTo(x(0), y(0) - 8); ctx.lineTo(x(0), y(0) + 8); ctx.stroke();
-    text(t('Site'), x(0) + 10, y(0) + 18);
+    label(t('Site'), x(0), y(0), -ux, r.nearest && Math.hypot(r.nearest.eastM, r.nearest.northM) <= 1 ? 1 : -uy, 12);
     ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.moveTo(25, 55); ctx.lineTo(25, 20); ctx.lineTo(20, 28); ctx.moveTo(25, 20); ctx.lineTo(30, 28); ctx.stroke(); text(t('N'), 36, 30);
     ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.moveTo(20, w - 22); ctx.lineTo(20 + SCALE_BAR_M / span * w, w - 22); ctx.stroke(); text(t('1 km'), 20, w - 30);
     mapImage.current = ctx.getImageData(0, 0, w, w);
