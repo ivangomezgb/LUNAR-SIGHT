@@ -8,6 +8,8 @@ interface Props {
   /** Visible solar fraction of the terrain at (x, y), from the scene's physics bake. */
   sunlitAt: (x: number, y: number) => number;
   bakeVersion: number;
+  /** 'sun' = amber (sunlight), 'earth' = blue (Earth visibility). */
+  tint?: 'sun' | 'earth';
   rover: Marker & { heading: number };
   waypoint: Marker | null;
   nav: Marker | null;
@@ -16,7 +18,7 @@ interface Props {
 }
 
 /** Top-down map of the drivable terrain: hillshade × real sunlight, with the rover and targets. */
-export default function Minimap({ field, sunlitAt, bakeVersion, rover, waypoint, nav, lander, size }: Props) {
+export default function Minimap({ field, sunlitAt, bakeVersion, tint = 'sun', rover, waypoint, nav, lander, size }: Props) {
   const base = useRef<HTMLCanvasElement | null>(null);
   const cv = useRef<HTMLCanvasElement>(null);
   const half = field.near.half;
@@ -33,17 +35,23 @@ export default function Minimap({ field, sunlitAt, bakeVersion, rover, waypoint,
       const dzx = heightAt(field, x + step, y) - heightAt(field, x - step, y);
       const dzy = heightAt(field, x, y + step) - heightAt(field, x, y - step);
       const shade = Math.max(0, Math.min(1, 0.55 + (-dzx + dzy) / (4 * step))); // NW-lit relief
-      const lit = sunlitAt(x, y);
+      const raw = sunlitAt(x, y), lit = Number.isFinite(raw) ? raw : 0;
       const v = Number.isFinite(shade) ? shade : 0;
       const k = (j * n + i) * 4;
-      img.data[k] = 40 + v * 60 + lit * 150;
-      img.data[k + 1] = 44 + v * 60 + lit * 128;
-      img.data[k + 2] = 58 + v * 60 + lit * 70;
+      if (tint === 'earth') {
+        img.data[k] = 30 + v * 50 + lit * 40;
+        img.data[k + 1] = 40 + v * 50 + lit * 110;
+        img.data[k + 2] = 60 + v * 50 + lit * 170;
+      } else {
+        img.data[k] = 40 + v * 60 + lit * 150;
+        img.data[k + 1] = 44 + v * 60 + lit * 128;
+        img.data[k + 2] = 58 + v * 60 + lit * 70;
+      }
       img.data[k + 3] = 255;
     }
     g.putImageData(img, 0, 0);
     base.current = c;
-  }, [field, half, size, sunlitAt, bakeVersion]);
+  }, [field, half, size, sunlitAt, bakeVersion, tint]);
 
   useEffect(() => {
     const g = cv.current?.getContext('2d');

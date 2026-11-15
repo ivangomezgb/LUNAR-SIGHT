@@ -53,6 +53,19 @@ def check_pano(d: Path, sid: str, problems: list[str]) -> None:
             problems.append(f"pano/{m['file']}: expected {want} bytes")
 
 
+def check_illum(d: Path, sid: str, problems: list[str]) -> None:
+    meta_path = d / "illum" / f"{sid}.json"
+    if not meta_path.exists():
+        return
+    meta = json.loads(meta_path.read_text(encoding="utf-8"))
+    g = meta.get("grid", 0)
+    f = d / "illum" / meta["light"]["file"]
+    if not f.exists() or f.stat().st_size != 2 * g * g:
+        problems.append(f"illum/{meta['light']['file']}: expected {2 * g * g} bytes")
+    elif max(f.read_bytes()) > 200:
+        problems.append(f"illum/{meta['light']['file']}: values above 200 (100 %)")
+
+
 def check(d: Path) -> list[str]:
     problems: list[str] = []
     index = json.loads((d / "sites.json").read_text(encoding="utf-8"))
@@ -81,6 +94,7 @@ def check(d: Path) -> list[str]:
             problems.append(f"sites/{sid}.json: {exc}")
         check_terrain(d, sid, problems)
         check_pano(d, sid, problems)
+        check_illum(d, sid, problems)
     json.loads((d / "validation.json").read_text(encoding="utf-8"))
     json.loads((d / "basemap.json").read_text(encoding="utf-8"))
     return problems

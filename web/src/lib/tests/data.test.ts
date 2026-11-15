@@ -45,3 +45,22 @@ it('rejects site files that break the contract with a readable message', async (
   vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response('{}')));
   await expect(loadSites()).rejects.toThrow('Invalid sites.json');
 });
+
+import { illumAt, loadIllum } from '../illum';
+it('decodes an illumination map and samples it bilinearly', async () => {
+  const g = 4, meta = { id: 's', grid: g, cell_m: 10, half_m: 20, window: '2027', observer_height_m: 2,
+    light: { file: 's.bin', offset: 0, dtype: 'uint8', scale_pct: 0.5 }, earth: { file: 's.bin', offset: g * g, dtype: 'uint8', scale_pct: 0.5 },
+    earth_margin_deg: 0.5, source: 'test' };
+  const bytes = new Uint8Array(2 * g * g); bytes.fill(200, 0, g * g); bytes[0] = 0; bytes.fill(100, g * g);
+  vi.stubGlobal('fetch', vi.fn(async (u: string) => (String(u).endsWith('.json') ? new Response(JSON.stringify(meta)) : new Response(bytes))));
+  const m = (await loadIllum('s'))!;
+  expect(m.light[0]).toBe(0);
+  expect(m.light[5]).toBe(1);
+  expect(m.earth[3]).toBeCloseTo(0.5, 6);
+  expect(illumAt(m, 'light', -15, 15)).toBeCloseTo(0, 6); // centre of the north-west cell
+  expect(illumAt(m, 'light', 5, -5)).toBeCloseTo(1, 6);
+  expect(illumAt(m, 'earth', 0, 0)).toBeCloseTo(0.5, 6);
+  expect(illumAt(m, 'light', 100, 0)).toBeNaN();
+  vi.stubGlobal('fetch', vi.fn(async () => new Response('', { status: 404 })));
+  expect(await loadIllum('none')).toBeNull();
+});

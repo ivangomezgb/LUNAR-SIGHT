@@ -22,7 +22,7 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 | T27. Escena 3D con sombras + 360° inmersivo | ✅ ruta `#/3d`, tres modos (ver §1.1) | `lln/terrain.py`, `lln/pano.py`, `Scene3D.tsx`, `ImmersivePano.tsx`, `three/sceneTools.ts` |
 | Página del equipo Apolo404 | ✅ ruta `#/team` | `pages/Team.tsx`, `public/team-apolo404.*` |
 | T28. Bilingüe EN/ES | ✅ `?lang=es` | `i18n.ts`, `locales/*.json` |
-| Misión jugable (rover) | ✅ fases 1–5 del plan de juego: órbita con el casquete LOLA real y salto entre los 17 sitios con pronóstico (luz, Tierra, riesgo de luz), descenso pilotado sobre el terreno real, rover, energía, enlace con la Tierra, navegación por coordenadas, minimapa, 6 objetivos-lección, briefing, informe y progreso guardado | `web/src/game/`, `pages/Mission.tsx`, `docs/assumptions.md` |
+| Misión jugable (rover) | ✅ fases 1–6 del plan de juego: mapa de luz y Tierra del año por celda de 80 m (`lln/illum_map.py`, `--illum`, coincide con las métricas oficiales en ≤ 0,54 puntos en los 17 sitios), órbita con el casquete LOLA real y salto entre los 17 sitios con pronóstico (luz, Tierra, riesgo de luz), descenso pilotado sobre el terreno real, rover, energía, enlace con la Tierra, navegación por coordenadas, minimapa, 6 objetivos-lección, briefing, informe y progreso guardado | `web/src/game/`, `pages/Mission.tsx`, `docs/assumptions.md` |
 | Guía de primera visita | ✅ "¿Primera vez?" en Explorar; menú reordenado (Explorar · 3D · Jugar misión · …); menú de una fila en celular | `pages/Explore.tsx`, `App.tsx`, `ui.css` |
 
 Pruebas: 125 en `pytest pipeline/tests` (114 pasan y 11 se saltan sin kernels SPICE ni intermedios) y 18 en `cd web && npm test`,

@@ -90,7 +90,7 @@ def run_optional(module: str, only: str = "") -> None:
         export.warn(f"{name} not present; skipping {module}")
         return
     cmd = [sys.executable, "-m", name]
-    if only and module == "uncertainty":  # its CLI takes a repeatable --site
+    if only and module in ("uncertainty", "illum_map"):  # their CLIs take a repeatable --site
         for sid in only.split(","):
             cmd += ["--site", sid]
     elif only:
@@ -113,6 +113,7 @@ def main(argv=None) -> None:
     ap.add_argument("--skip-validate", action="store_true")
     ap.add_argument("--terrain", action="store_true", help="generate terrain after export")
     ap.add_argument("--pano", action="store_true", help="generate panoramas after export")
+    ap.add_argument("--illum", action="store_true", help="illumination maps after terrain (~12 s per site)")
     ap.add_argument("--uncertainty", action="store_true",
                     help="compute uncertainty before export (slow; downloads data)")
     a = ap.parse_args(argv)
@@ -137,6 +138,8 @@ def main(argv=None) -> None:
         run_optional("terrain", a.only)
     if a.pano:
         run_optional("pano", a.only)
+    if a.illum:
+        run_optional("illum_map", a.only)
     print(f"--- total {time.time() - t0:.0f} s")
 
 

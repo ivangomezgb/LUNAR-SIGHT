@@ -9,7 +9,7 @@ import { gridGeometry } from './terrainMesh';
 import { roverModel } from './roverModel';
 import { landerModel } from './landerModel';
 import type { LanderState } from '../sim/lander';
-import { SunlitBake, sunlitMaterial } from './sunlitTerrain';
+import { overlayUniform, SunlitBake, sunlitMaterial } from './sunlitTerrain';
 import type { Horizon } from '../sim/visibility';
 
 export type CameraMode = 'chase' | 'mast' | 'top';
@@ -52,6 +52,8 @@ export class SurfaceScene {
   private node: HTMLElement;
   private field: Field;
   private bake: SunlitBake;
+  private annual!: THREE.BufferAttribute;
+  private nearPositions!: ArrayLike<number>;
 
   constructor(node: HTMLElement, field: Field, horizon: Horizon, data: TerrainData, lowEnd: boolean) {
     this.node = node;
@@ -74,6 +76,10 @@ export class SurfaceScene {
     const nearGeo = gridGeometry(data.meta.near, data.near, lowEnd ? 512 : 1024);
     this.bake = new SunlitBake(field, horizon, nearGeo.getAttribute('position').array, lowEnd ? 128 : 192);
     nearGeo.setAttribute('sunlit', this.bake.attr);
+    this.annual = new THREE.BufferAttribute(new Float32Array(nearGeo.getAttribute('position').count), 1);
+    nearGeo.setAttribute('annual', this.annual);
+    this.nearPositions = nearGeo.getAttribute('position').array;
+    overlayUniform.value = 0;
     const near = new THREE.Mesh(nearGeo, sunlitMaterial(0xaaa59d));
     near.receiveShadow = true; // only the rover casts into the shadow map
     const far = new THREE.Mesh(gridGeometry(data.meta.far, data.far, data.meta.far.n, extent), new THREE.MeshStandardMaterial({ color: 0x9a958e, roughness: 1 }));
@@ -169,6 +175,16 @@ export class SurfaceScene {
   /** Visible solar-disk fraction of the terrain at (x, y) from the last finished bake. */
   sunlitAt(x: number, y: number): number { return this.bake.sample(x, y); }
   get bakeVersion(): number { return this.bake.version; }
+
+  /** Heat-map overlay of a yearly quantity (0..1) sampled at (x, y); null hides it. */
+  setOverlay(sample: ((x: number, y: number) => number) | null) {
+    if (sample) {
+      const a = this.annual.array as Float32Array, p = this.nearPositions;
+      for (let v = 0; v < a.length; v++) { const s = sample(p[v * 3], -p[v * 3 + 2]); a[v] = Number.isFinite(s) ? s : 0; }
+      this.annual.needsUpdate = true;
+    }
+    overlayUniform.value = sample ? 1 : 0;
+  }
 
   setBeacon(target: { x: number; y: number } | null) {
     this.beacon.visible = !!target;

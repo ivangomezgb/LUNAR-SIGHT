@@ -185,3 +185,14 @@
   .orbit-sites { max-height: 120px; }
 }
 @media (prefers-reduced-motion: reduce) { .orbit.is-diving::after { animation-duration: 1ms; } }
+
+/* Map layers (now / yearly sunlight / yearly Earth) */
+.map-layers { display: flex; gap: 3px; margin-top: 6px; justify-content: flex-end; }
+.map-layers button { background: rgba(255,255,255,.06); color: #e8eef5; border: 1px solid rgba(255,255,255,.16); border-radius: 7px; padding: 3px 7px; font: inherit; font-size: .7rem; cursor: pointer; }
+.map-layers button[aria-pressed="true"] { background: var(--sun); color: #17140c; border-color: var(--sun); font-weight: 700; }
+.map-legend { display: grid; grid-template-columns: auto 1fr auto; gap: 2px 6px; font-size: .62rem; color: #9fb0c3; margin-top: 4px; align-items: center; }
+.map-ramp { grid-column: 1 / -1; height: 6px; border-radius: 3px; background: linear-gradient(90deg, #0a1238, #ffb838); }
+.map-ramp.earth { background: linear-gradient(90deg, #1a2433, #4fa2ff); }
+.map-here { grid-column: 1 / -1; color: #e8eef5; text-align: right; }
+@media (max-width: 699px) { .map-legend { display: none; } .map-layers button { padding: 2px 5px; font-size: .64rem; } }
+.map-ramp { background: linear-gradient(90deg, #081033, #8c3359 50%, #ffc747); }

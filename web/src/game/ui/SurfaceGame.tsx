@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { illumAt, type IllumMap } from '../../lib/illum';
 import { Link } from 'react-router-dom';
 import { t } from '../../i18n';
 import { fmtUtc } from '../../components/format';
@@ -30,6 +31,8 @@ interface Props {
   published: { lightPct: number; earthPct: number } | null;
   /** Coming from the orbit stage: start the descent (or the saved mission) without the briefing. */
   autostart?: 'descent' | 'continue';
+  /** Yearly sunlight / Earth map of the site (null when not generated). */
+  illum?: IllumMap | null;
 }
 
 const KEYS = { up: ['w', 'arrowup'], down: ['s', 'arrowdown'], left: ['a', 'arrowleft'], right: ['d', 'arrowright'], thrust: [' '] };
@@ -38,10 +41,13 @@ const TARGET = { x: 0, y: 0 };
 const objectiveTitle = (id: ObjectiveId) =>
   t(LESSONS[id].title, { 0: id === 'drive' ? RULES.mission.driveM : id === 'downlink' ? RULES.mission.downlinkMB : RULES.mission.surviveH });
 
-export default function SurfaceGame({ env, terrain, site, startMs, published, autostart }: Props) {
+export default function SurfaceGame({ env, terrain, site, startMs, published, autostart, illum = null }: Props) {
+  const lightAt = useMemo(() => (illum ? (x: number, y: number) => illumAt(illum, 'light', x, y) : undefined), [illum]);
+  const earthAt = useMemo(() => (illum ? (x: number, y: number) => illumAt(illum, 'earth', x, y) : undefined), [illum]);
+  const [layer, setLayer] = useState<'now' | 'light' | 'earth'>('now');
   const host = useRef<HTMLDivElement>(null);
   const world = useRef<World>({ ...newWorld(env, startMs), paused: true });
-  const mission = useRef<MissionState>(newMission(env.field, startMs));
+  const mission = useRef<MissionState>(newMission(env.field, startMs, illum ? (x, y) => illumAt(illum, 'light', x, y) : undefined));
   const sceneRef = useRef<SurfaceScene | null>(null);
   const keys = useRef(new Set<string>());
   const touch = useRef({ throttle: 0, steer: 0, thrust: 0 });
@@ -187,6 +193,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
     return () => { clearInterval(id); window.removeEventListener('pagehide', save); save(); };
   }, [phase, site.id, startMs]);
   useEffect(() => { sceneRef.current?.setBeacon(nav); }, [nav]);
+  useEffect(() => { sceneRef.current?.setOverlay(layer === 'light' ? lightAt ?? null : layer === 'earth' ? earthAt ?? null : null); }, [layer, lightAt, earthAt, phase]);
   useEffect(() => {
     if (!scanMsg) return;
     const id = setTimeout(() => setScanMsg(''), 5000);
@@ -237,7 +244,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
   const restart = () => {
     clearSave(); setSaved(null);
     world.current = { ...newWorld(env, startMs), paused: true };
-    mission.current = newMission(env.field, startMs);
+    mission.current = newMission(env.field, startMs, lightAt);
     landerRef.current = null; landingRef.current = null; setLanding(null);
     setM(mission.current); setHud(world.current); setNav(null); setDebrief(false); setToast(null);
     setPhase('brief'); setBriefing(true);
@@ -315,9 +322,24 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
           <div className="hud-label">{t('Position')}</div>
           <div className="mono">{fmtLatLon(here)}</div>
           <div className="mono small">{t('Heading')} {hud.rover.heading.toFixed(0)}° · {(hud.rover.odometer / 1000).toFixed(2)} km</div>
-          <Minimap field={env.field} sunlitAt={sunlitAt} bakeVersion={bakeVersion} size={compact ? 110 : 156}
+          <Minimap field={env.field} sunlitAt={layer === 'light' && lightAt ? lightAt : layer === 'earth' && earthAt ? earthAt : sunlitAt}
+            bakeVersion={layer === 'now' ? bakeVersion : 0} tint={layer === 'earth' ? 'earth' : 'sun'} size={compact ? 110 : 156}
             rover={{ x: hud.rover.x, y: hud.rover.y, heading: hud.rover.heading }}
             waypoint={m.done.waypoint === undefined ? m.waypoint : null} nav={nav} lander={landingRef.current} />
+          {illum && (
+            <div className="map-layers" role="group" aria-label={t('Map layer')}>
+              <button type="button" aria-pressed={layer === 'now'} onClick={() => setLayer('now')} title={t('Sunlight at the current simulated hour')}>{t('Now')}</button>
+              <button type="button" aria-pressed={layer === 'light'} onClick={() => setLayer('light')} title={t('Share of {0} with the Sun above the real horizon', { 0: illum.meta.window })}>☀ {illum.meta.window}</button>
+              <button type="button" aria-pressed={layer === 'earth'} onClick={() => setLayer('earth')} title={t('Share of {0} with the Earth in view', { 0: illum.meta.window })}>⊕ {illum.meta.window}</button>
+            </div>
+          )}
+          {illum && layer !== 'now' && (
+            <div className="map-legend mono" aria-live="polite">
+              <span className={`map-ramp ${layer}`} aria-hidden />
+              <span>0%</span><span>{t('{0} of the year', { 0: layer === 'light' ? t('Sunlight') : t('Earth in view') })}</span><span>100%</span>
+              <span className="map-here">{t('Here: {0}%', { 0: Math.round(100 * (illumAt(illum, layer, hud.rover.x, hud.rover.y) || 0)) })}</span>
+            </div>
+          )}
         </div>
       </div>
 

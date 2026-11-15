@@ -8,18 +8,30 @@ import type { Field } from '../sim/field';
 import type { Horizon } from '../sim/visibility';
 
 /** MeshStandardMaterial whose first directional light (the Sun) is scaled by `sunlit`. */
+export const overlayUniform = { value: 0 }; // 0 = off, 1 = yearly sunlight heat map
+
 export function sunlitMaterial(color: number): THREE.MeshStandardMaterial {
   const m = new THREE.MeshStandardMaterial({ color, roughness: 1 });
   m.onBeforeCompile = (shader) => {
-    shader.vertexShader = 'attribute float sunlit;\nvarying float vSunlit;\n' + shader.vertexShader
-      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vSunlit = sunlit;');
+    shader.uniforms.uOverlay = overlayUniform;
+    shader.vertexShader = 'attribute float sunlit;\nattribute float annual;\nvarying float vSunlit;\nvarying float vAnnual;\n' + shader.vertexShader
+      .replace('#include <begin_vertex>', '#include <begin_vertex>\n  vSunlit = sunlit;\n  vAnnual = annual;');
     const lights = THREE.ShaderChunk.lights_fragment_begin.replace(
       'getDirectionalLightInfo( directionalLight, directLight );',
       'getDirectionalLightInfo( directionalLight, directLight );\n\t\tdirectLight.color *= ( UNROLLED_LOOP_INDEX == 0 ) ? vSunlit : 1.0;',
     );
     if (lights === THREE.ShaderChunk.lights_fragment_begin) throw new Error('three.js light chunk changed');
-    shader.fragmentShader = 'varying float vSunlit;\n' + shader.fragmentShader
-      .replace('#include <lights_fragment_begin>', lights);
+    shader.fragmentShader = 'varying float vSunlit;\nvarying float vAnnual;\nuniform float uOverlay;\n' + shader.fragmentShader
+      .replace('#include <lights_fragment_begin>', lights)
+      .replace('#include <color_fragment>', `#include <color_fragment>
+  if (uOverlay > 0.5) diffuseColor.rgb *= 0.25; // keep the relief, let the yearly map read`)
+      .replace('#include <emissivemap_fragment>', `#include <emissivemap_fragment>
+  if (uOverlay > 0.5) {
+    float a = clamp(vAnnual, 0.0, 1.0);
+    vec3 cold = vec3(0.03, 0.05, 0.20), mid = vec3(0.55, 0.20, 0.35), warm = vec3(1.0, 0.78, 0.28);
+    vec3 heat = a < 0.5 ? mix(cold, mid, a * 2.0) : mix(mid, warm, (a - 0.5) * 2.0);
+    totalEmissiveRadiance += heat * 0.9;
+  }`);
   };
   return m;
 }

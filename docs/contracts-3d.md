@@ -58,3 +58,27 @@ Writer: `pipeline/lln/pano.py`. Equirectangular, seen from 2 m above the site.
 Writer: `pipeline/lln/uncertainty.py` → `pipeline/data/intermediate/uncertainty/<id>.json`
 `{ "illum_pct_p5", "illum_pct_p50", "illum_pct_p95", "n_clones", "window": "2027", "source" }`;
 `export.py` copies it when present (integration step).
+
+## Illumination map — `web/public/data/illum/<id>.json` + `.bin`
+
+Writer: `pipeline/lln/illum_map.py` (`python run_all.py --illum`, or `python -m lln.illum_map`).
+Derived only from the published terrain grids and the site's 2 m mask and ephemerides (no DEM
+download), with the same horizon model as the mission game (`web/src/game/sim/visibility.ts`).
+
+```json
+{
+  "id": "connecting-ridge", "grid": 128, "cell_m": 79.6, "half_m": 5095.0,
+  "window": "2027", "observer_height_m": 2,
+  "light": { "file": "connecting-ridge.bin", "offset": 0, "dtype": "uint8", "scale_pct": 0.5 },
+  "earth": { "file": "connecting-ridge.bin", "offset": 16384, "dtype": "uint8", "scale_pct": 0.5 },
+  "earth_margin_deg": 0.5, "source": "..."
+}
+```
+
+- Cell (i, j), row 0 = north edge, has its centre at x = −half + (i + 0.5)·cell, y = half − (j + 0.5)·cell
+  (site tangent frame, metres).
+- `light` = mean visible fraction of the solar disk over the window; `earth` = share of hours with the
+  Earth centre ≥ `earth_margin_deg` above the real horizon. Value × `scale_pct` = percent (0–100).
+- Check: at the site point the method reproduces the published yearly metrics (Connecting Ridge 2027:
+  79.6 % vs 79.2 % sunlight, 48.5 % vs 48.5 % Earth; test in `pipeline/tests/test_illum_map.py`). Over all 17 sites
+  the largest difference is 0.54 points of sunlight (mean 0.16) and 0.29 points of Earth visibility.

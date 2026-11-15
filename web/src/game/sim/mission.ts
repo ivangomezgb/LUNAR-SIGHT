@@ -13,19 +13,23 @@ export interface MissionState {
   done: Partial<Record<ObjectiveId, number>>; // objective -> simulated time it was completed
 }
 
-/** Highest gentle (≤ 12°) point on a ring around the site: a hill that keeps the Sun longer. */
-export function pickWaypoint(f: Field, ringM: number = RULES.mission.waypointRingM): { x: number; y: number } {
-  let best = { x: 0, y: ringM }, bestZ = -Infinity;
+/**
+ * The waypoint: on a ring around the site, the gentle (≤ 12°) point with the most sunlight over
+ * the year when the illumination map is available (`light`), else the highest gentle point.
+ */
+export function pickWaypoint(f: Field, ringM: number = RULES.mission.waypointRingM, light?: (x: number, y: number) => number): { x: number; y: number } {
+  let best = { x: 0, y: ringM }, bestScore = -Infinity;
   for (let k = 0; k < 72; k++) {
     const a = (k * 5 * Math.PI) / 180, x = ringM * Math.sin(a), y = ringM * Math.cos(a);
-    const z = heightAt(f, x, y), s = slopeDeg(f, x, y);
-    if (Number.isFinite(z) && s <= 12 && z > bestZ) { bestZ = z; best = { x, y }; }
+    const z = heightAt(f, x, y), s = slopeDeg(f, x, y), l = light ? light(x, y) : NaN;
+    const score = light ? l : z;
+    if (Number.isFinite(z) && Number.isFinite(score) && s <= 12 && score > bestScore) { bestScore = score; best = { x, y }; }
   }
   return best;
 }
 
-export function newMission(f: Field, startMs: number): MissionState {
-  return { startMs, waypoint: pickWaypoint(f), done: {} };
+export function newMission(f: Field, startMs: number, light?: (x: number, y: number) => number): MissionState {
+  return { startMs, waypoint: pickWaypoint(f, RULES.mission.waypointRingM, light), done: {} };
 }
 
 /** Which objectives the world state satisfies right now. */

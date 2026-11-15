@@ -5,6 +5,7 @@ import { t } from '../i18n';
 import { loadBasemap, loadSite, loadSites } from '../lib/data';
 import { computeMetrics, getSeries } from '../lib/metrics';
 import { loadTerrain, type TerrainData, viewerError } from '../lib/terrain';
+import { loadIllum, type IllumMap } from '../lib/illum';
 import type { Basemap, SiteData, SiteIndexEntry } from '../lib/types';
 import { useApp } from '../state';
 import { isoShort, parseUtc, shortName } from '../components/format';
@@ -29,6 +30,7 @@ export default function Mission() {
   const [basemap, setBasemap] = useState<Basemap | null>(null);
   const [site, setSite] = useState<SiteData | null>(null);
   const [terrain, setTerrain] = useState<TerrainData | null>(null);
+  const [illum, setIllum] = useState<IllumMap | null>(null);
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
   const [saved] = useState(peekSave);
@@ -51,9 +53,9 @@ export default function Mission() {
   useEffect(() => {
     if (!id || stage !== 'surface') return;
     const abort = new AbortController();
-    setSite(null); setTerrain(null); setError('');
-    Promise.all([loadSite(id), loadTerrain(id, setProgress, abort.signal)])
-      .then(([s, tr]) => { if (!abort.signal.aborted) { setSite(s); setTerrain(tr); } })
+    setSite(null); setTerrain(null); setIllum(null); setError('');
+    Promise.all([loadSite(id), loadTerrain(id, setProgress, abort.signal), loadIllum(id, abort.signal).catch(() => null)])
+      .then(([s, tr, il]) => { if (!abort.signal.aborted) { setSite(s); setTerrain(tr); setIllum(il); } })
       .catch((e) => { if (!abort.signal.aborted) setError(t(viewerError(e))); });
     return () => abort.abort();
   }, [id, stage]);
@@ -114,7 +116,7 @@ export default function Mission() {
         {env && terrain && entry && (
           <Suspense fallback={<div className="game-loading" role="status">{t('Loading 3D viewer…')}</div>}>
             <SurfaceGame key={`${entry.id}-${startMs}`} env={env} terrain={terrain} site={{ id: entry.id, name: shortName(entry.name), lat: entry.lat_deg, lon: entry.lon_deg }}
-              startMs={startMs} published={published} autostart={autostart} />
+              startMs={startMs} published={published} autostart={autostart} illum={illum} />
           </Suspense>
         )}
       </>)}

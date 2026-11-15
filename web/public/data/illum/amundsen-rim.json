@@ -1,0 +1,22 @@
+{
+ "id": "amundsen-rim",
+ "grid": 128,
+ "cell_m": 79.609,
+ "half_m": 5095.0,
+ "window": "2027",
+ "observer_height_m": 2.0,
+ "light": {
+  "file": "amundsen-rim.bin",
+  "offset": 0,
+  "dtype": "uint8",
+  "scale_pct": 0.5
+ },
+ "earth": {
+  "file": "amundsen-rim.bin",
+  "offset": 16384,
+  "dtype": "uint8",
+  "scale_pct": 0.5
+ },
+ "earth_margin_deg": 0.5,
+ "source": "Published LOLA terrain grids (10 m near, 400 m far) + the site's 2 m horizon beyond them; SPICE DE440 ephemerides of the site"
+}

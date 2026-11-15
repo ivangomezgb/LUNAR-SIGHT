@@ -900,5 +900,15 @@
   "High": "Alto",
   "Loading the site’s horizon and ephemeris…": "Cargando el horizonte y las efemérides del sitio…",
   "Moved into the data coverage: {0}": "Ajustado a la cobertura de datos: {0}",
-  "Descend to {0}": "Descender a {0}"
+  "Descend to {0}": "Descender a {0}",
+  "Map layer": "Capa del mapa",
+  "Now": "Ahora",
+  "Sunlight at the current simulated hour": "Luz solar a la hora simulada actual",
+  "Share of {0} with the Sun above the real horizon": "Parte de {0} con el Sol sobre el horizonte real",
+  "Share of {0} with the Earth in view": "Parte de {0} con la Tierra a la vista",
+  "{0} of the year": "{0} del año",
+  "Here: {0}%": "Aquí: {0}%",
+  "Reach the sunniest spot nearby": "Llega al punto más soleado cercano",
+  "Press Guide me and follow the blue beacon. Switch the map to ☀ 2027 to see where the light lasts all year.": "Pulsa Guíame y sigue la baliza azul. Cambia el mapa a ☀ 2027 para ver dónde dura la luz todo el año.",
+  "Over a year, rims and ridges can see the Sun most of the time while hollows a few hundred metres away stay dark. That is why Artemis candidate sites sit on crater rims and ridges.": "A lo largo de un año, los bordes y crestas pueden ver el Sol casi todo el tiempo mientras las hondonadas a unos cientos de metros siguen oscuras. Por eso los sitios candidatos de Artemis están en bordes de cráteres y crestas."
 }

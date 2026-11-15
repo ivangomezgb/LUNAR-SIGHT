@@ -900,5 +900,15 @@
   "High": "High",
   "Loading the site’s horizon and ephemeris…": "Loading the site’s horizon and ephemeris…",
   "Moved into the data coverage: {0}": "Moved into the data coverage: {0}",
-  "Descend to {0}": "Descend to {0}"
+  "Descend to {0}": "Descend to {0}",
+  "Map layer": "Map layer",
+  "Now": "Now",
+  "Sunlight at the current simulated hour": "Sunlight at the current simulated hour",
+  "Share of {0} with the Sun above the real horizon": "Share of {0} with the Sun above the real horizon",
+  "Share of {0} with the Earth in view": "Share of {0} with the Earth in view",
+  "{0} of the year": "{0} of the year",
+  "Here: {0}%": "Here: {0}%",
+  "Reach the sunniest spot nearby": "Reach the sunniest spot nearby",
+  "Press Guide me and follow the blue beacon. Switch the map to ☀ 2027 to see where the light lasts all year.": "Press Guide me and follow the blue beacon. Switch the map to ☀ 2027 to see where the light lasts all year.",
+  "Over a year, rims and ridges can see the Sun most of the time while hollows a few hundred metres away stay dark. That is why Artemis candidate sites sit on crater rims and ridges.": "Over a year, rims and ridges can see the Sun most of the time while hollows a few hundred metres away stay dark. That is why Artemis candidate sites sit on crater rims and ridges."
 }

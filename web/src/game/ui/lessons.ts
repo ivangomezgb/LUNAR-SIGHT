@@ -23,9 +23,9 @@ export const LESSONS: Record<ObjectiveId, { title: string; how: string; lesson: 
     lesson: 'Without a relay satellite, data goes straight to Earth only while the Earth is above the real horizon. From the south pole the Earth stays low and often hides behind ridges.',
   },
   waypoint: {
-    title: 'Reach the waypoint on high ground',
-    how: 'Press Guide me, then follow the blue beacon and the turn arrow in the navigation panel.',
-    lesson: 'Higher ground sees past nearby ridges: more hours of sunlight and of Earth contact. That is why Artemis candidate sites sit on crater rims and ridges.',
+    title: 'Reach the sunniest spot nearby',
+    how: 'Press Guide me and follow the blue beacon. Switch the map to ☀ 2027 to see where the light lasts all year.',
+    lesson: 'Over a year, rims and ridges can see the Sun most of the time while hollows a few hundred metres away stay dark. That is why Artemis candidate sites sit on crater rims and ridges.',
   },
   survive: {
     title: 'Keep the rover alive for {0} h',
