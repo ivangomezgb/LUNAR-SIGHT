@@ -122,7 +122,7 @@
   .gauge-actions { grid-column: 1 / -1; }
   .hud-navtoggle { display: inline-flex; }
   .game-bottom { gap: 6px; }
-  .game-touch { top: auto; bottom: 182px; right: 10px; }
+  .game-touch { top: auto; bottom: 226px; right: 10px; }
   .game-touch button { width: 48px; height: 48px; }
   .hud-objectives summary { font-size: .7rem; }
 }
@@ -146,7 +146,7 @@
   .descent-grid strong { font-size: .86rem; }
   .hud-right { display: flex !important; position: absolute; right: 8px; top: 8px; padding: 6px; }
   .hud-right > :not(.minimap) { display: none; }
-  .game-touch { bottom: 182px; }
+  .game-touch { bottom: 226px; }
 }
 .descent-arrow { display: inline-block; color: #4fd1ff; transition: transform .2s; }
 .descent-brake { margin: 0 auto; padding: 8px 14px; border-radius: 10px; background: rgba(60, 18, 10, .9); border: 1px solid #e0703f; color: #ffe9df; font-weight: 700; font-size: .86rem; animation: brake 0.8s ease-in-out infinite alternate; }
@@ -179,10 +179,13 @@
 .orbit-go { width: 100%; min-height: 48px; font-size: .95rem; }
 .orbit-continue { align-self: flex-start; }
 @media (max-width: 699px) {
-  .orbit { height: 88vh; }
-  .orbit-panel { top: auto; left: 8px; right: 8px; bottom: 8px; width: auto; max-height: 58%; }
+  /* Phones: globe on top, the site panel below it in the page flow (nothing hidden in a scroll box). */
+  .orbit { height: auto; min-height: 0; display: flex; flex-direction: column; }
+  .orbit-canvas { position: relative; inset: auto; height: 58vh; min-height: 320px; max-height: 520px; }
+  .orbit-panel { position: static; width: auto; max-height: none; overflow: visible; border: 0; border-top: 1px solid rgba(255,255,255,.12); border-radius: 0; background: #080b10; backdrop-filter: none; -webkit-backdrop-filter: none; padding: 14px; }
+  .orbit.is-diving .orbit-panel { transform: none; }
   .orbit-panel h2 { font-size: 1.4rem; }
-  .orbit-sites { max-height: 120px; }
+  .orbit-sites { max-height: 150px; }
 }
 @media (prefers-reduced-motion: reduce) { .orbit.is-diving::after { animation-duration: 1ms; } }
 
@@ -209,7 +212,7 @@
   .globe-nav { top: 8px; right: 8px; flex-direction: row; flex-wrap: wrap; justify-content: flex-end; left: 8px; }
   .globe-nav button { padding: 6px 9px; font-size: .7rem; }
   .globe-hint { bottom: auto; top: 56px; white-space: normal; text-align: center; width: max-content; max-width: 90%; }
-  .globe-callout { left: 16px; right: 16px; top: 22%; transform: none; max-width: none; }
+  .globe-callout { left: 16px; right: 16px; top: 96px; transform: none; max-width: none; }
 }
 @media (prefers-reduced-motion: reduce) { .globe-callout { animation: none; } }
 
@@ -224,3 +227,5 @@
 .key-hints-x { position: absolute; top: 6px; right: 8px; display: inline-flex; padding: 4px; background: none; border: 0; color: #9fb0c3; cursor: pointer; }
 .key-hints-toggle { position: absolute; left: 50%; bottom: 150px; transform: translateX(-50%); width: 40px; height: 34px; border-radius: 10px; background: rgba(8, 11, 16, .7); border: 1px solid rgba(255,255,255,.16); color: #e8eef5; cursor: pointer; z-index: 3; }
 @media (prefers-reduced-motion: reduce) { .key-hints { animation: none; } }
+/* During the descent there is no dashboard below: keep the stick and THRUST low, under the thumbs. */
+@media (max-width: 699px) { .game[data-phase="descent"] .game-touch { bottom: 20px; } }

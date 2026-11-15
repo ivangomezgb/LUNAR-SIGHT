@@ -291,7 +291,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
   };
 
   return (
-    <div className="game">
+    <div className="game" data-phase={phase}>
       <div ref={host} className="game-canvas" aria-label={t('Rover on the real lunar terrain')} />
       {error && <div className="game-overlay" role="alert">{error}</div>}
 

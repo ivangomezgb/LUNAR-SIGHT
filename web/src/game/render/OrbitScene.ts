@@ -127,12 +127,11 @@ export class OrbitScene {
     const w = this.node.clientWidth || 1, h = this.node.clientHeight || 1;
     this.renderer.setSize(w, h, false);
     this.camera.aspect = w / h;
-    // Portrait phones: the site panel covers the lower half, so widen the view and draw the
-    // globe's centre in the upper third (a taller virtual frame seen through an offset window).
+    // Portrait frames (phones: the site panel sits below the globe) need a wider view so the
+    // whole Moon fits the narrow width.
     const portrait = w / h < 1;
     this.camera.fov = portrait ? 58 : 42;
-    if (portrait) this.camera.setViewOffset(w, h * 1.6, 0, h * 0.5, w, h);
-    else this.camera.clearViewOffset();
+    this.camera.clearViewOffset();
     this.camera.updateProjectionMatrix();
   }
 
