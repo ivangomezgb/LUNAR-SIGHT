@@ -74,9 +74,10 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 **Entrega (Space Apps):**
 
-- [ ] Activar GitHub Pages y probar la URL publicada en ventana privada y en celular (T18, T32).
+- [x] GitHub Pages activo (más despliegue en Vercel, `vercel.yml`); el equipo probó la página en celular (2026-11-15).
 - [ ] Pedir la clasificación FortiGuard del dominio (T32).
-- [ ] Storyboard, nombre y logo (T12); capturas y grabaciones (T24); video de 30 s con subtítulos en inglés (T29).
+- [x] Nombre y logo: Apolo404 (barra superior y favicon).
+- [ ] Capturas y grabaciones (T24); video de 30 s con subtítulos en inglés (T29); guion en `docs/submission.md`.
 - [ ] Página del proyecto en inglés con todos los campos (T30) y envío (T33).
 - [x] Eliminados `frontend/` y `backend/` (prototipo anterior "LUNAR SIGHT", sin uso).
 
