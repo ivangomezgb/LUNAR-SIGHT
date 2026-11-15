@@ -7,6 +7,7 @@ import { useApp, MAX_COMPARE } from '../state';
 import { useShallow } from 'zustand/react/shallow';
 import { useBasemap, useSite, useSites } from '../components/hooks';
 import SiteMap from '../components/SiteMap';
+import TerrainBackdrop from '../components/TerrainBackdrop';
 import { groupColor, shortName, isSynthetic } from '../components/format';
 import Panorama from '../components/Panorama';
 import MetricCards from '../components/MetricCards';
@@ -62,6 +63,7 @@ export default function Explore() {
   return (
     <div className="explore">
       <section className="mission-hero" aria-labelledby="mission-heading">
+        <TerrainBackdrop />
         <div>
           <div className="eyebrow">{t('Lunar south pole · Mission planning')}</div>
           <h1 id="mission-heading">{t('Find your place on the Moon.')}</h1>

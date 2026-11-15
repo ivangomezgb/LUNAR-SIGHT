@@ -65,6 +65,11 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
   }, [sites, basemap]);
 
   const u = layout.unit;
+  const active = sites.find((site) => site.id === (hover ?? selectedId));
+  // A projected distance, derived from the published affine transform. No assumed latitude scale.
+  const mapMetresPerUnit = basemap ? Math.hypot(basemap.affine[0], basemap.affine[3]) : 0;
+  const scaleKm = mapMetresPerUnit > 0 ? Math.pow(10, Math.floor(Math.log10(90 * u * mapMetresPerUnit / 1000))) : 0;
+  const [mapX, mapY] = layout.viewBox.split(' ').map(Number);
   const ordered = [...sites].sort((a, b) => (a.id === selectedId ? 1 : b.id === selectedId ? -1 : 0));
 
   return (
@@ -106,6 +111,12 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
           )
         )}
 
+        {layout.kind === 'basemap' && scaleKm > 0 && (
+          <g className="map-scale" pointerEvents="none" transform={`translate(${mapX + 16 * u},${mapY + 376 * u})`}>
+            <path d={`M0,${-5 * u}V0H${scaleKm * 1000 / mapMetresPerUnit}V${-5 * u}`} fill="none" strokeWidth={2 * u} />
+            <text x={0} y={-10 * u} fontSize={10 * u} strokeWidth={3 * u}>{t('{0} km · map scale', { 0: scaleKm })}</text>
+          </g>
+        )}
         {ordered.map((s) => {
           const [cx, cy] = layout.pos(s);
           const sel = s.id === selectedId;
@@ -145,6 +156,9 @@ export default function SiteMap({ sites, basemap, selectedId, compareIds, onSele
           );
         })}
       </svg>
+      <div className="map-readout" aria-live="polite" aria-atomic="true">
+        {active && <><strong>{shortName(active.name)}</strong><span className="mono">{active.lat_deg.toFixed(3)}° · {active.lon_deg.toFixed(3)}°E</span><span>{active.dem_res_m} {t('m/px')} · {active.slope_deg_50m.toFixed(1)}{t('° slope (50 m)')}</span></>}
+      </div>
       <div className="sitemap-legend">
         {Object.entries(GROUP_COLOR)
           .filter(([g]) => sites.some((s) => s.group === g))

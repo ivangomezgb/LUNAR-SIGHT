@@ -87,7 +87,7 @@ export default function PanoramaChart({
 }: Props) {
   const [ref, measured] = useElementWidth<HTMLDivElement>();
   const uid = useId().replace(/:/g, '');
-  const width = Math.max(300, measured || 900);
+  const width = Math.max(220, measured || 900);
   const m = compact
     ? { l: 34, r: 10, t: 14, b: 24 }
     : { l: 44, r: 16, t: 26, b: 34 };

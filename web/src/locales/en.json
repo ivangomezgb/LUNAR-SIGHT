@@ -393,5 +393,10 @@
   "Original site": "Original site",
   "WebGL is unavailable in this browser, so the 3D view cannot start": "WebGL is unavailable in this browser, so the 3D view cannot start",
   "The 3D view could not start": "The 3D view could not start",
-  "Reload page": "Reload page"
+  "Reload page": "Reload page",
+  "Approximate lunar reflectance; fixed exposure; LOLA relief, no added surface detail.": "Approximate lunar reflectance; fixed exposure; LOLA relief, no added surface detail.",
+  "360 panorama shading has no per-pixel cast shadows.": "360 panorama shading has no per-pixel cast shadows.",
+  "NASA LOLA · South polar hillshade · Context image, not selected-hour illumination": "NASA LOLA · South polar hillshade · Context image, not selected-hour illumination",
+  "{0} km · map scale": "{0} km · map scale",
+  "m/px": "m/px"
 }
