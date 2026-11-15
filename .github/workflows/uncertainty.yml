@@ -12,7 +12,7 @@ on:
   push:
     branches: [main]
     # Edit this file (a JSON list of site ids) and push to main to (re)run those sites.
-    paths: [pipeline/config/uncertainty-sites.json]
+    paths: [pipeline/config/uncertainty-sites.json, .github/workflows/uncertainty.yml]
 
 concurrency:
   group: uncertainty
@@ -96,14 +96,18 @@ jobs:
           merge-multiple: true
       - name: Copy results into site JSON (only the uncertainty field)
         run: python pipeline/scripts/apply_uncertainty.py
+      - name: Published data still matches the contracts
+        run: python pipeline/scripts/check_data.py
       - name: Commit and redeploy
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if git diff --quiet -- web/public/data/sites; then echo "no changes"; exit 0; fi
+          # apply_uncertainty.py edits sites/<id>.json and the sites.json index (has_clones).
+          if git diff --quiet -- web/public/data/sites web/public/data/sites.json; then echo "no changes"; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add web/public/data/sites
+          git add web/public/data/sites web/public/data/sites.json
+          git status --short
           git commit -m "data: LOLA-clone illumination uncertainty (GitHub Actions run ${{ github.run_id }})"
           git pull --rebase origin main
           git push origin HEAD:main
