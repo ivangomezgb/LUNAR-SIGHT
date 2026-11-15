@@ -17,7 +17,7 @@ Plan original: [`development-plan.md`](development-plan.md) · plan de ejecució
 | 6. Línea de tiempo 30 días | ✅ | `Timeline.tsx` |
 | 7. Modo "Se retrasó" | ✅ máx. 3 fechas por sitio, ~150 ms | `lib/score.ts`, `Replan.tsx` |
 | 8. Validación Horizons + IM-2 | ✅ error máx. 2,7e-5° | `lln/validate.py`, `Validation.tsx`, `docs/validation.md` |
-| T25. Incertidumbre con clones LOLA | 🟡 2/14 sitios publicados; cálculo de los 12 restantes en curso (2026-11-14) | `lln/uncertainty.py`, `docs/uncertainty.md` |
+| T25. Incertidumbre con clones LOLA | ✅ 14/14 sitios cubiertos (30 clones, GitHub Actions) | `lln/uncertainty.py`, `docs/uncertainty.md` |
 | T26. Altura del panel 1/2/5/10 m en URL | ✅ `?h=` | `state.ts`, `AssumptionsPanel.tsx` |
 | T27. Escena 3D con sombras + 360° inmersivo | ✅ ruta `#/3d`, tres modos (ver §1.1) | `lln/terrain.py`, `lln/pano.py`, `Scene3D.tsx`, `ImmersivePano.tsx`, `three/sceneTools.ts` |
 | Página del equipo Apolo404 | ✅ ruta `#/team` | `pages/Team.tsx`, `public/team-apolo404.*` |
@@ -82,12 +82,10 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 
 **Extras del plan (en este orden):**
 
-- [ ] **T25 Incertidumbre**: publicada para Connecting Ridge (69,0/78,8/81,4 %) y Shackleton Rim (52,5/54,2/55,8 %).
-      El 2026-11-14 se lanzó `python pipeline/run_all.py --uncertainty --skip-ephem --skip-validate` para los 12
-      restantes (~45 min por sitio; log en `%TEMP%\lln-uncertainty.out.log`). Al terminar, `export` reescribe
-      `web/public/data/sites/*.json`: revisar el diff (solo debe cambiar `uncertainty`) y commitear.
-      Ese comando recalcula también los sitios ya hechos (con descargas en caché). Mons Mouton no está en
-      ningún DEM de PGDA 78.
+- [x] **T25 Incertidumbre**: 30 clones PGDA 78 en los 14 sitios cubiertos (Mons Mouton no está en ningún DEM
+      de PGDA 78). Se calcula en la nube con `.github/workflows/uncertainty.yml`: un trabajo por sitio en paralelo
+      (~45 min), que verifica el horizonte contra el publicado y luego publica solo `uncertainty` y `has_clones`.
+      Para recalcular sitios: editar `pipeline/config/uncertainty-sites.json` y hacer push a `main`.
 - [x] **T26 Control de altura del panel** (Connecting Ridge 1/2/5/10 m: 65,5/79,2/87,3/89,3 % de luz).
 - [ ] Riesgo de luz al aterrizar (Sol bajo, sombras largas, horas de luz restantes tras el aterrizaje).
 - [x] **T27 Escena 3D con sombras** y 360° inmersivo (ver §1.1 y §5). Falta probar en un teléfono real (carga < 3 s).
