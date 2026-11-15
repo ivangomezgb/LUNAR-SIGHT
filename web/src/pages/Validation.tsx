@@ -3,6 +3,7 @@ import { useValidation } from '../components/hooks';
 import { Loading } from '../components/Status';
 import ValidationTable from '../components/ValidationTable';
 import CaseStudy from '../components/CaseStudy';
+import LiteratureTable from '../components/LiteratureTable';
 import { fmtErr, fmtUtc } from '../components/format';
 import { SUN_RADIUS_DEG } from '../lib/sunFraction';
 import { DEFAULT_ASSUMPTIONS } from '../lib/metrics';
@@ -77,6 +78,7 @@ export default function Validation() {
             <h2 className="card-title">{t("Ours vs JPL Horizons")}</h2>
             <ValidationTable data={v.data} />
           </section>
+          <LiteratureTable />
           {v.data.im2 ? (
             <CaseStudy im2={v.data.im2} />
           ) : (

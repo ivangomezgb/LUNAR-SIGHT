@@ -172,3 +172,44 @@ These comparisons are shown next to every free-point result; they are not error 
 `validation.json` keeps our and Horizons' azimuth/elevation with 9 decimals (as in the Horizons table).
 Earlier files rounded the differences to 6 decimals, which displayed most of them as 0.
 
+## Comparison with the published LOLA long-term illumination (all 17 sites)
+
+`pipeline/scripts/literature_check.py` → `web/public/data/literature.json`, shown on the Validation page.
+Reference: the LOLA average-visibility maps of Mazarico et al. (2011) (see `docs/psr.md`), which give the % of
+hourly steps with **any part** of the Sun's (or Earth's) disc above the horizon over ~18.6 years. Our headline
+"sunlight" is the **mean visible fraction** of the disc, a different quantity, so here ours is recomputed with
+the same definition from the published masks (Sun radius 0.267°, Earth radius 0.95°), over 2026-11..2028-12.
+
+| Site | Sun, published % | published ±1 px | Sun, ours 1 m | Sun, ours 2 m | Earth, published % | Earth, ours 1 m |
+| --- | --- | --- | --- | --- | --- | --- |
+| Shackleton Rim (Point A) | 54.3 | 3.7–61.4 | 55.6 | 61.1 | 35.3 | 32.3 |
+| Mons Mouton (IM-2 Athena site) | 46.5 | 42.6–47.0 | 46.9 | 47.1 | 91.8 | 94.1 |
+| Connecting Ridge | 65.4 | 29.5–88.4 | 72.7 | 85.3 | 52.3 | 52.0 |
+| Connecting Ridge Extension | 40.8 | 38.3–46.6 | 44.1 | 46.1 | 0.1 | 0.0 |
+| de Gerlache Rim 1 | 53.9 | 47.4–79.4 | 81.3 | 87.2 | 50.4 | 61.1 |
+| de Gerlache Rim 2 | 36.8 | 35.0–37.8 | 37.3 | 37.5 | 54.8 | 55.6 |
+| de Gerlache-Kocher Massif | 69.1 | 38.7–78.5 | 83.6 | 83.7 | 57.1 | 62.5 |
+| Amundsen Rim | 50.0 | 13.6–52.3 | 55.1 | 56.2 | 54.6 | 60.2 |
+| Faustini Rim A | 43.9 | 39.9–45.5 | 46.6 | 46.6 | 50.7 | 51.2 |
+| Peak Near Shackleton | 61.0 | 54.2–86.0 | 84.5 | 88.5 | 53.8 | 56.7 |
+| Haworth | 38.7 | 25.1–40.2 | 40.5 | 40.5 | 55.0 | 56.4 |
+| Malapert Massif | 57.0 | 41.2–66.2 | 69.4 | 69.6 | 76.2 | 71.9 |
+| Leibnitz Beta Plateau | 72.5 | 55.2–74.7 | 76.5 | 81.1 | 57.7 | 58.0 |
+| Nobile Rim 1 | 40.7 | 40.1–46.8 | 50.5 | 52.1 | 53.2 | 53.6 |
+| Nobile Rim 2 | 45.4 | 23.2–46.1 | 46.7 | 46.7 | 68.9 | 71.5 |
+| Peak near Cabeus B | 56.0 | 34.6–62.2 | 65.9 | 67.5 | 56.0 | 59.8 |
+| Slater Plain | 22.5 | 19.6–24.6 | 25.7 | 25.8 | 43.5 | 44.6 |
+
+- **Earth visibility**: r = 0.984, median |Δ| = 2.35 pp (1 m). It depends only on
+  geometry, the ephemeris and the horizon, so this is an independent end-to-end check.
+- **Sunlight**: r = 0.914, median |Δ| = 4.04 pp at 1 m (6.78 pp at 2 m);
+  ours is within 1 pp of the published ±1-pixel range at 8/17 sites and higher elsewhere.
+  Sites not moved by `refine_sites.py` or moved little agree within 0.4–3 pp (Mons Mouton, de Gerlache Rim 2,
+  Haworth, Faustini Rim A, Slater Plain). The large gaps are at peaks and ridges where our site was moved to
+  the best-lit point on 5 m terrain: inside a single 60 m published pixel the value changes by tens of points
+  (e.g. de Gerlache Rim 1: 53.9 % at the pixel, up to 79.4 % one pixel away; ours 81.3 %). Other contributors:
+  observer height (1–2 m vs unstated) and our 2-year window vs ~18.6 years.
+- **Connecting Ridge, resolved**: the earlier comparison (ours 79–81 % vs ~86–89 % in Mazarico et al. 2011)
+  mixed definitions. With the same definition ours is 85.3 % at 2 m, and the published map reaches 88.4 % within
+  one pixel of our point.
+
