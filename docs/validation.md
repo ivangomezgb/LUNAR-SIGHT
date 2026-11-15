@@ -131,9 +131,44 @@ coordinate and the rule are stored in `sites.yaml` and shown in the app. The IM-
 | Connecting Ridge Extension | 35.3 % | 43.5 % | 1485 m |
 | Faustini Rim A | 26.6 % | 41.2 % | 456 m |
 | Haworth | 10.5 % | 37.1 % | 1335 m |
+| Peak near Cabeus B (USGS grid centre) | 35.6 % | **62.7 %** | 300 m |
+| Slater Plain (USGS grid centre) | 1.9 % | 20.6 % | 1145 m |
 | de Gerlache Rim 2 | — | not moved (no point ≤ 8° within 1 km) | — |
 
 Remaining differences from the literature (e.g. 79–81 % vs ~86–89 % on Connecting Ridge) are expected
 from different DEMs, observer heights, time spans (one year vs multi-year) and our finite scan; we do not
 force agreement. Connecting Ridge Extension sees the Earth 0 % of the time: from that point the Earth stays
 behind the terrain all year.
+
+## 360° panoramas vs the horizon masks
+
+`pipeline/lln/pano.py` ray-casts an equirectangular image (1536 × 400, 0–360° × +15° to −20°) from
+2 m above each site, with the same multi-scale DEMs and spherical geometry as the masks. In each
+column the sky/terrain boundary must match the site's 2 m mask within 0.2°:
+
+- 16 of 17 sites: 100 % of columns within 0.2° (e.g. Peak near Cabeus B max 0.12°, Slater Plain max
+  0.09°).
+- de Gerlache Rim 2: 97.7 %, because 64 columns have horizons above +15°, the top of the image; clipped
+  to the image range it is 100 %.
+
+The first-person 3D view uses the decimated terrain mesh, so its visible horizon is only approximate
+(up to ~0.44° at Connecting Ridge and ~0.61° near Shackleton); the app says so and points to the 360°
+view for the exact horizon.
+
+## Any point (coarse DEM) vs the curated sites
+
+The free-coordinate mode (`docs/freepoint.md`) recomputes the horizon in the browser from 240 m and
+960 m LOLA grids, without the 5 m near field. Run at the 15 curated sites of the time, at 2 m:
+
+- Sun/Earth azimuth and elevation from the exported MOON_ME vectors agree with the per-site SPICE series
+  to ≤ 0.01°.
+- Horizon mask: mean absolute error 0.25°, max 2.64°.
+- 2027 sunlight: mean absolute difference 1.25 percentage points, max 4.47.
+
+These comparisons are shown next to every free-point result; they are not error bounds for other points.
+
+## Sun/Earth rows precision
+
+`validation.json` keeps our and Horizons' azimuth/elevation with 9 decimals (as in the Horizons table).
+Earlier files rounded the differences to 6 decimals, which displayed most of them as 0.
+
