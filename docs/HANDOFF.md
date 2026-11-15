@@ -87,17 +87,20 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
       (~45 min), que verifica el horizonte contra el publicado y luego publica solo `uncertainty` y `has_clones`.
       Para recalcular sitios: editar `pipeline/config/uncertainty-sites.json` y hacer push a `main`.
 - [x] **T26 Control de altura del panel** (Connecting Ridge 1/2/5/10 m: 65,5/79,2/87,3/89,3 % de luz).
-- [ ] Riesgo de luz al aterrizar (Sol bajo, sombras largas, horas de luz restantes tras el aterrizaje).
+- [x] Riesgo de luz al aterrizar: tarjeta en Explora (`components/LandingRisk.tsx`, `lib/landingRisk.ts`); umbrales en
+      `docs/assumptions.md` § Landing light risk.
 - [x] **T27 Escena 3D con sombras** y 360° inmersivo (ver §1.1 y §5). Falta probar en un teléfono real (carga < 3 s).
 - [x] **T28 Bilingüe EN/ES** (diccionario propio, sin i18next).
-- [ ] Asistente en lenguaje natural; reporte exportable (PDF/PNG del escenario).
+- [x] Reporte exportable: `#/report?site=&t=&days=&h=` (`pages/Report.tsx`), A4 de 2 páginas con "Descargar PDF"
+      (impresión del navegador, sin dependencias).
+- [ ] Asistente en lenguaje natural.
 
 **Diferido por diseño:**
 
-- [ ] **Coordenadas libres**: una app estática no puede calcular el horizonte de un punto cualquiera. Hay dos
-      opciones. (a) Precalcular una grilla de horizontes (p. ej. cada 250 m en zonas de interés) e interpolar.
-      (b) Exponer `pipeline` como API (p. ej. FastAPI; el esqueleto viejo de `backend/` se eliminó) que calcule a
-      demanda, en ~5–10 s por punto con caché de tiles.
+- [x] **Coordenadas libres** (`#/free`, ver `docs/freepoint.md`): vectores Sol/Tierra horarios en MOON_ME y DEM
+      LOLA grueso (240 m + 960 m, 7,4 MB, carga diferida); un Web Worker calcula el horizonte (~0,1 s). Es
+      **aproximado**: en los 15 sitios, error de máscara medio 0,25° (máx. 2,64°) y de luz 2027 medio 1,25 pp (máx.
+      4,47 pp). Regenerar con `python -m lln.freepoint` desde `pipeline/`.
 
 ## 4. Mejoras pendientes y problemas conocidos
 
@@ -110,7 +113,10 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
   - usar varios años en lugar de solo 2027.
 - Falta comparar la iluminación con valores publicados en más sitios (hoy solo Mazarico 2011 en Connecting Ridge:
   80,9 % nuestro contra ~86–89 % publicado). También falta la prueba visual de siluetas con Quickmap/Moon Trek (`docs/validation.md`).
-- Faltan las regiones de la lista 2024 sin coordenadas publicadas: "Peak near Cabeus B" y "Slater Plain".
+- Faltan como sitios curados "Peak near Cabeus B" y "Slater Plain" (lista 2024). La fuente oficial son las
+  cuadrículas de navegación del USGS (McClernan 2024, doi:10.5066/P1MEQ6UK; ScienceBase bloquea descargas
+  automáticas, hay que bajarlas desde el navegador). Centros calculados por terceros (github.com/yutuf/lmNasa):
+  −83,6514°, −68,7263° E y −87,1697°, 125,4596° E; ya se pueden consultar en `#/free` (aproximado).
 - Chandrayaan-3 (69,4° S) quedó fuera, porque no lo cubre ningún DEM de 80° S ni el mapa base.
 - Las filas de `validation.json` guardan `d_az`/`d_el` redondeados (se ven como 0). El resumen sí tiene el valor exacto.
 
