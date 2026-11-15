@@ -5,12 +5,13 @@ import Icon from '../components/Icon';
 import { CrewAvatar, MissionPatch } from '../components/CrewArt';
 import { useScrollFx } from '../fx/useScrollFx';
 
-const MEMBERS = [
-  'Brayan David López Castellanos',
-  'Ashly Andrea Osorio Márquez',
-  'Rafael Esteban Lozano Vargas',
-  'Juan Esteban Vargas González',
-  'Iván Leonardo Gómez',
+const UPTC = 'Systems Engineering · UPTC Sogamoso';
+const MEMBERS: Array<{ name: string; study: string }> = [
+  { name: 'Brayan David López Castellanos', study: UPTC },
+  { name: 'Ashly Andrea Osorio Márquez', study: UPTC },
+  { name: 'Rafael Esteban Lozano Vargas', study: UPTC },
+  { name: 'Juan Esteban Vargas González', study: UPTC },
+  { name: 'Iván Leonardo Gómez', study: 'Software Analysis and Development Technologist · SENA' },
 ];
 
 const initials = (name: string) => { const w = name.split(' '); return (w[0][0] + (w[2] ?? w[1])[0]).toUpperCase(); };
@@ -66,12 +67,12 @@ export default function Team() {
         <p className="chapter-kicker"><span>05</span> {t('The crew')}</p>
         <h2 id="crew-title">{t('Developed by:')}</h2>
         <ul className="crew-grid">
-          {MEMBERS.map((name, k) => (
+          {MEMBERS.map(({ name, study }, k) => (
             <li key={name} className="crew-card">
               <CrewAvatar initials={initials(name)} index={k} />
               <span className="crew-n mono">{t('Crew {0}', { 0: String(k + 1).padStart(2, '0') })}</span>
               <strong>{name}</strong>
-              <span className="small muted">{t('Systems Engineering · UPTC Sogamoso')}</span>
+              <span className="small muted">{t(study)}</span>
             </li>
           ))}
         </ul>

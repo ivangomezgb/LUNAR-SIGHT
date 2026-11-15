@@ -7,25 +7,32 @@ export function MissionPatch({ size = 260 }: { size?: number }) {
     <svg className="patch" width={size} height={size} viewBox="0 0 260 260" aria-hidden>
       <defs>
         <radialGradient id="patch-bg" cx="50%" cy="38%" r="70%"><stop offset="0" stopColor="#123a78" /><stop offset="1" stopColor="#050b18" /></radialGradient>
-        <radialGradient id="patch-moon" cx="40%" cy="35%" r="70%"><stop offset="0" stopColor="#f2f4f8" /><stop offset="1" stopColor="#8d96a6" /></radialGradient>
+        <radialGradient id="patch-moon" cx="40%" cy="30%" r="75%"><stop offset="0" stopColor="#f2f4f8" /><stop offset="1" stopColor="#8d96a6" /></radialGradient>
+        <radialGradient id="patch-earth" cx="35%" cy="35%" r="70%"><stop offset="0" stopColor="#8cc4ff" /><stop offset="1" stopColor="#0a5cc4" /></radialGradient>
         <path id="patch-ring" d="M130,130 m-104,0 a104,104 0 1,1 208,0 a104,104 0 1,1 -208,0" />
+        <clipPath id="patch-window"><circle cx="130" cy="130" r="85" /></clipPath>
       </defs>
       <circle cx="130" cy="130" r="127" fill="#0a7cff" />
       <circle cx="130" cy="130" r="121" fill="#06101f" />
+      {/* the name fills the rim exactly, so its ends never collide */}
       <g className="patch-rim">
-        <text className="patch-text"><textPath href="#patch-ring" startOffset="0">APOLO404 · NASA SPACE APPS CHALLENGE 2026 · UPTC SOGAMOSO ·</textPath></text>
+        <text className="patch-text"><textPath href="#patch-ring" startOffset="4" textLength={640} lengthAdjust="spacing">APOLO404 · NASA SPACE APPS CHALLENGE 2026 · UPTC SOGAMOSO ·</textPath></text>
       </g>
-      <circle cx="130" cy="130" r="86" fill="url(#patch-bg)" stroke="#4a9bff" strokeWidth="2" />
-      {[[92, 82], [168, 76], [186, 118], [80, 128], [150, 58], [108, 60]].map(([x, y], k) => <circle key={k} cx={x} cy={y} r={k % 2 ? 1.2 : 1.8} fill="#cfe3ff" />)}
-      <circle cx="130" cy="186" r="62" fill="url(#patch-moon)" />
-      <circle cx="108" cy="170" r="9" fill="#a3abb9" opacity=".7" /><circle cx="152" cy="160" r="6" fill="#a3abb9" opacity=".7" /><circle cx="140" cy="196" r="11" fill="#a3abb9" opacity=".55" />
-      {/* lander on the rim, and its arc down from orbit */}
-      <path d="M58,62 Q120,40 128,118" fill="none" stroke="#4a9bff" strokeWidth="2" strokeDasharray="4 5" />
-      <g transform="translate(128,112)">
-        <path d="M-9,8 h18 l-3,-10 h-12 z" fill="#f2f4f8" /><rect x="-6" y="-8" width="12" height="6" rx="1.5" fill="#d4a23a" />
-        <path d="M-9,8 l-5,7 M9,8 l5,7" stroke="#f2f4f8" strokeWidth="1.6" />
+      <circle cx="130" cy="130" r="86" fill="url(#patch-bg)" />
+      {/* everything inside the window is clipped to it: nothing covers the rim */}
+      <g clipPath="url(#patch-window)">
+        {[[92, 82], [168, 70], [196, 118], [72, 122], [146, 56], [108, 60]].map(([x, y], k) => <circle key={k} cx={x} cy={y} r={k % 2 ? 1.2 : 1.8} fill="#cfe3ff" />)}
+        <circle cx="184" cy="92" r="10" fill="url(#patch-earth)" />
+        <path d="M74,104 Q104,68 128,116" fill="none" stroke="#4a9bff" strokeWidth="2" strokeDasharray="4 5" />
+        <circle cx="130" cy="198" r="66" fill="url(#patch-moon)" />
+        <circle cx="104" cy="178" r="9" fill="#a3abb9" opacity=".7" /><circle cx="160" cy="168" r="6" fill="#a3abb9" opacity=".7" /><circle cx="150" cy="212" r="10" fill="#a3abb9" opacity=".55" />
+        <g transform="translate(128,118)">
+          <path d="M-9,8 h18 l-3,-10 h-12 z" fill="#f2f4f8" /><rect x="-6" y="-8" width="12" height="6" rx="1.5" fill="#d4a23a" />
+          <path d="M-9,8 l-5,7 M9,8 l5,7" stroke="#f2f4f8" strokeWidth="1.6" />
+        </g>
+        <text x="130" y="190" textAnchor="middle" className="patch-404">404</text>
       </g>
-      <text x="130" y="226" textAnchor="middle" className="patch-404">404</text>
+      <circle cx="130" cy="130" r="86" fill="none" stroke="#4a9bff" strokeWidth="2" />
     </svg>
   );
 }

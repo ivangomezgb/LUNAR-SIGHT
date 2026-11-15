@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="260" height="260" viewBox="0 0 260 260">
+  <title>Apolo404 mission patch</title>
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="38%" r="70%"><stop offset="0" stop-color="#123a78"/><stop offset="1" stop-color="#050b18"/></radialGradient>
+    <radialGradient id="moon" cx="40%" cy="30%" r="75%"><stop offset="0" stop-color="#f2f4f8"/><stop offset="1" stop-color="#8d96a6"/></radialGradient>
+    <radialGradient id="earth" cx="35%" cy="35%" r="70%"><stop offset="0" stop-color="#8cc4ff"/><stop offset="1" stop-color="#0a5cc4"/></radialGradient>
+    <path id="ring" d="M130,130 m-104,0 a104,104 0 1,1 208,0 a104,104 0 1,1 -208,0"/>
+    <clipPath id="window"><circle cx="130" cy="130" r="85"/></clipPath>
+  </defs>
+  <circle cx="130" cy="130" r="127" fill="#0a7cff"/>
+  <circle cx="130" cy="130" r="121" fill="#06101f"/>
+  <text fill="#e8f1ff" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-size="14" letter-spacing="1"><textPath href="#ring" xlink:href="#ring" startOffset="4" textLength="640" lengthAdjust="spacing">APOLO404 · NASA SPACE APPS CHALLENGE 2026 · UPTC SOGAMOSO ·</textPath></text>
+  <circle cx="130" cy="130" r="86" fill="url(#bg)"/>
+  <g clip-path="url(#window)">
+    <circle cx="92" cy="82" r="1.8" fill="#cfe3ff"/><circle cx="168" cy="70" r="1.2" fill="#cfe3ff"/><circle cx="196" cy="118" r="1.8" fill="#cfe3ff"/><circle cx="72" cy="122" r="1.2" fill="#cfe3ff"/><circle cx="146" cy="56" r="1.8" fill="#cfe3ff"/><circle cx="108" cy="60" r="1.2" fill="#cfe3ff"/>
+    <circle cx="184" cy="92" r="10" fill="url(#earth)"/>
+    <path d="M74,104 Q104,68 128,116" fill="none" stroke="#4a9bff" stroke-width="2" stroke-dasharray="4 5"/>
+    <circle cx="130" cy="198" r="66" fill="url(#moon)"/>
+    <circle cx="104" cy="178" r="9" fill="#a3abb9" opacity=".7"/><circle cx="160" cy="168" r="6" fill="#a3abb9" opacity=".7"/><circle cx="150" cy="212" r="10" fill="#a3abb9" opacity=".55"/>
+    <g transform="translate(128,118)">
+      <path d="M-9,8 h18 l-3,-10 h-12 z" fill="#f2f4f8"/><rect x="-6" y="-8" width="12" height="6" rx="1.5" fill="#d4a23a"/>
+      <path d="M-9,8 l-5,7 M9,8 l5,7" stroke="#f2f4f8" stroke-width="1.6"/>
+    </g>
+    <text x="130" y="190" text-anchor="middle" fill="#0b2a57" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, monospace" font-weight="700" font-size="26" letter-spacing="2">404</text>
+  </g>
+  <circle cx="130" cy="130" r="86" fill="none" stroke="#4a9bff" stroke-width="2"/>
+</svg>

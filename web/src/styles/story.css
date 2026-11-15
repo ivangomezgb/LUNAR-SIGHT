@@ -141,7 +141,7 @@ svg.is-dark .hs-sunglow { opacity: 0; }
 .team-motto { margin: 0; color: var(--brand-hot); letter-spacing: .08em; }
 .team-hero-patch { display: grid; place-items: center; }
 .patch { width: min(320px, 70vw); height: auto; filter: drop-shadow(0 20px 60px oklch(0.62 0.19 255 / .35)); }
-.patch-text { fill: #e8f1ff; font-family: var(--mono); font-size: 15.5px; letter-spacing: 2.6px; }
+.patch-text { fill: #e8f1ff; font-family: var(--mono); font-size: 14px; letter-spacing: 1px; }
 .patch-404 { fill: #0b2a57; font-family: var(--mono); font-weight: 700; font-size: 26px; letter-spacing: 2px; }
 @media (max-width: 860px) { .team-hero { grid-template-columns: 1fr; min-height: 0; text-align: left; } .team-hero-patch { order: -1; } .patch { width: min(220px, 60vw); } }
 
