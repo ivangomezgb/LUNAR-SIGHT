@@ -7,6 +7,12 @@ import { loadFreeTerrainAssets } from '../lib/freepointTerrain';
 import type { FreeTerrain } from '../lib/freepointTerrain';
 import { attachLook, disposeObject, disposeScene, marker, phaseEarth, ray, releaseRenderer, skyDome, trailLine } from './three/sceneTools';
 import { lunarMaterial, LUNAR_EXPOSURE, SUN_INTENSITY, EARTH_INTENSITY } from './three/lunarMaterial';
+
+/** First-person eye heights (m). 2 m is the physical observer; higher values only lift the camera. */
+const EYE_HEIGHTS_M = [2, 10, 50, 200];
+const DEFAULT_EYE_M = 200;
+/** Intensity of the optional, clearly labelled non-physical fill light. */
+const ENHANCE_FILL = 1.6;
 import { t } from '../i18n';
 import '../styles/freepoint3d.css';
 
@@ -20,6 +26,14 @@ export default function FreePoint3D(props: FreePoint3DProps) {
   const modeRef = useRef<(first: boolean) => void>(() => {});
   const [first, setFirst] = useState(false), firstRef = useRef(first); firstRef.current = first;
   const [status, setStatus] = useState('Loading coarse terrain…'), [missing, setMissing] = useState(false);
+  // "Enhance visibility" adds a soft NON-PHYSICAL fill light so the relief can be read when the point is in
+  // shadow (the real scene is black there). Off by default; labelled in the UI.
+  const [enhance, setEnhance] = useState(false), enhanceRef = useRef(enhance); enhanceRef.current = enhance;
+  const setFillRef = useRef<(on: boolean) => void>(() => {});
+  const [sunHidden, setSunHidden] = useState(false);
+  // Camera eye height in first person. Visual only: visibility and metrics stay at the 2 m observer.
+  const [eyeH, setEyeH] = useState<number>(DEFAULT_EYE_M), eyeRef = useRef(eyeH); eyeRef.current = eyeH;
+  const setEyeHRef = useRef<(h: number) => void>(() => {});
   const [compass, setCompass] = useState('');
   useEffect(() => {
     const node = host.current!, started = performance.now();
@@ -52,6 +66,11 @@ export default function FreePoint3D(props: FreePoint3DProps) {
         }
         const sun = new THREE.DirectionalLight(0xffffff, SUN_INTENSITY), earth = new THREE.DirectionalLight(0xffffff, EARTH_INTENSITY);
         scene.add(sun, sun.target, earth, earth.target); sun.castShadow = true;
+        // Soft sky fill plus an oblique key light (no shadows) so slopes read; both clearly non-physical.
+        const fill = new THREE.Group();
+        const fillKey = new THREE.DirectionalLight(0xdfe6f0, ENHANCE_FILL); fillKey.position.set(0.75, 0.3, 0.55).multiplyScalar(100000); // ~17 deg: grazing, like a hillshade
+        fill.add(new THREE.HemisphereLight(0xc8d2e0, 0x202020, ENHANCE_FILL * 0.35), fillKey, fillKey.target);
+        fill.visible = enhanceRef.current; scene.add(fill);
         sun.shadow.mapSize.set(phone ? 1024 : 2048, phone ? 1024 : 2048);
         Object.assign(sun.shadow.camera, { left: -35000, right: 35000, top: 35000, bottom: -35000, near: 1, far: 400000 });
         sun.shadow.camera.updateProjectionMatrix(); sun.shadow.bias = -.00002; sun.shadow.normalBias = 2;
@@ -74,16 +93,26 @@ export default function FreePoint3D(props: FreePoint3DProps) {
         orbit.listenToKeyEvents(render.domElement); render.domElement.tabIndex = 0;
         render.domElement.setAttribute('aria-label', t('Drag to orbit · Scroll to zoom'));
         const pose = new THREE.Vector3(32000, 23000, 32000);
+        // The coarse mesh (~250 m vertices) does not pass through the point's sampled ground (z = 0), so the
+        // 2 m eye is placed above the MESH surface at the point; otherwise it can end up inside the terrain.
+        scene.updateMatrixWorld(true);
+        const down = new THREE.Raycaster(new THREE.Vector3(0, 20000, 0), new THREE.Vector3(0, -1, 0));
+        const groundHit = down.intersectObjects(meshes)[0];
+        const ground = groundHit ? groundHit.point.y : 0;
+        const observer = new THREE.Vector3(0, ground + 2, 0);            // physical 2 m observer (Sun visibility)
+        const eye = new THREE.Vector3(0, ground + eyeRef.current, 0);     // camera in first person
         let unlook = () => {}, inFirst = false, intro = !reduced, frame = 0, dirty = true;
         let lastTrails: [Trail | undefined, Trail | undefined] | null = null, lastLight = '', lastView = '';
         camera.position.copy(pose).multiplyScalar(intro ? 1.4 : 1); camera.lookAt(0, 0, 0);
         const mode = (value: boolean) => {
           intro = false; unlook(); inFirst = value; orbit.enabled = !value;
-          if (value) { camera.position.set(0, 2, 0); unlook = attachLook(render.domElement, camera, setCompass, latest.current.sunAz); }
+          if (value) { camera.position.copy(eye); unlook = attachLook(render.domElement, camera, setCompass, latest.current.sunAz, eyeRef.current >= 50 ? -6 : -2); }
           else { camera.position.copy(pose); orbit.target.set(0, 0, 0); camera.lookAt(0, 0, 0); render.domElement.setAttribute('aria-label', t('Drag to orbit · Scroll to zoom')); }
           dirty = true;
         };
         modeRef.current = mode;
+        setFillRef.current = (on: boolean) => { fill.visible = on; dirty = true; };
+        setEyeHRef.current = (h: number) => { eye.y = ground + h; if (inFirst) camera.position.copy(eye); dirty = true; };
         if (firstRef.current) mode(true);
         const stopIntro = () => { intro = false; };
         render.domElement.addEventListener('pointerdown', stopIntro);
@@ -115,8 +144,10 @@ export default function FreePoint3D(props: FreePoint3DProps) {
             sunRay.geometry.setFromPoints([new THREE.Vector3(), sunBall.position]); earthRay.geometry.setFromPoints([new THREE.Vector3(), earthBall.position]);
             // Gate glare against this mesh, not an invented horizon. No glare if coverage has holes.
             scene.updateMatrixWorld(true);
-            raycaster.set(new THREE.Vector3(0, 2, 0), new THREE.Vector3(...azElToThree(p.sunAz, p.sunEl - .267)));
-            glow.visible = !data.near.missing && !data.far.missing && !raycaster.intersectObjects(meshes).length;
+            raycaster.set(observer, new THREE.Vector3(...azElToThree(p.sunAz, p.sunEl - .267)));
+            const sunBlocked = raycaster.intersectObjects(meshes).length > 0 || p.sunEl < -.267;
+            glow.visible = !data.near.missing && !data.far.missing && !sunBlocked;
+            setSunHidden(sunBlocked);
             render.shadowMap.needsUpdate = true; lastLight = lightKey; dirty = true;
           }
           sunDisk.position.copy(s).multiplyScalar(250000).add(camera.position);
@@ -143,12 +174,16 @@ export default function FreePoint3D(props: FreePoint3DProps) {
     return () => { stopped = true; worker.terminate(); modeRef.current = () => {}; cleanup(); };
   }, [props.lat, props.lon, props.elevationM]);
   useEffect(() => { modeRef.current(first); }, [first]);
+  useEffect(() => { setFillRef.current(enhance); }, [enhance]);
+  useEffect(() => { setEyeHRef.current(eyeH); }, [eyeH]);
   return <section className="free3d card" aria-label={t('Lunar terrain 3D view')}>
     <div className="free3d-toolbar">
       <span className="eyebrow">{t('Approximate - coarse DEM')}</span>
       <div role="group" aria-label={t('Camera mode')}>
         <button className={`btn ${first ? 'btn-ghost' : 'btn-primary'}`} aria-pressed={!first} onClick={() => setFirst(false)}>{t('Overview')}</button>
-        <button className={`btn ${first ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={first} onClick={() => setFirst(true)}>{t('First person · 2 m')}</button>
+        <button className={`btn ${first ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={first} onClick={() => setFirst(true)}>{t('First person')}</button>
+        {first && <label className="free3d-eye">{t('Eye height (visual only)')} <select value={eyeH} onChange={e => setEyeH(Number(e.target.value))}>{EYE_HEIGHTS_M.map(h => <option key={h} value={h}>{h} m</option>)}</select></label>}
+        <button className={`btn ${enhance ? 'btn-primary' : 'btn-ghost'}`} aria-pressed={enhance} onClick={() => setEnhance(v => !v)} title={t('Adds a soft fill light that does not exist on the Moon, to read the relief in shadow.')}>{t('Enhance visibility')}</button>
       </div>
     </div>
     <div className="free3d-stage">
@@ -159,6 +194,8 @@ export default function FreePoint3D(props: FreePoint3DProps) {
         <span className="free3d-earth">{t('Earth')} {props.earthAz.toFixed(1)}° / {props.earthEl.toFixed(1)}°</span>
       </div>
       {status && <div className="free3d-status" role="status">{t(status)}</div>}
+      {!status && sunHidden && !enhance && <div className="free3d-dark" role="note">{t('The Sun is behind the terrain here at this hour, so the real scene is dark.')} <button type="button" className="btn btn-sm" onClick={() => setEnhance(true)}>{t('Enhance visibility')}</button></div>}
+      {enhance && <div className="free3d-enhanced" role="note">{t('Enhanced visibility: non-physical fill light')}</div>}
     </div>
     <div className="free3d-caption">
       <p>{t('Coarse 240 m LOLA terrain: shapes are approximate; no 5 m detail')}</p>

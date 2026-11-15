@@ -662,5 +662,11 @@
   ">8–15° · diagonal lines": ">8–15° · líneas diagonales",
   ">15–25° · crosshatch": ">15–25° · trama cruzada",
   ">25° · dense dots": ">25° · puntos densos",
-  "Unknown · checkerboard": "Desconocido · damero"
+  "Unknown · checkerboard": "Desconocido · damero",
+  "Enhance visibility": "Realzar visibilidad",
+  "Adds a soft fill light that does not exist on the Moon, to read the relief in shadow.": "Agrega una luz de relleno suave que no existe en la Luna, para leer el relieve en sombra.",
+  "The Sun is behind the terrain here at this hour, so the real scene is dark.": "A esta hora el Sol está detrás del terreno en este punto, así que la escena real está a oscuras.",
+  "Enhanced visibility: non-physical fill light": "Visibilidad realzada: luz de relleno no física",
+  "First person": "Primera persona",
+  "Eye height (visual only)": "Altura del ojo (solo visual)"
 }

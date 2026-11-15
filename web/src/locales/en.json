@@ -662,5 +662,11 @@
   ">8–15° · diagonal lines": ">8–15° · diagonal lines",
   ">15–25° · crosshatch": ">15–25° · crosshatch",
   ">25° · dense dots": ">25° · dense dots",
-  "Unknown · checkerboard": "Unknown · checkerboard"
+  "Unknown · checkerboard": "Unknown · checkerboard",
+  "Enhance visibility": "Enhance visibility",
+  "Adds a soft fill light that does not exist on the Moon, to read the relief in shadow.": "Adds a soft fill light that does not exist on the Moon, to read the relief in shadow.",
+  "The Sun is behind the terrain here at this hour, so the real scene is dark.": "The Sun is behind the terrain here at this hour, so the real scene is dark.",
+  "Enhanced visibility: non-physical fill light": "Enhanced visibility: non-physical fill light",
+  "First person": "First person",
+  "Eye height (visual only)": "Eye height (visual only)"
 }

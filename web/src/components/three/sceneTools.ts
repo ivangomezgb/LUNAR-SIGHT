@@ -14,8 +14,8 @@ export function phaseEarth(distance: number) {
     }`,
   }));
 }
-export function attachLook(canvas: HTMLCanvasElement, camera: THREE.PerspectiveCamera, report: (s: string) => void, initialAz = 0) {
-  let az = initialAz, el = -2, pointer: number | null = null, x = 0, y = 0;
+export function attachLook(canvas: HTMLCanvasElement, camera: THREE.PerspectiveCamera, report: (s: string) => void, initialAz = 0, initialEl = -2) {
+  let az = initialAz, el = initialEl, pointer: number | null = null, x = 0, y = 0;
   const update = () => { camera.lookAt(camera.position.clone().add(new THREE.Vector3(...azElToThree(az, el)))); report(t(['N', 'E', 'S', 'W'][Math.round(az / 90) % 4]) + ' / ' + t('Azimuth {0}° · Elevation {1}°', { 0: az.toFixed(1), 1: el.toFixed(1) })); };
   const down = (e: PointerEvent) => { pointer = e.pointerId; x = e.clientX; y = e.clientY; canvas.setPointerCapture(pointer); };
   const move = (e: PointerEvent) => { if (e.pointerId !== pointer) return; az = (az - (e.clientX - x) * .15 + 360) % 360; el = THREE.MathUtils.clamp(el + (e.clientY - y) * .15, -89, 89); x = e.clientX; y = e.clientY; update(); };

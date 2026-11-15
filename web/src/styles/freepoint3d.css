@@ -15,3 +15,9 @@
 .free3d-caption p { margin: .35rem 0; }
 @media (max-width: 600px) { .free3d-stage { aspect-ratio: 4 / 5; } .free3d-toolbar { padding: .75rem; } }
 @media (prefers-reduced-motion: reduce) { .free3d *, .free3d *::before, .free3d *::after { transition: none !important; animation: none !important; } }
+
+/* Night hint and the label of the non-physical fill light. */
+.free3d-dark { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: min(420px, 86%); padding: 14px 16px; border: 1px solid var(--line-2, #3b4b60); border-radius: 10px; background: rgba(6, 9, 14, .86); color: var(--text, #f0f3f7); font-size: .9rem; line-height: 1.45; text-align: center; display: grid; gap: 10px; justify-items: center; }
+.free3d-enhanced { position: absolute; right: 12px; top: 12px; padding: 4px 8px; border: 1px dashed #e7be68; border-radius: 4px; background: rgba(6, 9, 14, .8); color: #ffe2a0; font-size: .75rem; }
+.free3d-eye { display: inline-flex; align-items: center; gap: 6px; font-size: .8rem; color: var(--text-2, #bac5d3); }
+.free3d-eye select { background: #111925; color: var(--text, #f0f3f7); border: 1px solid var(--line-2, #3b4b60); border-radius: 6px; padding: 6px 8px; min-height: 36px; }
