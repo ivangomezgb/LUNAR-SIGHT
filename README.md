@@ -18,7 +18,7 @@ newest regions, validated against JPL Horizons.
 
 | Screen | What it does |
 | --- | --- |
-| **Explore** | Polar map of the 17 sites. Pick one to see a 2D 360° panorama: real horizon, Sun path (gold, solid) and Earth path (blue, dashed), animated through time. Eight metric cards (sunlight with its p5–p95 terrain-uncertainty band), a 30-day timeline, the **landing light risk** card and a link to the **mission brief (PDF)**. Site and time live in the URL (`#/?site=connecting-ridge&t=2027-01-12T06:00Z`). |
+| **Explore** | Polar map of the 17 sites. Pick one to see a 2D 360° panorama: real horizon, Sun path (gold, solid) and Earth path (blue, dashed), animated through time. Eight metric cards (sunlight with its p5–p95 terrain-uncertainty band), a 30-day timeline, the **landing light risk** card, an **energy and night-survival** simulation (solar panel, loads and battery, editable) and a **slope map with the safe landing area** (from the 10 m LOLA grid), and a link to the **mission brief (PDF)**. Site and time live in the URL (`#/?site=connecting-ridge&t=2027-01-12T06:00Z`). |
 | **3D** (`#/3d`) | Three ways to look at a site, sharing the same time slider and path window (`t=`, `days=` 1/14/30): **3D overview** (real LOLA terrain lit by the real Sun with cast shadows, plus a sky dome with the real Sun and Earth paths), **First person · 2 m** (stand on the terrain; mesh horizon approximate) and **Astronaut 360°** (precomputed panorama whose horizon matches the mask within 0.2°). Lunar photometry, Earth with its real phase, no invented surface detail. |
 | **Compare** | Up to 3 sites side by side for the same date: panoramas, aligned timelines, metrics with the best value highlighted, landing light risk and uncertainty band. |
 | **Mission delayed** | Enter the original site and date, the delay and a tolerance; every site × landing time (6 h steps) is scored with adjustable weights and hard filters. Top 10 with the three main reasons each and their landing light risk, in well under a second in the browser. |
@@ -44,6 +44,8 @@ horizon, and is the Earth up?*
 | Sun at landing | Sun elevation above the real horizon at the landing hour |
 | Terrain uncertainty | p5 / p50 / p95 of 2027 sunlight over 30 LOLA error clones (PGDA 78), 14 of 17 sites |
 | Landing light risk | Sun margin above the 2 m mask, sunlight and Earth time remaining, shadow lengths, low / medium / high |
+| Energy and night survival | hourly solar generation of a vertical panel from the real visible-disk series, battery state of charge, depletion time and the minimum battery that survives the mission |
+| Slopes and safe area | slope from the 10 m LOLA grid (curvature removed), % of the 50–500 m circles ≤ 8° and ≤ 15°, nearest 100 m circle entirely ≤ 8° |
 
 Thresholds are assumptions, shown and editable in the UI and listed in [`docs/assumptions.md`](docs/assumptions.md).
 

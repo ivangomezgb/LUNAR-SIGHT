@@ -93,7 +93,12 @@ Despliegue: el push a `main` corre `.github/workflows/deploy.yml` (GitHub Pages)
 - [x] **T28 Bilingüe EN/ES** (diccionario propio, sin i18next).
 - [x] Reporte exportable: `#/report?site=&t=&days=&h=` (`pages/Report.tsx`), A4 de 2 páginas con "Descargar PDF"
       (impresión del navegador, sin dependencias).
-- [ ] Asistente en lenguaje natural.
+- [x] Energía y supervivencia nocturna: tarjeta en Explora (`lib/energy.ts`, `components/EnergyCard.tsx`); supuestos en
+      `docs/assumptions.md` § Energy and night survival.
+- [x] Pendientes y zona segura de aterrizaje: mapa en Explora (`lib/hazard.ts`, `components/SlopeMap.tsx`); método y
+      umbrales en `docs/hazard.md`.
+- Descartado por decisión del equipo: asistente en lenguaje natural (una app estática no puede llamar a un modelo
+  sin exponer una clave) y su variante de buscador guiado.
 
 **Diferido por diseño:**
 
