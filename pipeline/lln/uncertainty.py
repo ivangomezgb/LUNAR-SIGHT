@@ -35,9 +35,12 @@ def session():
     return s
 
 
+RANGE_ATTEMPTS = 8  # PGDA occasionally drops connections for tens of seconds
+
+
 def get_range(url, first, last, http=None):
     """Single range only; reject ignored ranges and truncated responses."""
-    for attempt in range(4):
+    for attempt in range(RANGE_ATTEMPTS):
         try:
             if http is None:
                 with session() as s:
@@ -59,10 +62,12 @@ def get_range(url, first, last, http=None):
                     if int(match[2]) != end or len(content) != end - first + 1:
                         raise ValueError('Incomplete range')
                     return content, total
-        except (requests.RequestException, ValueError):
-            if attempt == 3:
+        except (requests.RequestException, ValueError) as exc:
+            if attempt == RANGE_ATTEMPTS - 1:
                 raise
-            time.sleep(attempt + 1)
+            wait = min(60, 2 ** attempt)  # 1, 2, 4, ... 60 s: about 3 min in total
+            print(f'retry {attempt + 1}/{RANGE_ATTEMPTS - 1} in {wait} s: {type(exc).__name__}: {exc}', flush=True)
+            time.sleep(wait)
 
 
 def download(url):
