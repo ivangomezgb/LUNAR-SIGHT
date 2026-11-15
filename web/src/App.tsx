@@ -14,6 +14,7 @@ import { isoShort } from './components/format';
 import { DATA_DIR } from './components/hooks';
 
 const View3D = lazy(() => import('./pages/View3D'));
+const Report = lazy(() => import('./pages/Report'));
 
 function Nav() {
   const { siteId, landingUtc, lang, setLang, assumptions } = useApp(useShallow((s) => ({ siteId: s.siteId, landingUtc: s.landingUtc, lang: s.lang, setLang: s.setLang, assumptions: s.assumptions })));
@@ -118,6 +119,7 @@ export default function App() {
           <Route path="/3d" element={<View3D />} />
           <Route path="/about" element={<About />} />
           <Route path="/team" element={<Team />} />
+          <Route path="/report" element={<Report />} />
           <Route path="*" element={<Explore />} />
             </Routes>
           </Suspense>

@@ -1830,3 +1830,17 @@ body { background: var(--bg); }
 
 .mission-hero > picture, .terrain-header > picture { position: absolute; inset: 0; z-index: -3; pointer-events: none; }
 .mission-hero > picture .terrain-backdrop, .terrain-header > picture .terrain-backdrop { z-index: auto; }
+
+/* Mission brief link under the landing-risk card. */
+.report-cta { display: flex; justify-content: flex-end; margin: 12px 0 4px; }
+
+/* Landing-risk card on Explore: dark dashboard theme (report.css keeps the white print sheet). */
+.explore-main .landing-risk { background: var(--panel, #11161c); color: var(--text); border: 1px solid var(--line-2); border-radius: 10px; padding: 18px 20px; margin-top: 18px; }
+.explore-main .landing-risk h2 { font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; color: var(--text-2); }
+.explore-main .risk-grid dt, .explore-main .risk-caption, .explore-main .risk-assumptions, .explore-main .risk-shadow p { color: var(--text-2); }
+.explore-main .risk-grid dd { font-family: var(--mono, ui-monospace, monospace); font-size: 1.15rem; color: var(--text); }
+.explore-main .risk-low { color: #8be0a6; background: rgba(46, 160, 90, .12); }
+.explore-main .risk-medium { color: #ffd27a; background: rgba(230, 160, 40, .14); }
+.explore-main .risk-high { color: #ff9a9a; background: rgba(220, 60, 60, .14); }
+.explore-main .risk-shadow svg { color: var(--sun); }
+.explore-main .risk-tip-content { background: var(--panel-2, #1b222b); border: 1px solid var(--line-2); }
