@@ -1876,3 +1876,10 @@ body .risk-tip-content { background: var(--panel-2, #1b222b); border: 1px solid 
 /* Visible label for the panorama playback speed. */
 .speed { display: inline-flex; align-items: center; gap: 6px; }
 .speed-label { font-size: .75rem; color: var(--text-2, #bac5d3); }
+
+/* Line icons (components/Icon.tsx): sit on the text baseline and take the text colour. */
+.icon { display: inline-block; flex-shrink: 0; vertical-align: -0.18em; }
+.hud-label .icon { vertical-align: -0.2em; margin-right: 2px; opacity: .9; }
+.hud-objectives .obj-mark { vertical-align: -0.15em; }
+.hud-objectives li:not(.is-done):not(.is-next) .obj-mark { opacity: .45; transform: scale(.55); }
+.guide-route li .icon { opacity: .8; }

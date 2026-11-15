@@ -12,6 +12,7 @@ import { fmtLatLon } from '../sim/geo';
 import { localToPolarDir } from '../sim/polar';
 import { RULES } from '../sim/rules';
 import { OrbitScene } from '../render/OrbitScene';
+import Icon from '../../components/Icon';
 
 interface Props {
   sites: SiteIndexEntry[];
@@ -121,9 +122,9 @@ export default function OrbitPicker({ sites, basemap, siteId, startMs, onSite, o
       <div ref={host} className="orbit-canvas" aria-label={t('The lunar south pole seen from orbit, with the candidate landing sites')} />
       {error && <div className="game-overlay" role="alert">{error}</div>}
       <div className="globe-nav" role="group" aria-label={t('Globe navigation')}>
-        <button type="button" onClick={() => sceneRef.current?.zoomOut()}>🌕 {t('Whole Moon')}</button>
-        <button type="button" onClick={() => sceneRef.current?.zoomToPole()}>⬇ {t('South pole')}</button>
-        <button type="button" onClick={() => sceneRef.current?.select(siteId, true)}>◎ {entry ? shortName(entry.name) : ''}</button>
+        <button type="button" onClick={() => sceneRef.current?.zoomOut()}><Icon name="moon" /> {t('Whole Moon')}</button>
+        <button type="button" onClick={() => sceneRef.current?.zoomToPole()}><Icon name="arrowDown" /> {t('South pole')}</button>
+        <button type="button" onClick={() => sceneRef.current?.select(siteId, true)}><Icon name="target" /> {entry ? shortName(entry.name) : ''}</button>
       </div>
       <p className="globe-hint" aria-hidden>
         <span className="ctl-keys">{t('Drag to spin the Moon · scroll to zoom · click a pin to choose')}</span>
@@ -179,9 +180,9 @@ export default function OrbitPicker({ sites, basemap, siteId, startMs, onSite, o
             </div>
             {forecast ? (
               <div className="brief-stats mono">
-                <div><span className="hud-label">☀ {t('Sun at landing')}</span><strong>{forecast.margin >= 0 ? '+' : ''}{forecast.margin.toFixed(2)}°</strong><em>{t('over the real horizon')}</em></div>
+                <div><span className="hud-label"><Icon name="sun" size={13} /> {t('Sun at landing')}</span><strong>{forecast.margin >= 0 ? '+' : ''}{forecast.margin.toFixed(2)}°</strong><em>{t('over the real horizon')}</em></div>
                 <div><span className="hud-label">{t('Sunlight, 14 d')}</span><strong>{forecast.m.lightPct.toFixed(0)}%</strong></div>
-                <div><span className="hud-label">⊕ {t('Earth visible, 14 d')}</span><strong>{forecast.m.earthPct.toFixed(0)}%</strong></div>
+                <div><span className="hud-label"><Icon name="earth" size={13} /> {t('Earth visible, 14 d')}</span><strong>{forecast.m.earthPct.toFixed(0)}%</strong></div>
                 <div className={`risk-${forecast.risk?.level ?? 'none'}`}><span className="hud-label">{t('Landing light risk')}</span><strong>{riskText}</strong></div>
               </div>
             ) : <p className="small muted" role="status">{t('Loading the site’s horizon and ephemeris…')}</p>}

@@ -9,7 +9,7 @@ export const LESSONS: Record<ObjectiveId, { title: string; how: string; lesson: 
   },
   shadow: {
     title: 'Find a shadow',
-    how: 'Switch to the Top camera (C) to spot dark ground and drive into it, or speed up time until a ridge hides the Sun. Watch the ☀ gauge.',
+    how: 'Switch to the Top camera (C) to spot dark ground and drive into it, or speed up time until a ridge hides the Sun. Watch the Sun gauge.',
     lesson: 'Here the Sun skims the horizon, only a few degrees high, so a ridge a few metres tall can hide it. In shadow the panel gives nothing and the heater drains the battery.',
   },
   scan: {
@@ -19,12 +19,12 @@ export const LESSONS: Record<ObjectiveId, { title: string; how: string; lesson: 
   },
   downlink: {
     title: 'Send {0} MB to Earth',
-    how: 'Data leaves only while ⊕ says Connected. If not, speed up time with ] until the Earth rises, or climb to higher ground.',
+    how: 'Data leaves only while the Earth link says Connected. If not, speed up time with ] until the Earth rises, or climb to higher ground.',
     lesson: 'Without a relay satellite, data goes straight to Earth only while the Earth is above the real horizon. From the south pole the Earth stays low and often hides behind ridges.',
   },
   waypoint: {
     title: 'Reach the sunniest spot nearby',
-    how: 'Press Guide me and follow the blue beacon. Switch the map to ☀ 2027 to see where the light lasts all year.',
+    how: 'Press Guide me and follow the blue beacon. Switch the map to the yearly Sun layer to see where the light lasts all year.',
     lesson: 'Over a year, rims and ridges can see the Sun most of the time while hollows a few hundred metres away stay dark. That is why Artemis candidate sites sit on crater rims and ridges.',
   },
   survive: {

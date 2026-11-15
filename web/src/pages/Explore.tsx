@@ -21,6 +21,7 @@ import PsrCard from '../components/PsrCard';
 import { ErrorBox, Loading, Empty } from '../components/Status';
 import { seriesFor, coverage, assumptionsFor } from '../components/series';
 import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc, fmtInt } from '../components/format';
+import Icon from '../components/Icon';
 
 const HeroTerrain = lazy(() => import('../fx/HeroTerrain'));
 const HERO_RELIEF = 3;
@@ -95,7 +96,7 @@ export default function Explore() {
           <h1 id="mission-heading" className="hero-in">{t('Find your place')} <span className="display-accent">{t('on the Moon.')}</span></h1>
           <p className="hero-in">{t('{0} candidate sites. Real terrain. Every hour matters.', { 0: list.length })}</p>
           <div className="hero-actions hero-in">
-            <Link className="btn btn-primary" to={`/mission?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Play the mission')} <span aria-hidden>▶</span></Link>
+            <Link className="btn btn-primary" to={`/mission?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Play the mission')} <Icon name="play" size={13} /></Link>
             <Link className="btn btn-ghost" to={`/3d?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Stand on the site in 3D')} <span aria-hidden>↗</span></Link>
             <Link className="btn btn-ghost" to={`/3d?site=${encodeURIComponent(siteId ?? '')}&t=${isoShort(landingUtc)}&view=pano&h=${store.assumptions.heightM}&lang=${store.lang}`}>{t('Look around in 360°')} <span aria-hidden>→</span></Link>
           </div>

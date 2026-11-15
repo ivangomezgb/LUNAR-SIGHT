@@ -9,6 +9,7 @@ import { useShallow } from 'zustand/react/shallow';
 import { fmtUtc, isoShort, parseUtc } from '../components/format';
 import { t } from '../i18n';
 import '../styles/view3d.css';
+import Icon from '../components/Icon';
 
 const Scene3D = lazy(() => import('../components/Scene3D'));
 const ImmersivePano = lazy(() => import('../components/ImmersivePano'));
@@ -126,7 +127,7 @@ export default function View3D() {
               <button aria-pressed={mode === 'first'} onClick={() => switchMode('first')}>{t('First person')}</button>
               <button aria-pressed={mode === 'pano'} onClick={() => switchMode('pano')}>{t('Astronaut 360°')}</button>
             </div>
-            <button className="expedition-fullscreen" onClick={fullscreen} aria-label={t('Toggle fullscreen')} title={t('Toggle fullscreen')}>⛶</button>
+            <button className="expedition-fullscreen" onClick={fullscreen} aria-label={t('Toggle fullscreen')} title={t('Toggle fullscreen')}><Icon name="maximize" size={18} /></button>
           </div>
           {site && series && <div className="expedition-readings">
             <span className={series.sunEl[index] >= series.horizonSunEl[index] ? 'is-lit' : ''}>{t(series.sunEl[index] >= series.horizonSunEl[index] ? 'In sunlight' : 'In shadow')}</span>

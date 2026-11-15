@@ -1,4 +1,5 @@
 import { t } from '../../i18n';
+import Icon from '../../components/Icon';
 
 const Key = ({ k, wide = false }: { k: string; wide?: boolean }) => <kbd className={`keycap${wide ? ' is-wide' : ''}`}>{k}</kbd>;
 
@@ -6,7 +7,7 @@ const Key = ({ k, wide = false }: { k: string; wide?: boolean }) => <kbd classNa
 export default function KeyHints({ phase, onClose }: { phase: 'descent' | 'surface'; onClose: () => void }) {
   return (
     <div className="key-hints ctl-keys" role="note" aria-label={t('Keyboard controls')}>
-      <button type="button" className="key-hints-x" onClick={onClose} aria-label={t('Hide the controls')}>×</button>
+      <button type="button" className="key-hints-x" onClick={onClose} aria-label={t('Hide the controls')}><Icon name="close" size={14} /></button>
       {phase === 'descent' ? (
         <>
           <div className="kh-group"><Key k={t('SPACE')} wide /><span>{t('Hold: main engine (brake the fall)')}</span></div>
@@ -25,7 +26,7 @@ export default function KeyHints({ phase, onClose }: { phase: 'descent' | 'surfa
           <div className="kh-group"><Key k="[" /><Key k="]" /><span>{t('Slower / faster time')}</span></div>
           <div className="kh-group"><Key k="C" /><span>{t('Camera')}</span></div>
           <div className="kh-group"><Key k="P" /><span>{t('Pause')}</span></div>
-          <div className="kh-group"><span className="kh-mouse" aria-hidden>🖱</span><span>{t('Drag to look · wheel to zoom')}</span></div>
+          <div className="kh-group"><span className="kh-mouse"><Icon name="mouse" size={18} /></span><span>{t('Drag to look · wheel to zoom')}</span></div>
         </>
       )}
     </div>

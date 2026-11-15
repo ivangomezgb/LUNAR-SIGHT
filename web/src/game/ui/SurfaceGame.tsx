@@ -21,6 +21,7 @@ import Minimap from './Minimap';
 import DescentPanel from './DescentPanel';
 import KeyHints from './KeyHints';
 import { clearSave, loadSave, writeSave } from './save';
+import Icon from '../../components/Icon';
 
 interface Props {
   env: Env;
@@ -315,7 +316,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
           <ol>
             {OBJECTIVES.map((id) => (
               <li key={id} className={m.done[id] !== undefined ? 'is-done' : id === next ? 'is-next' : ''}>
-                <span aria-hidden>{m.done[id] !== undefined ? '✓' : id === next ? '▸' : '○'}</span> {objectiveTitle(id)}
+                <Icon name={m.done[id] !== undefined ? 'check' : id === next ? 'chevronRight' : 'dot'} size={13} className="obj-mark" /> {objectiveTitle(id)}
                 {id === 'waypoint' && m.done.waypoint === undefined && (
                   <button type="button" className="hud-link" onClick={() => setNav(m.waypoint)}>{t('Guide me')}</button>
                 )}
@@ -338,8 +339,8 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
           {illum && (
             <div className="map-layers" role="group" aria-label={t('Map layer')}>
               <button type="button" aria-pressed={layer === 'now'} onClick={() => setLayer('now')} title={t('Sunlight at the current simulated hour')}>{t('Now')}</button>
-              <button type="button" aria-pressed={layer === 'light'} onClick={() => setLayer('light')} title={t('Share of {0} with the Sun above the real horizon', { 0: illum.meta.window })}>☀ {illum.meta.window}</button>
-              <button type="button" aria-pressed={layer === 'earth'} onClick={() => setLayer('earth')} title={t('Share of {0} with the Earth in view', { 0: illum.meta.window })}>⊕ {illum.meta.window}</button>
+              <button type="button" aria-pressed={layer === 'light'} onClick={() => setLayer('light')} title={t('Share of {0} with the Sun above the real horizon', { 0: illum.meta.window })}><Icon name="sun" size={13} /> {illum.meta.window}</button>
+              <button type="button" aria-pressed={layer === 'earth'} onClick={() => setLayer('earth')} title={t('Share of {0} with the Earth in view', { 0: illum.meta.window })}><Icon name="earth" size={13} /> {illum.meta.window}</button>
             </div>
           )}
           {illum && layer !== 'now' && (
@@ -362,7 +363,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
       )}
       {toast && (
         <div className="game-toast" role="status">
-          <strong>✓ {objectiveTitle(toast)}</strong>
+          <strong><Icon name="checkCircle" /> {objectiveTitle(toast)}</strong>
           <span>{t(LESSONS[toast].lesson)}</span>
         </div>
       )}
@@ -377,19 +378,19 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
             {hud.power.dead && <span className="hud-warn small">{t('Dormant: recharging to 5% before waking')}</span>}
           </div>
           <div className={`gauge ${temp < RULES.thermal.heaterOnC || temp > RULES.thermal.hotC - 10 ? 'is-off' : 'is-on'}`}>
-            <span className="hud-label">🌡 {t('Electronics')}</span>
+            <span className="hud-label"><Icon name="thermometer" size={13} /> {t('Electronics')}</span>
             <span className="mono small">{temp.toFixed(0)} °C</span>
             <span className="mono small gauge-sub">{hud.thermal.heaterOn && !hud.power.dead ? t('Heater on ({0} W)', { 0: RULES.power.heaterW }) : t('Heater off')}</span>
             {hud.overheated && <span className="hud-warn small">{t('Too hot: drives stopped to cool down')}</span>}
             {temp < RULES.thermal.freezeC + 15 && <span className="hud-warn small">{t('Freezes below {0} °C', { 0: RULES.thermal.freezeC })}</span>}
           </div>
           <div className={`gauge ${hud.sunFrac > 0.5 ? 'is-on' : 'is-off'}`}>
-            <span className="hud-label">☀ {t('Sun')}</span>
+            <span className="hud-label"><Icon name="sun" size={13} /> {t('Sun')}</span>
             <span className="mono small">{hud.sunFrac > 0.01 ? t('{0}% of the disk visible', { 0: (hud.sunFrac * 100).toFixed(0) }) : t('In shadow')}</span>
             <span className="mono small gauge-sub">{sunMargin >= 0 ? '+' : ''}{sunMargin.toFixed(2)}° {t('vs real horizon')}</span>
           </div>
           <div className={`gauge ${hud.earthUp ? 'is-on' : 'is-off'}`}>
-            <span className="hud-label">⊕ {t('Earth link')}</span>
+            <span className="hud-label"><Icon name="earth" size={13} /> {t('Earth link')}</span>
             <span className="mono small">{hud.earthUp ? t('Connected') : t('No line of sight')}</span>
             <span className="mono small gauge-sub">{t('{0} MB waiting · {1} MB sent', { 0: hud.power.dataMB.toFixed(1), 1: hud.power.sentMB.toFixed(1) })}</span>
             {!hud.earthUp && hud.power.dataMB > 0 && <span className="hud-note small gauge-sub">{t('Data waits until the Earth rises: try ] to speed up time')}</span>}
@@ -405,8 +406,8 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
               : hud.rover.slip && <span className="hud-note small">{t('Wheels at the traction limit')}</span>}
           </div>
           <div className="gauge gauge-actions">
-            <button type="button" className="btn btn-sm hud-scan" onClick={doScan}>🔬 {t('Scan')} <span className="ctl-keys">(E)</span></button>
-            <button type="button" className="btn btn-sm btn-ghost hud-navtoggle" aria-expanded={navOpen} onClick={() => setNavOpen((o) => !o)}>📍 {t('Navigate')}</button>
+            <button type="button" className="btn btn-sm hud-scan" onClick={doScan}><Icon name="scan" /> {t('Scan')} <span className="ctl-keys">(E)</span></button>
+            <button type="button" className="btn btn-sm btn-ghost hud-navtoggle" aria-expanded={navOpen} onClick={() => setNavOpen((o) => !o)}><Icon name="pin" /> {t('Navigate')}</button>
             {scanMsg && <span className="small" role="status">{scanMsg}</span>}
           </div>
         </div>
@@ -421,9 +422,9 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
           {navMsg && <div className="hud-warn small" role="status">{navMsg}</div>}
           {nr && (
             <div className="hud-route mono small" aria-live="polite">
-              <span className="hud-arrow" style={{ transform: `rotate(${turn}deg)` }} aria-hidden>↑</span>
+              <span className="hud-arrow" style={{ transform: `rotate(${turn}deg)` }} aria-hidden><Icon name="navigation" size={14} /></span>
               {nr.dist < 15 ? t('Arrived') : t('{0} m · bearing {1}° · ETA {2} h at full speed', { 0: nr.dist.toFixed(0), 1: nr.bearing.toFixed(0), 2: (nr.dist / RULES.rover.maxSpeed / 3600).toFixed(1) })}
-              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setNav(null)} aria-label={t('Clear route')}>✕</button>
+              <button type="button" className="btn btn-ghost btn-sm" onClick={() => setNav(null)} aria-label={t('Clear route')}><Icon name="close" /></button>
             </div>
           )}
         </form>
@@ -449,11 +450,11 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
 
       {phase !== 'brief' && (
         <div className="game-touch">
-          <button type="button" aria-label={t(phase === 'descent' ? 'Slide north' : 'Forward')} {...hold({ throttle: 1 })}>▲</button>
+          <button type="button" aria-label={t(phase === 'descent' ? 'Slide north' : 'Forward')} {...hold({ throttle: 1 })}><Icon name="chevronUp" size={22} /></button>
           <div>
-            <button type="button" aria-label={t(phase === 'descent' ? 'Slide west' : 'Turn left')} {...hold({ steer: -1 })}>◀</button>
-            <button type="button" aria-label={t(phase === 'descent' ? 'Slide south' : 'Reverse')} {...hold({ throttle: -1 })}>▼</button>
-            <button type="button" aria-label={t(phase === 'descent' ? 'Slide east' : 'Turn right')} {...hold({ steer: 1 })}>▶</button>
+            <button type="button" aria-label={t(phase === 'descent' ? 'Slide west' : 'Turn left')} {...hold({ steer: -1 })}><Icon name="chevronLeft" size={22} /></button>
+            <button type="button" aria-label={t(phase === 'descent' ? 'Slide south' : 'Reverse')} {...hold({ throttle: -1 })}><Icon name="chevronDown" size={22} /></button>
+            <button type="button" aria-label={t(phase === 'descent' ? 'Slide east' : 'Turn right')} {...hold({ steer: 1 })}><Icon name="chevronRight" size={22} /></button>
           </div>
           {phase === 'descent' && <button type="button" className="touch-thrust" {...hold({ thrust: 1 })}>{t('THRUST')}</button>}
         </div>

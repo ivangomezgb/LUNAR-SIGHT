@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { t } from '../i18n';
 import { loadLiterature, type LiteratureData } from '../lib/data';
 import '../styles/psr.css';
+import Icon from './Icon';
 
 const pct = (v: number) => v.toFixed(1);
 const signed = (v: number) => (v >= 0 ? '+' : '−') + Math.abs(v).toFixed(1);
@@ -51,7 +52,7 @@ export default function LiteratureTable() {
                   <td className="mono">{pct(r.published_sun_neighbourhood.min_pct)}–{pct(r.published_sun_neighbourhood.max_pct)} %</td>
                   <td className={`mono ${r.ours_in_neighbourhood_1m ? 'lit-in' : 'lit-out'}`}>
                     {pct(o1.sun_any_pct_full)} % <span className="small">({signed(o1.sun_any_pct_full - r.published_sun_any_pct)})</span>
-                    {' '}{r.ours_in_neighbourhood_1m ? '✓' : '↑'}
+                    {' '}{r.ours_in_neighbourhood_1m ? <Icon name="check" size={13} title={t('Within 1 pp')} /> : <Icon name="arrowUp" size={13} title={t('Ours higher')} />}
                   </td>
                   <td className="mono">{pct(o2.sun_any_pct_full)} %</td>
                   <td className="mono">{pct(r.published_earth_any_pct)} %</td>
@@ -63,7 +64,7 @@ export default function LiteratureTable() {
         </table>
       </div>
       <p className="small muted">
-        {t('✓ = within 1 pp of the published values in the ±1-pixel neighbourhood; ↑ = ours higher. Why ours is higher at some sites: our sites were moved to the best-lit point on 5 m terrain, while one published pixel (60–120 m) averages a peak with its slopes; we use 1–2 m observers and a 2-year window instead of ~18.6 years. Earth visibility, which is not affected by that site selection, agrees closely.')}
+        <Icon name="check" size={13} /> {t('= within 1 pp of the published values in the ±1-pixel neighbourhood;')} <Icon name="arrowUp" size={13} /> {t('= ours higher. Why ours is higher at some sites: our sites were moved to the best-lit point on 5 m terrain, while one published pixel (60–120 m) averages a peak with its slopes; we use 1–2 m observers and a 2-year window instead of ~18.6 years. Earth visibility, which is not affected by that site selection, agrees closely.')}
       </p>
     </section>
   );

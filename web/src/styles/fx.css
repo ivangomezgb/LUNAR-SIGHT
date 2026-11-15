@@ -311,7 +311,7 @@ html:not(.pre-done) .mission-hero .hero-in, html.pre-done .mission-hero .hero-in
 .guide-progress { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(9, 1fr); gap: 3px; }
 .guide-progress i { height: 4px; border-radius: 2px; background: var(--line); transition: background-color .4s; }
 .guide-progress i.is-on { background: var(--sun); }
-.guide-x { grid-row: 1; grid-column: 2; background: none; border: 0; color: var(--muted); font-size: 1.2rem; cursor: pointer; line-height: 1; }
+.guide-x { grid-row: 1; grid-column: 2; display: inline-flex; padding: 4px; background: none; border: 0; color: var(--muted); cursor: pointer; line-height: 1; }
 .guide-here strong { font-size: 1rem; }
 .guide-here p { margin: 4px 0 0; color: var(--text-2); line-height: 1.45; }
 .guide-try { color: var(--sun-hot) !important; }

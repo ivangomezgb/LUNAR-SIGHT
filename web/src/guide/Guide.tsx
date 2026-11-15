@@ -5,6 +5,7 @@ import { t } from '../i18n';
 import { useApp } from '../state';
 import { STOPS, stopOf } from './stops';
 import { nextStop, useGuide } from './useGuide';
+import Icon from '../components/Icon';
 
 /**
  * Explorer guide: a welcome card on the first visit, then a small dock that says what this tab is
@@ -43,7 +44,7 @@ export default function Guide() {
   };
 
   if (mode === 'hidden') {
-    return <button type="button" className="guide-pill guide-pill-min" onClick={() => setMode('pill')} aria-label={t('Show the explorer guide')}>🧭</button>;
+    return <button type="button" className="guide-pill guide-pill-min" onClick={() => setMode('pill')} aria-label={t('Show the explorer guide')}><Icon name="compass" size={18} /></button>;
   }
 
   if (mode === 'welcome') {
@@ -53,7 +54,7 @@ export default function Guide() {
         <h2 id="guide-welcome-title">{t('Find a safe, sunny place to land on the Moon.')}</h2>
         <p>{t('At the lunar south pole the Sun only grazes the horizon: a few metres of terrain decide light, power and radio contact. This site lets you explore it with real NASA data.')}</p>
         <ol className="guide-route" aria-label={t('The route')}>
-          {STOPS.map((s) => <li key={s.path} title={t(s.title)}><span aria-hidden>{s.icon}</span><em>{t(s.title)}</em></li>)}
+          {STOPS.map((s) => <li key={s.path} title={t(s.title)}><Icon name={s.icon} /><em>{t(s.title)}</em></li>)}
         </ol>
         <div className="hud-row">
           <button type="button" className="btn btn-primary" onClick={() => setMode('open')}>{t('Start the tour')} →</button>
@@ -66,8 +67,8 @@ export default function Guide() {
   if (mode === 'pill' || (immersive && mode === 'open' && !expandedHere)) {
     return (
       <button type="button" className="guide-pill" onClick={() => { setMode('open'); setExpandedHere(true); }} aria-label={t('Open the explorer guide')}>
-        <span aria-hidden>🧭</span> {t('Guide')} <b>{visited.length}/{STOPS.length}</b>
-        {!done && <span className="guide-pill-next">· {t('Next')}: {next.icon} {t(next.title)}</span>}
+        <Icon name="compass" /> {t('Guide')} <b>{visited.length}/{STOPS.length}</b>
+        {!done && <span className="guide-pill-next">· {t('Next')}: <Icon name={next.icon} size={13} /> {t(next.title)}</span>}
       </button>
     );
   }
@@ -77,26 +78,26 @@ export default function Guide() {
       <div className="guide-head">
         <span className="hud-label">{t('Explorer guide')} · {t('{0} of {1} tabs', { 0: visited.length, 1: STOPS.length })}</span>
         <div className="guide-progress" aria-hidden>{STOPS.map((s) => <i key={s.path} className={visited.includes(s.path) ? 'is-on' : ''} />)}</div>
-        <button type="button" className="guide-x" onClick={() => { setMode('pill'); setExpandedHere(false); }} aria-label={t('Minimise the guide')}>–</button>
+        <button type="button" className="guide-x" onClick={() => { setMode('pill'); setExpandedHere(false); }} aria-label={t('Minimise the guide')}><Icon name="minus" size={14} /></button>
       </div>
       {here ? (
         <div className="guide-here">
-          <strong><span aria-hidden>{here.icon}</span> {t(here.title)}</strong>
+          <strong><Icon name={here.icon} /> {t(here.title)}</strong>
           <p>{t(here.what)}</p>
           <p className="guide-try"><b>{t('Try:')}</b> {t(here.tryIt)}</p>
         </div>
       ) : <div className="guide-here"><p>{t('This page is part of the route; use the menu or the next stop below.')}</p></div>}
       {done ? (
         <div className="guide-done">
-          <p>🎉 {t('You have visited every tab. Now plan your own mission!')}</p>
+          <p><Icon name="award" /> {t('You have visited every tab. Now plan your own mission!')}</p>
           <div className="hud-row">
-            <button type="button" className="btn btn-sm btn-primary" onClick={() => go('/mission')}>🎮 {t('Play mission')}</button>
+            <button type="button" className="btn btn-sm btn-primary" onClick={() => go('/mission')}><Icon name="rocket" /> {t('Play mission')}</button>
             <button type="button" className="btn btn-sm btn-ghost" onClick={reset}>{t('Restart the tour')}</button>
           </div>
         </div>
       ) : (
         <button type="button" className="btn btn-primary guide-next" onClick={() => go(next.path)}>
-          <span>{t('Next stop')}</span> <span aria-hidden>{next.icon}</span> {t(next.title)} →
+          <span>{t('Next stop')}</span> <Icon name={next.icon} /> {t(next.title)} <Icon name="chevronRight" />
         </button>
       )}
       <button type="button" className="guide-hide" onClick={() => setMode('hidden')}>{t('Hide the guide')}</button>
