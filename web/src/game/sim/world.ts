@@ -1,6 +1,6 @@
 // The surface simulation: clock + rover + power + what the rover sees of the Sun and Earth.
 import { sunFraction } from '../../lib/sunFraction';
-import { coverageEndMs, type Ephemeris, MAX_DRIVE_WARP, type Sky, skyAt } from './clock';
+import { coverageEndMs, DEFAULT_WARP, type Ephemeris, MAX_DRIVE_WARP, MAX_SCREEN_TURN_DEG_S, type Sky, skyAt } from './clock';
 import type { Field } from './field';
 import { newPower, type PowerState, stepPower } from './power';
 import { type DriveInput, newRover, type RoverState, stepRover } from './rover';
@@ -41,14 +41,16 @@ function observe(env: Env, w: Pick<World, 'tMs' | 'rover'>) {
 }
 
 export function newWorld(env: Env, tMs: number, rover: RoverState = newRover()): World {
-  const base = { tMs, rover, warp: 10, paused: false, power: newPower(), ended: '' as const };
+  const base = { tMs, rover, warp: DEFAULT_WARP as number, paused: false, power: newPower(), ended: '' as const };
   return { ...base, ...observe(env, base) };
 }
 
 /** Advance by `realDt` wall-clock seconds; the simulated time is realDt × warp. */
 export function stepWorld(env: Env, w: World, input: DriveInput, realDt: number): World {
   if (w.paused || w.ended) return w;
-  const drive = w.warp <= MAX_DRIVE_WARP ? input : { throttle: 0, steer: 0 };
+  // Steering is limited in screen time so the rover stays controllable at any warp.
+  const steerScale = Math.min(1, MAX_SCREEN_TURN_DEG_S / (RULES.rover.turnRate * w.warp));
+  const drive = w.warp <= MAX_DRIVE_WARP ? { throttle: input.throttle, steer: input.steer * steerScale } : { throttle: 0, steer: 0 };
   let total = Math.min(realDt, 0.25) * w.warp; // a stalled tab must not skip hours
   let { rover, power, tMs } = w;
   const end = coverageEndMs(env.ephem);

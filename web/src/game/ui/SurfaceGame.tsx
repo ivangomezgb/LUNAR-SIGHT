@@ -162,7 +162,8 @@ export default function SurfaceGame({ env, terrain, site, startMs }: Props) {
           </div>
           <div className="gauge">
             <span className="hud-label">{t('Rover')}</span>
-            <span className="mono small">{hud.rover.speed.toFixed(2)} m/s</span>
+            <span className="mono small">{hud.rover.speed.toFixed(2)} m/s {t('real')}</span>
+            <span className="mono small">≈ {(Math.abs(hud.rover.speed) * hud.warp * 3.6).toFixed(0)} km/h {t('on screen')}</span>
             {hud.rover.blocked && <span className="hud-warn small">{t(hud.rover.blocked === 'slope' ? 'Too steep to climb' : hud.rover.blocked === 'edge' ? 'Edge of the mapped area' : 'Rover tipped over')}</span>}
           </div>
         </div>

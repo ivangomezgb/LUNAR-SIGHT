@@ -145,3 +145,27 @@ describe('coordinates', () => {
     expect(route(0, 0, 100, 0)).toEqual({ dist: 100, bearing: 90 });
   });
 });
+
+import { MAX_DRIVE_WARP, MAX_SCREEN_TURN_DEG_S } from '../clock';
+describe('time warp and control', () => {
+  it('keeps steering controllable on screen at any drivable warp', () => {
+    const f = field(() => 0);
+    const env = { field: f, horizon: { at: () => -90, farOnly: new Float32Array(0), azStep: 0.5 },
+      ephem: { t0Ms: 0, stepH: 1, n: 10, sunAz: new Array(10).fill(0), sunEl: new Array(10).fill(5), earthAz: new Array(10).fill(0), earthEl: new Array(10).fill(5) } };
+    for (const warp of [1, 60, MAX_DRIVE_WARP]) {
+      let w = { ...newWorld(env, 0), warp };
+      for (let k = 0; k < 60; k++) w = stepWorld(env, w, { throttle: 0, steer: 1 }, 1 / 60);
+      expect(w.rover.heading).toBeLessThanOrEqual(MAX_SCREEN_TURN_DEG_S + 1e-6);
+      expect(w.rover.heading).toBeGreaterThan(5);
+    }
+  });
+  it('moves the real-speed rover warp times faster on screen', () => {
+    const f = field(() => 0, 401, 10);
+    const env = { field: f, horizon: { at: () => -90, farOnly: new Float32Array(0), azStep: 0.5 },
+      ephem: { t0Ms: 0, stepH: 1, n: 100, sunAz: new Array(100).fill(0), sunEl: new Array(100).fill(5), earthAz: new Array(100).fill(0), earthEl: new Array(100).fill(5) } };
+    let w = newWorld(env, 0);
+    expect(w.warp).toBe(60);
+    for (let k = 0; k < 120; k++) w = stepWorld(env, w, { throttle: 1, steer: 0 }, 1 / 60);
+    expect(w.rover.y).toBeGreaterThan(20); // ~2 s of screen time at 60x ≈ 24 m
+  });
+});

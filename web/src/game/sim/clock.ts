@@ -4,7 +4,11 @@ import { lerpAngle } from '../../components/series';
 
 export const WARPS = [1, 10, 60, 600, 3600] as const;
 /** Driving is only allowed up to this warp (like parking the rover before a long time skip). */
-export const MAX_DRIVE_WARP = 60;
+export const MAX_DRIVE_WARP = 600;
+/** Warp the mission starts at: the real 0.2 m/s rover looks like ~12 m/s. */
+export const DEFAULT_WARP = 60;
+/** Fastest turn the player sees on screen, deg per wall-clock second, whatever the warp. */
+export const MAX_SCREEN_TURN_DEG_S = 50;
 
 export interface Ephemeris {
   t0Ms: number;

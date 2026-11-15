@@ -438,5 +438,7 @@
   "{0} MB sent": "{0} MB enviados",
   "{0} m · bearing {1}° · ETA {2} h at full speed": "{0} m · rumbo {1}° · llegada en {2} h a máxima velocidad",
   "{0}% of the disk visible": "{0}% del disco visible",
-  "Chase": "Persecución"
+  "Chase": "Persecución",
+  "real": "real",
+  "on screen": "en pantalla"
 }

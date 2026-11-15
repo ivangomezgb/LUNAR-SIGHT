@@ -438,5 +438,7 @@
   "{0} MB sent": "{0} MB sent",
   "{0} m · bearing {1}° · ETA {2} h at full speed": "{0} m · bearing {1}° · ETA {2} h at full speed",
   "{0}% of the disk visible": "{0}% of the disk visible",
-  "Chase": "Chase"
+  "Chase": "Chase",
+  "real": "real",
+  "on screen": "on screen"
 }
