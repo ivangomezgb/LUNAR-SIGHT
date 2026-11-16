@@ -29,6 +29,14 @@ export function NextStop() {
   const last = i === STOPS.length - 1;
   return (
     <nav className="next-stop" aria-label={t('Next stop')}>
+      <aside className="why-card" aria-label={t('Did you know?')}>
+        <span className="why-icon" aria-hidden><Icon name="info" size={22} /></span>
+        <div>
+          <p className="why-kicker mono">{t('Did you know?')}</p>
+          <h2 className="why-q">{t(STOPS[i].why.q)}</h2>
+          <p className="why-a">{t(STOPS[i].why.a)}</p>
+        </div>
+      </aside>
       <ol className="ns-route" aria-label={t('The route')}>
         {STOPS.map((s, k) => (
           <li key={s.path} className={k === i ? 'is-here' : k < i ? 'is-past' : ''}>

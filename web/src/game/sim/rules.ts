@@ -58,9 +58,9 @@ export const RULES = {
     // Small robotic lander (CLPS-class order of magnitude), declared game numbers.
     dryKg: 1200,
     fuelKg: 700,
-    maxThrustN: 6500, // throttleable main engine; hover throttle ~0.47 when full
+    maxThrustN: 8000, // throttleable main engine; hover throttle ~0.38 when full
     ispS: 311,
-    rcsAccel: 1.2, // m/s^2 lateral translation
+    rcsAccel: 2.0, // m/s^2 lateral translation
     rcsKgPerS: 0.25,
     maxTouchVz: 2.0, // m/s
     maxTouchVh: 1.0, // m/s

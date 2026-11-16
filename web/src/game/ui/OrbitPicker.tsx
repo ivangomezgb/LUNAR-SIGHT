@@ -223,6 +223,9 @@ export default function OrbitPicker({ sites, basemap, siteId, startMs, onSite, o
             </ul>
           )}
 
+          <ol className="flow-steps" aria-label={t('The mission')}>
+            <li className="is-on">{t('1 Choose a site')}</li><li>{t('2 Land')}</li><li>{t('3 Drive the rover')}</li>
+          </ol>
           <div className="station-top">
             <div className="station-id">
               <p className="eyebrow">{t('Stage 1 · Station {0} of {1}', { 0: index + 1, 1: order.length })}</p>

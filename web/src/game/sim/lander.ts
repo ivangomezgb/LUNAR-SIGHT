@@ -80,6 +80,19 @@ export function stepLander(f: Field, s: LanderState, input: LanderInput, dt: num
   return { ...s, x, y, z, vx, vy, vz, fuelKg, throttle };
 }
 
+/**
+ * Autopilot with the same on/off controls a player has (full engine or nothing, RCS full or
+ * nothing): null the drift over the target, descend at ~6 % of the altitude per second, then
+ * settle slowly. Tested to land softly on the real terrain.
+ */
+export function autopilot(f: Field, s: LanderState, target = { x: 0, y: 0 }): LanderInput {
+  const alt = altitude(f, s), dx = s.x - target.x, dy = s.y - target.y;
+  const ax = -0.02 * dx - 0.6 * s.vx, ay = -0.02 * dy - 0.6 * s.vy;
+  const near = Math.hypot(dx, dy) < 30 && Math.hypot(s.vx, s.vy) < 0.6;
+  const want = near ? -Math.max(0.8, alt * 0.06) : alt > 60 ? -Math.max(2, alt * 0.06) : 0;
+  return { throttle: s.vz < want ? 1 : 0, east: Math.abs(ax) > 0.3 ? Math.sign(ax) : 0, north: Math.abs(ay) > 0.3 ? Math.sign(ay) : 0 };
+}
+
 /** Height (m) needed to stop the current descent rate at full throttle (∞ if the engine cannot). */
 export function stoppingHeight(s: LanderState): number {
   const L = RULES.lander;

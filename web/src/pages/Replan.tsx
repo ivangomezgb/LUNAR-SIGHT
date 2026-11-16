@@ -57,7 +57,7 @@ export default function Replan() {
 
   const view = (o: RankedOption) => {
     setMissionDays(replan.missionDays);
-    navigate(`/?site=${encodeURIComponent(o.siteId)}&t=${isoShort(o.landingUtc)}&h=${assumptions.heightM}&lang=${useApp.getState().lang}`);
+    navigate(`/?focus=site&site=${encodeURIComponent(o.siteId)}&t=${isoShort(o.landingUtc)}&h=${assumptions.heightM}&lang=${useApp.getState().lang}`);
   };
 
   return (

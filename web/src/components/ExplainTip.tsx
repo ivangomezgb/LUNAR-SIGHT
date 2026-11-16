@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, useState } from 'react';
 import { t } from '../i18n';
 
 const TOPICS = {
@@ -12,8 +12,10 @@ const TOPICS = {
 export default function ExplainTip({ topic }: { topic: keyof typeof TOPICS }) {
   const id = useId();
   const [label, explanation] = TOPICS[topic];
-  return <span className="explain-tip">
-    <button type="button" aria-label={t(label)} aria-describedby={id}>?</button>
+  // Hover or focus shows it on desktop; a tap toggles it (iOS does not focus tapped buttons).
+  const [open, setOpen] = useState(false);
+  return <span className={`explain-tip${open ? ' is-open' : ''}`} onMouseLeave={() => setOpen(false)}>
+    <button type="button" aria-label={t(label)} aria-describedby={id} aria-expanded={open} onClick={() => setOpen((o) => !o)} onBlur={() => setOpen(false)}>?</button>
     <span id={id} role="tooltip" className="explain-content">{t(explanation)}</span>
   </span>;
 }

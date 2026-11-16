@@ -51,6 +51,9 @@ export class SurfaceScene {
   private camPos = new THREE.Vector3();
   private camTarget = new THREE.Vector3();
   private disposeInput: () => void;
+  // Night visibility aid: soft fill lights that do not exist on the Moon (clearly labelled in the HUD).
+  private aid = new THREE.Group();
+  private aidKey = new THREE.DirectionalLight(0xdfe6f0, 1.4);
 
   private node: HTMLElement;
   private field: Field;
@@ -96,6 +99,9 @@ export class SurfaceScene {
     // Faint fill so the player can still see the rover in shadow (game readability, not physics).
     const fill = new THREE.AmbientLight(0x8090b0, 0.03);
     this.scene.add(this.sun, this.sun.target, this.earthLight, this.earthLight.target, fill, this.sky, this.sunDisk, this.earthDisk);
+    this.aid.add(new THREE.HemisphereLight(0xc8d2e0, 0x1a1c20, 0.9), this.aidKey, this.aidKey.target);
+    this.aid.visible = false;
+    this.scene.add(this.aid);
 
     const glowCanvas = document.createElement('canvas');
     glowCanvas.width = glowCanvas.height = 128;
@@ -186,6 +192,9 @@ export class SurfaceScene {
     overlayUniform.value = sample ? 1 : 0;
   }
 
+  /** Turn the non-physical night fill light on or off. */
+  setEnhance(on: boolean) { this.aid.visible = on; }
+
   setBeacon(target: { x: number; y: number } | null) {
     this.beacon.visible = !!target;
     if (target) this.beacon.position.copy(v3(target.x, target.y, heightAt(this.field, target.x, target.y)));
@@ -253,6 +262,7 @@ export class SurfaceScene {
     this.sun.target.position.copy(pos);
     this.earthLight.position.copy(pos).addScaledVector(earthDir, 30000);
     this.earthLight.target.position.copy(pos);
+    if (this.aid.visible) { this.aidKey.position.copy(pos).add(new THREE.Vector3(750, 300, 550)); this.aidKey.target.position.copy(pos); }
     this.earthDisk.material.uniforms.sunDirection.value.copy(sunDir);
     if (this.firstBake) { this.bake.bakeNow(sky.sunAz, sky.sunEl); this.firstBake = false; }
     else { this.bake.request(sky.sunAz, sky.sunEl); this.bake.work(5); }

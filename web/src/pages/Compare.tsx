@@ -226,7 +226,7 @@ function CompareGrid({
                 {t('Terrain uncertainty · {0}', { 0: '2027' })}: {uncertaintyText(c.site)}
               </span>
             </div>
-            <Link className="btn btn-ghost btn-sm" to={`/?site=${encodeURIComponent(c.id)}&t=${isoShort(landingUtc)}&h=${assumptions.heightM}&lang=${useApp.getState().lang}`}> {t("Open in panorama →")} </Link>
+            <Link className="btn btn-ghost btn-sm" to={`/?focus=site&site=${encodeURIComponent(c.id)}&t=${isoShort(landingUtc)}&h=${assumptions.heightM}&lang=${useApp.getState().lang}`}> {t("Open in panorama →")} </Link>
           </section>
         ))}
       </div>

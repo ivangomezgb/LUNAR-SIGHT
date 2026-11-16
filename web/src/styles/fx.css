@@ -347,3 +347,5 @@ html:not(.pre-done) .mission-hero .hero-in, html.pre-done .mission-hero .hero-in
   .guide-pill-next { display: none; }
 }
 @media (prefers-reduced-motion: reduce) { .guide-dock, .guide-welcome { animation: none; } .nav-link.nav-next { animation: none; } }
+.guide-why { margin: 6px 0 0; font-size: .8rem; line-height: 1.45; color: var(--text-2); }
+.guide-why b { color: var(--brand-hot); }

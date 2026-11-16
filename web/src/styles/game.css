@@ -298,3 +298,29 @@ html.mission-open .guide-pill, html.mission-open .guide-dock, html.mission-open 
   .descent-ready { top: auto; bottom: 16px; transform: translateX(-50%); padding: 16px; }
   .descent-ready h2 { font-size: 1.3rem; }
 }
+
+/* Descent choices, autopilot badge, surface coach and the night visibility aid */
+.ready-next { display: flex; gap: 8px; align-items: flex-start; text-align: left; padding: 10px 12px; border-radius: 10px; background: var(--brand-soft); border: 1px solid var(--brand-line); color: #dbe8ff; }
+.ready-next .icon { margin-top: 2px; color: var(--brand-hot); }
+.ready-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.ready-actions .btn { display: inline-flex; align-items: center; gap: 8px; min-height: 46px; }
+.auto-badge, .night-badge { position: absolute; left: 50%; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 999px; font-size: .8rem; color: #e8f1ff; background: rgba(8, 11, 16, .82); border: 1px solid var(--brand-line); pointer-events: none; z-index: 3; }
+.auto-badge { bottom: 18px; }
+.night-badge { bottom: 210px; border-style: dashed; color: #cfe0ff; max-width: calc(100% - 32px); text-align: center; }
+.surface-coach { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(480px, calc(100% - 32px)); display: flex; flex-direction: column; gap: 10px; padding: 22px; border-radius: 18px; background: rgba(8, 11, 16, .9); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1px solid var(--brand-line); color: #e8eef5; z-index: 4; }
+.surface-coach h2 { margin: 0; font-family: var(--display); font-weight: 400; font-size: 1.7rem; line-height: 1.1; color: #fff; }
+.surface-coach p { margin: 0; }
+.surface-coach .eyebrow { margin: 0; }
+.surface-coach .btn { align-self: flex-start; }
+.hud-light button[aria-pressed="true"] { background: var(--brand); color: var(--ink-on-brand); border-color: var(--brand); }
+@media (max-width: 699px) {
+  .night-badge { bottom: auto; top: 230px; font-size: .72rem; }
+  .surface-coach { top: auto; bottom: 12px; transform: translateX(-50%); padding: 16px; }
+  .surface-coach h2 { font-size: 1.3rem; }
+  .hud-light { display: flex; }
+}
+
+.flow-steps { list-style: none; margin: 0; padding: 0; display: flex; gap: 6px; flex-wrap: wrap; }
+.flow-steps li { padding: 3px 10px; border-radius: 999px; font-size: .72rem; color: #9fb0c3; border: 1px solid rgba(255,255,255,.14); }
+.flow-steps li.is-on { color: var(--ink-on-brand); background: var(--brand); border-color: var(--brand); }
+.flow-steps li + li::before { content: '→ '; color: #5d6b7c; }

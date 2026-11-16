@@ -85,6 +85,7 @@ export default function Guide() {
           <strong><Icon name={here.icon} /> {t(here.title)}</strong>
           <p>{t(here.what)}</p>
           <p className="guide-try"><b>{t('Try:')}</b> {t(here.tryIt)}</p>
+          <p className="guide-why"><b>{t('Did you know?')}</b> {t(here.why.q)} {t(here.why.a)}</p>
         </div>
       ) : <div className="guide-here"><p>{t('This page is part of the route; use the menu or the next stop below.')}</p></div>}
       {done ? (

@@ -13,7 +13,7 @@ import { RULES } from '../sim/rules';
 import { type Env, newWorld, scan, scanBlocker, stepWorld, type World } from '../sim/world';
 import { type CameraMode, SurfaceScene } from '../render/SurfaceScene';
 import { LESSONS } from './lessons';
-import { newLander, stepLander, type LanderState } from '../sim/lander';
+import { autopilot, newLander, stepLander, type LanderState } from '../sim/lander';
 import { newRover } from '../sim/rover';
 import { sunFraction } from '../../lib/sunFraction';
 import { skyAt } from '../sim/clock';
@@ -53,6 +53,14 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
   const keys = useRef(new Set<Action>());
   // The descent waits for the player's first control, so nobody starts it already falling.
   const waitingRef = useRef(false);
+  // Autopilot landing: the player can watch, or take over with any control.
+  const autoRef = useRef(false);
+  const [autoLand, setAutoLand] = useState(false);
+  // Hold Shift on the surface: time runs at the fastest driving speed while held.
+  const boostRef = useRef(false);
+  // Night visibility aid: on by itself in shadow unless the player turns it off.
+  const [enhanceMode, setEnhanceMode] = useState<'auto' | 'on' | 'off'>('auto');
+  const [coach, setCoach] = useState(false);
   const [waiting, setWaiting] = useState(false);
   const touch = useRef({ throttle: 0, steer: 0, thrust: 0 });
   const [hud, setHud] = useState<World>(world.current);
@@ -118,12 +126,16 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
       };
       if (phaseRef.current === 'descent' && landerRef.current) {
         const lin = { throttle: k.has('thrust') || touch.current.thrust ? 1 : 0, east: input.steer, north: (k.has('up') ? 1 : 0) - (k.has('down') ? 1 : 0) + touch.current.throttle };
+        const anyControl = k.size || touch.current.thrust || touch.current.throttle || touch.current.steer;
         if (waitingRef.current) {
-          if (k.size || touch.current.thrust || touch.current.throttle || touch.current.steer) { waitingRef.current = false; setWaiting(false); }
+          if (anyControl) { waitingRef.current = false; setWaiting(false); }
           else { scene.render(world.current, dt, landerRef.current, true); frame = requestAnimationFrame(loop); return; }
         }
+        if (autoRef.current && anyControl) { autoRef.current = false; setAutoLand(false); } // the player takes over
         let l = landerRef.current;
-        for (let t2 = 0; t2 < dt && !l.landed; t2 += 0.02) l = stepLander(env.field, l, lin, Math.min(0.02, dt - t2));
+        // the autopilot flies at 3× so watching it never drags; the player flies in real time
+        const simDt = autoRef.current ? dt * 3 : dt;
+        for (let t2 = 0; t2 < simDt && !l.landed; t2 += 0.02) l = stepLander(env.field, l, autoRef.current ? autopilot(env.field, l, TARGET) : lin, Math.min(0.02, simDt - t2));
         if (l.landed && !landerRef.current.landed) {
           const tc = l.touch!;
           const lit = sunBelow(l) > 0.5;
@@ -137,7 +149,9 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
         return;
       }
       const wasEnded = world.current.ended;
-      world.current = stepWorld(env, world.current, input, dt);
+      const w0 = world.current, boost = boostRef.current && w0.warp < MAX_DRIVE_WARP;
+      const stepped = stepWorld(env, boost ? { ...w0, warp: MAX_DRIVE_WARP } : w0, input, dt);
+      world.current = boost ? { ...stepped, warp: w0.warp } : stepped;
       const r = updateMission(mission.current, world.current);
       if (r.completed.length) {
         mission.current = r.mission;
@@ -165,6 +179,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
 
     const down = (e: KeyboardEvent) => {
       if (isTyping(e.target)) return;
+      if (e.key === 'Shift') boostRef.current = true;
       const action = actionOf(e);
       if (action && phaseRef.current !== 'brief') {
         e.preventDefault(); // no page scroll, and Space never presses a focused button
@@ -182,12 +197,13 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
       if (letter === 'c') setCamera((c) => (c === 'chase' ? 'mast' : c === 'mast' ? 'top' : 'chase'));
     };
     const up = (e: KeyboardEvent) => {
+      if (e.key === 'Shift') boostRef.current = false;
       // release by both mappings: a key pressed with Ctrl down may come back without it
       const a = actionOf({ code: e.code, key: e.key }), b = actionOf({ key: e.key });
       if (a) keys.current.delete(a);
       if (b) keys.current.delete(b);
     };
-    const blur = () => keys.current.clear();
+    const blur = () => { keys.current.clear(); boostRef.current = false; };
     window.addEventListener('keydown', down);
     window.addEventListener('keyup', up);
     window.addEventListener('blur', blur);
@@ -203,6 +219,10 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
   }, [env, terrain, sunBelow]);
 
   useEffect(() => { if (sceneRef.current) sceneRef.current.mode = camera; }, [camera]);
+  useEffect(() => { if (coach && hud.rover.odometer > 8) setCoach(false); }, [coach, hud.rover.odometer]);
+  const dark = phase !== 'brief' && hud.sunFrac < 0.05;
+  const enhanced = enhanceMode === 'on' || (enhanceMode === 'auto' && dark);
+  useEffect(() => { sceneRef.current?.setEnhance(enhanced); }, [enhanced]);
   useEffect(() => {
     if (phase !== 'surface') return;
     const save = () => {
@@ -234,6 +254,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
     world.current = { ...world.current, rover: newRover(spot.x, spot.y, 0), paused: false };
     setHud(world.current);
     setPhase('surface');
+    setCoach(true); // first minutes on the surface: say plainly that the rover is now yours to drive
   };
   const startDescent = () => {
     setBriefing(false); setLanding(null);
@@ -241,6 +262,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
     setLanderHud(landerRef.current);
     keys.current.clear();
     waitingRef.current = true; setWaiting(true);
+    autoRef.current = false; setAutoLand(false);
     setPhase('descent');
     focusView();
   };
@@ -374,6 +396,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
         </div>
       </div>
 
+      {enhanced && dark && <div className="night-badge" role="note">{t('In shadow: the real scene is dark. Enhanced visibility (non-physical fill light).')}</div>}
       {alert && (
         <div className="game-alert" role="alert">
           {t(alert === 'sunset'
@@ -450,6 +473,11 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
           )}
         </form>
 
+        <div className="hud-card hud-cams hud-light" role="group" aria-label={t('Visibility')}>
+          <button type="button" aria-pressed={enhanced} onClick={() => setEnhanceMode(enhanced ? 'off' : 'on')} title={t('Adds a soft fill light that does not exist on the Moon, to read the relief in shadow.')}>
+            <Icon name="sun" size={13} /> {t('Enhance visibility')}
+          </button>
+        </div>
         <div className="hud-card hud-cams" role="group" aria-label={t('Camera')}>
           {(['chase', 'mast', 'top'] as const).map((c) => (
             <button key={c} type="button" aria-pressed={camera === c} onClick={() => setCamera(c)}>{t(c === 'chase' ? 'Chase' : c === 'mast' ? 'Mast camera' : 'Top')}</button>
@@ -475,10 +503,34 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
             <kbd className="keycap">W</kbd><kbd className="keycap">A</kbd><kbd className="keycap">S</kbd><kbd className="keycap">D</kbd><span>{t('slide sideways')}</span>
           </div>
           <p className="ctl-touch small">{t('Hold THRUST to brake; the arrows slide sideways.')}</p>
-          <button type="button" className="btn btn-primary btn-lg" onClick={() => { waitingRef.current = false; setWaiting(false); focusView(); }}>
-            <Icon name="play" size={14} /> {t('Start the descent')}
-          </button>
+          <p className="ready-next small"><Icon name="info" size={14} /> {t('After touchdown your rover rolls out and you drive it with W A S D (or the arrows) to find light and send data home.')}</p>
+          <div className="ready-actions">
+            <button type="button" className="btn btn-primary btn-lg" onClick={() => { waitingRef.current = false; setWaiting(false); focusView(); }}>
+              <Icon name="play" size={14} /> {t('Pilot it myself')}
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => { autoRef.current = true; setAutoLand(true); waitingRef.current = false; setWaiting(false); focusView(); }}>
+              <Icon name="rocket" size={14} /> {t('Autopilot landing')}
+            </button>
+            <button type="button" className="btn btn-ghost" onClick={() => { setWaiting(false); waitingRef.current = false; skipToSurface(); }}>
+              <Icon name="chevronRight" size={14} /> {t('Skip to the rover')}
+            </button>
+          </div>
           <p className="small muted ctl-keys">{t('or just press SPACE')}</p>
+        </div>
+      )}
+
+      {phase === 'descent' && autoLand && !landing && (
+        <div className="auto-badge" role="status"><Icon name="rocket" size={14} /> {t('Autopilot is landing · press any control to take over')}</div>
+      )}
+
+      {phase === 'surface' && coach && !briefing && !debrief && (
+        <div className="surface-coach" role="dialog" aria-labelledby="coach-title">
+          <p className="eyebrow">{t('Stage 3 · Surface')}</p>
+          <h2 id="coach-title">{t('Your rover is on the Moon. Drive it!')}</h2>
+          <p className="ctl-keys">{t('W or ↑ forward · S or ↓ back · A D or ← → turn. Hold Shift to fast-forward. Press E to scan when stopped.')}</p>
+          <p className="ctl-touch">{t('Use the arrows on the right to drive; scan with the Scan button when stopped.')}</p>
+          <p className="small muted">{t('Why does it matter where you drive? Here the Sun is so low that a few metres of ridge decide between light and a freezing shadow. Follow the objectives at the top left.')}</p>
+          <button type="button" className="btn btn-primary" onClick={() => { setCoach(false); focusView(); }}>{t('Got it, let me drive')}</button>
         </div>
       )}
 
@@ -575,7 +627,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
             {published && (
               <p className="small">
                 {t('Published analysis of this site for 14 days from your start: sunlight {0}% · Earth visible {1}% of the hours.', { 0: published.lightPct.toFixed(0), 1: published.earthPct.toFixed(0) })}{' '}
-                <Link className="link" to={`/?site=${encodeURIComponent(site.id)}`}>{t('Open it in Explore')} →</Link>
+                <Link className="link" to={`/?focus=site&site=${encodeURIComponent(site.id)}`}>{t('Open it in Explore')} →</Link>
               </p>
             )}
             <div className="hud-row">

@@ -141,6 +141,6 @@ mission data; they are shown in the "Game rules" panel and live in `web/src/game
 | Sun/Earth direction | The site's ephemeris everywhere in the ±5 km play area | Direction changes < 0.2° over 5 km. |
 | Far-horizon parallax | Ignored for obstacles beyond 51 km | ≲ 10 % of their (small) elevation over 5 km. |
 | Terrain shading | Same horizon model, baked on a 192² grid (128² on phones) | So what you see in shadow is what drains the battery. |
-| Lander (descent) | 1200 kg dry + 700 kg propellant, 6500 N throttleable engine (Isp 311 s), 1.2 m/s² lateral RCS | Small robotic lander order of magnitude; real lunar gravity 1.62 m/s². |
+| Lander (descent) | 1200 kg dry + 700 kg propellant, 8000 N throttleable engine (Isp 311 s), 2.0 m/s² lateral RCS | Small robotic lander order of magnitude; real lunar gravity 1.62 m/s². |
 | Safe touchdown | Vertical speed < 2 m/s, drift < 1 m/s, slope < 8° under the legs (real 10 m terrain) | Typical robotic-lander limits, rounded. |
 | Descent start | 900 m above the target, falling 18 m/s, 166 m off with 5 m/s drift | Short enough to play; the "brake now" cue appears ≥ 500 m up in free fall (tested). |

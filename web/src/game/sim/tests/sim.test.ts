@@ -279,7 +279,7 @@ describe('fast warp safety', () => {
   });
 });
 
-import { altitude, hoverThrottle, judge, newLander, stepLander } from '../lander';
+import { altitude, autopilot, hoverThrottle, judge, newLander, stepLander } from '../lander';
 describe('powered descent', () => {
   const flat = field(() => 100, 201, 10);
   it('free fall at lunar gravity ends in a crash', () => {
@@ -332,14 +332,8 @@ describe.skipIf(!hasRealData('connecting-ridge'))('descent on the real terrain',
     const { terrain } = loadRealSite('connecting-ridge');
     const f = makeField(terrain);
     let s = newLander(f);
-    for (let k = 0; k < 20000 && !s.landed; k++) {
-      const alt = altitude(f, s);
-      const ax = -0.02 * s.x - 0.6 * s.vx, ay = -0.02 * s.y - 0.6 * s.vy;
-      const near = Math.hypot(s.x, s.y) < 30 && Math.hypot(s.vx, s.vy) < 0.6;
-      const want = near ? -Math.max(0.8, alt * 0.06) : alt > 60 ? -Math.max(2, alt * 0.06) : 0;
-      // on/off keys, like the keyboard: full engine or nothing, RCS full or nothing
-      s = stepLander(f, s, { throttle: s.vz < want ? 1 : 0, east: Math.abs(ax) > 0.3 ? Math.sign(ax) : 0, north: Math.abs(ay) > 0.3 ? Math.sign(ay) : 0 }, 0.02);
-    }
+    // the game's autopilot uses on/off keys, like the keyboard: full engine or nothing
+    for (let k = 0; k < 20000 && !s.landed; k++) s = stepLander(f, s, autopilot(f, s), 0.02);
     console.info(`real-terrain landing: ${s.landed} ${s.reason} at ${Math.hypot(s.x, s.y).toFixed(1)} m, touch vz ${s.touch?.vz.toFixed(2)} vh ${s.touch?.vh.toFixed(2)} slope ${s.touch?.slope.toFixed(1)}, fuel ${(100 * s.fuelKg / RULES.lander.fuelKg).toFixed(0)}%`);
     expect(s.landed).toBe('ok');
     expect(Math.hypot(s.x, s.y)).toBeLessThan(40);

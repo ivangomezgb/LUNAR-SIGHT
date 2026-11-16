@@ -22,6 +22,7 @@ import { ErrorBox, Loading, Empty } from '../components/Status';
 import { seriesFor, coverage, assumptionsFor } from '../components/series';
 import { groupLabel, HOUR_MS, isoHour, isoShort, parseUtc, fmtUtc, fmtInt } from '../components/format';
 import Icon from '../components/Icon';
+import { headerOffset, reducedMotion } from '../fx/useScrollFx';
 
 const HeroTerrain = lazy(() => import('../fx/HeroTerrain'));
 const HERO_RELIEF = 3;
@@ -55,6 +56,19 @@ export default function Explore() {
   const go = (id: string, t: string) => setSp((prev) => { const next = new URLSearchParams(prev); next.set('site', id); next.set('t', isoShort(t)); return next; }, { replace: true });
 
   const site = useSite(siteId);
+  // Arriving from "Open in panorama" (Compare, Mission delayed, Any point, the game): bring the
+  // chosen site's panorama into view instead of leaving the visitor at the top of the page.
+  const focusSite = sp.get('focus') === 'site';
+  useEffect(() => {
+    if (!focusSite || !site.data) return;
+    const id = window.setTimeout(() => {
+      const el = document.querySelector<HTMLElement>('.site-header');
+      if (el) window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - headerOffset(), behavior: reducedMotion() ? 'auto' : 'smooth' });
+      setSp((prev) => { const next = new URLSearchParams(prev); next.delete('focus'); return next; }, { replace: true });
+    }, 120);
+    return () => clearTimeout(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [focusSite, site.data]);
   const entry = list.find((s) => s.id === siteId);
   // The hero is lit by the Sun's real direction at the chosen landing hour.
   const heroSun = useMemo(() => {
