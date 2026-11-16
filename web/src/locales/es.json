@@ -1148,5 +1148,9 @@
   "Without a relay satellite a lander can only talk to Earth while the Earth is above its real horizon; from the south pole the Earth sits low in the sky and ridges often hide it.": "Sin un satélite repetidor, un módulo solo puede hablar con la Tierra mientras esta está sobre su horizonte real; desde el polo sur la Tierra está baja en el cielo y las crestas a menudo la ocultan.",
   "Why is landing on the Moon so demanding?": "¿Por qué alunizar es tan exigente?",
   "Lunar gravity is about one sixth of Earth’s (1.62 m/s²), but there is no air to slow a lander: every metre per second of fall has to be removed by the engine.": "La gravedad lunar es cerca de un sexto de la terrestre (1,62 m/s²), pero no hay aire que frene al módulo: cada metro por segundo de caída lo tiene que quitar el motor.",
-  "The mission": "La misión"
+  "The mission": "La misión",
+  "Turn sound on": "Activar el sonido",
+  "Turn sound off": "Silenciar el sonido",
+  "Sound on": "Sonido",
+  "Sound off": "Sin sonido"
 }

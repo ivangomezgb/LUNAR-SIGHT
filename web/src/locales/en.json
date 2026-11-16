@@ -1148,5 +1148,9 @@
   "Without a relay satellite a lander can only talk to Earth while the Earth is above its real horizon; from the south pole the Earth sits low in the sky and ridges often hide it.": "Without a relay satellite a lander can only talk to Earth while the Earth is above its real horizon; from the south pole the Earth sits low in the sky and ridges often hide it.",
   "Why is landing on the Moon so demanding?": "Why is landing on the Moon so demanding?",
   "Lunar gravity is about one sixth of Earth’s (1.62 m/s²), but there is no air to slow a lander: every metre per second of fall has to be removed by the engine.": "Lunar gravity is about one sixth of Earth’s (1.62 m/s²), but there is no air to slow a lander: every metre per second of fall has to be removed by the engine.",
-  "The mission": "The mission"
+  "The mission": "The mission",
+  "Turn sound on": "Turn sound on",
+  "Turn sound off": "Turn sound off",
+  "Sound on": "Sound on",
+  "Sound off": "Sound off"
 }

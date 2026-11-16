@@ -15,6 +15,7 @@ import { stationAfter, stationOrder } from '../sim/stations';
 import { OrbitScene } from '../render/OrbitScene';
 import Icon from '../../components/Icon';
 import { actionOf, isTyping } from './controls';
+import { sfx } from '../audio/sfx';
 
 interface Props {
   sites: SiteIndexEntry[];
@@ -74,7 +75,8 @@ export default function OrbitPicker({ sites, basemap, siteId, startMs, onSite, o
       };
       sceneRef.current = scene;
       scene.onFar = setFar;
-      scene.onArrive = () => arrived.current();
+      scene.onArrive = () => { sfx.chime(); arrived.current(); };
+      scene.onFlight = (ms) => sfx.whoosh(ms);
       scene.select(siteRef.current);
       scene.playIntro();
       if (skyRef.current) scene.setSky(skyRef.current);

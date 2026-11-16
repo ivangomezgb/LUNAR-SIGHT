@@ -23,6 +23,7 @@ import KeyHints from './KeyHints';
 import { type Action, actionOf, isTyping, letterOf, warpStepOf } from './controls';
 import { clearSave, loadSave, writeSave } from './save';
 import Icon from '../../components/Icon';
+import { sfx } from '../audio/sfx';
 
 interface Props {
   env: Env;
@@ -98,6 +99,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
     const why = scanBlocker(world.current);
     if (why) { setScanMsg(t(why === 'moving' ? 'Stop the rover to scan' : 'Not enough battery to scan')); return; }
     world.current = scan(world.current);
+    sfx.scan();
     setScanMsg(t('Scan done: +{0} MB waiting for an Earth link', { 0: RULES.science.scanMB }));
   };
   const scanRef = useRef(doScan);
@@ -136,7 +138,11 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
         // the autopilot flies at 3× so watching it never drags; the player flies in real time
         const simDt = autoRef.current ? dt * 3 : dt;
         for (let t2 = 0; t2 < simDt && !l.landed; t2 += 0.02) l = stepLander(env.field, l, autoRef.current ? autopilot(env.field, l, TARGET) : lin, Math.min(0.02, simDt - t2));
+        sfx.setEngine(l.landed ? 0 : l.throttle);
+        sfx.setRcs(!l.landed && l.fuelKg > 0 && (autoRef.current ? false : !!(lin.east || lin.north)));
         if (l.landed && !landerRef.current.landed) {
+          sfx.setEngine(0); sfx.setRcs(false);
+          sfx.touchdown(l.landed === 'ok');
           const tc = l.touch!;
           const lit = sunBelow(l) > 0.5;
           setLanding({ ok: l.landed === 'ok', reason: l.reason, vz: tc.vz, vh: tc.vh, slope: tc.slope, dist: Math.hypot(l.x - TARGET.x, l.y - TARGET.y), fuelPct: (l.fuelKg / RULES.lander.fuelKg) * 100, lit });
@@ -157,6 +163,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
         mission.current = r.mission;
         setM(r.mission);
         setToast(r.completed[r.completed.length - 1]);
+        sfx.success();
         clearTimeout(toastTimer);
         toastTimer = window.setTimeout(() => setToast(null), 9000);
         if (allDone(r.mission)) { world.current = { ...world.current, paused: true }; setDebrief(true); }
@@ -164,10 +171,12 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
       if (world.current.ended && !wasEnded) setDebrief(true);
       if (world.current.alert) {
         setAlert(world.current.alert);
+        sfx.alarm();
         world.current = { ...world.current, alert: '' };
         window.setTimeout(() => setAlert(''), 8000);
       }
       scene.render(world.current, dt, landerRef.current, false);
+      sfx.setMotor(world.current.paused || world.current.ended ? 0 : Math.abs(world.current.rover.speed) / RULES.rover.maxSpeed);
       if (input.throttle || input.steer) idleSince.current = now;
       if (now - lastHud > 120) {
         setHud(world.current); setBakeVersion(scene.bakeVersion); lastHud = now;
@@ -213,6 +222,7 @@ export default function SurfaceGame({ env, terrain, site, startMs, published, au
       window.removeEventListener('keydown', down);
       window.removeEventListener('keyup', up);
       window.removeEventListener('blur', blur);
+      sfx.stopLoops();
       scene.dispose();
       sceneRef.current = null;
     };

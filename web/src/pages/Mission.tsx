@@ -18,6 +18,7 @@ import { climbLimitDeg, holdLimitDeg } from '../game/sim/rover';
 import { peekSave } from '../game/ui/save';
 import Icon from '../components/Icon';
 import '../styles/game.css';
+import { sfx } from '../game/audio/sfx';
 
 const SurfaceGame = lazy(() => import('../game/ui/SurfaceGame'));
 const OrbitPicker = lazy(() => import('../game/ui/OrbitPicker'));
@@ -38,6 +39,15 @@ export default function Mission() {
   const [error, setError] = useState('');
   const [saved] = useState(peekSave);
   const [rulesOpen, setRulesOpen] = useState(false);
+  const [muted, setMuted] = useState(sfx.muted);
+  useEffect(() => sfx.onMute(setMuted), []);
+  // Browsers only let sound start after a gesture: unlock on the first click, tap or key.
+  useEffect(() => {
+    const unlock = () => sfx.unlock();
+    window.addEventListener('pointerdown', unlock);
+    window.addEventListener('keydown', unlock);
+    return () => { window.removeEventListener('pointerdown', unlock); window.removeEventListener('keydown', unlock); sfx.stopLoops(); };
+  }, []);
   const navigate = useNavigate();
   const shell = useRef<HTMLElement>(null);
   const canFullscreen = typeof document !== 'undefined' && !!document.fullscreenEnabled;
@@ -115,6 +125,9 @@ export default function Mission() {
         </div>
         <div className="mission-bar-actions">
           {stage === 'surface' && <button type="button" className="mission-btn" onClick={() => go({ stage: null, start: null })}><Icon name="moon" size={18} /> <span>{t('Back to orbit')}</span></button>}
+          <button type="button" className="mission-btn" aria-pressed={!muted} onClick={() => { sfx.unlock(); sfx.setMuted(!muted); }} aria-label={muted ? t('Turn sound on') : t('Turn sound off')} title={muted ? t('Turn sound on') : t('Turn sound off')}>
+            <Icon name={muted ? 'volumeOff' : 'volume'} size={18} /> <span>{muted ? t('Sound off') : t('Sound on')}</span>
+          </button>
           <button type="button" className="mission-btn" onClick={() => setRulesOpen(true)}><Icon name="info" size={18} /> <span>{t('Rules')}</span></button>
           {canFullscreen && <button type="button" className="mission-btn" onClick={toggleFullscreen} aria-label={t('Toggle fullscreen')} title={t('Toggle fullscreen')}><Icon name="maximize" size={18} /></button>}
         </div>

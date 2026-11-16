@@ -43,6 +43,8 @@ export class OrbitScene {
   private earthDir = new THREE.Vector3(0, 0.05, -1).normalize();
   /** The ship reached a station. */
   onArrive: (id: string) => void = () => {};
+  /** A flight (between stations or down to the surface) starts and lasts `ms`. */
+  onFlight: (ms: number) => void = () => {};
   /** True while the ship is flying between stations. */
   get traveling() { return !!this.travel; }
   private reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -292,6 +294,7 @@ export class OrbitScene {
       // climb high enough to see the curve of the Moon on longer hops
       hump: Math.min(240, 40 + distKm * 0.9), bank: turn, side: turn,
     };
+    this.onFlight(this.travel.ms);
   }
 
   private stepTravel() {
@@ -397,6 +400,7 @@ export class OrbitScene {
     const shipTo = pin.base.clone().addScaledVector(up, 0.4);
     if (this.ship.group.visible) { this.ship.plume.visible = true; this.ship.plume.scale.set(1, 6, 1); this.ship.plume.position.y = 0.75 - 3; }
     this.fly = { t0: performance.now(), ms: 2600, from: this.camera.position.clone(), to, fromT: this.controls.target.clone(), toT: pin.base.clone(), done, ship: [this.shipPos.clone(), shipTo] };
+    this.onFlight(2600);
   }
 
   private draw() {

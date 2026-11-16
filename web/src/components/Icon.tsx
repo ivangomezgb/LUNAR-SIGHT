@@ -30,6 +30,8 @@ const PATHS = {
   chevronDown: <path d="m6 9 6 6 6-6" />,
   minus: <path d="M5 12h14" />,
   play: <path d="M7 4.5v15l12-7.5Z" />,
+  volume: <><path d="M11 5 6 9H2v6h4l5 4V5Z" /><path d="M15.5 8.5a5 5 0 0 1 0 7M19 5a10 10 0 0 1 0 14" /></>,
+  volumeOff: <><path d="M11 5 6 9H2v6h4l5 4V5Z" /><path d="m22 9-6 6M16 9l6 6" /></>,
   keyboard: <><rect x="2" y="6" width="20" height="12" rx="2" /><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10" /></>,
   exit: <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />,
   rotate: <path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5" />,
